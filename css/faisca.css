@@ -395,3 +395,31 @@ html[data-mascote="nico"] .inicio-topo { background: var(--azul); }
 .caminho .passo { width: 34px; height: 34px; font-size: 15px; }
 .caminho .passo + .passo { margin-left: 12px; }
 .caminho .passo + .passo::before { width: 12px; }
+
+/* ============================================================ modo livre (17 Out 2026, noite) */
+/* cartão do modo livre no ecrã inicial: fundo escuro, com as cores das categorias */
+.cartao-livre { background: #2b2b2b; color: #fff; border-color: #2b2b2b; border-top-color: #111; }
+.cartao-livre .cx-tema { color: #ffd34d; }
+.cartao-livre .cx-desc { color: #e8e8e8; }
+.cartao-livre .cx-feito { background: #ffd34d; color: #222; }
+.cx-gavetas { display: flex; flex-wrap: wrap; gap: 4px; }
+.cx-gavetas i { width: 14px; height: 14px; border-radius: 4px; background: var(--g); }
+/* topo sem caminho de desafios */
+.modo-livre .caminho { visibility: hidden; }
+/* caixa de blocos com categorias, como no MakeCode */
+.blocklyToolbox { background: #fff !important; border-right: 1px solid var(--linha); padding: 6px 0 !important; min-width: 168px; }
+.blocklyToolboxCategory { --cor: #888; display: flex; align-items: center; gap: 10px; height: 40px !important; line-height: 40px;
+  margin: 0 !important; padding: 0 14px 0 12px !important; border: 0 !important; cursor: pointer; }
+.blocklyToolboxCategory:hover { background: #f2f2f2; }
+.blocklyToolboxCategory .blocklyToolboxCategoryIcon { visibility: visible; width: 18px; height: 18px; border-radius: 5px;
+  background: var(--cor) !important; flex: none; }
+.blocklyToolboxCategoryLabel { font: 600 16px 'Asap', 'Segoe UI', sans-serif !important; color: #333; }
+.blocklyToolboxSelected .blocklyToolboxCategoryLabel { color: #fff; }
+.blocklyToolboxSelected .blocklyToolboxCategoryIcon { background: #fff !important; opacity: 0.9; }
+/* ecrã OLED do kit no micro:bit do ecrã */
+.sim-oled { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 8px auto 4px; padding: 10px 12px 8px;
+  background: #1a5fb4; border-radius: 8px; width: fit-content; max-width: 100%; }
+.sim-oled canvas { width: 256px; max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 3px; }
+.sim-oled-rotulo { font: 700 12px 'Asap', sans-serif; color: #dbe8ff; letter-spacing: 0.08em; }
+.sim-oled-aviso { display: none; font: 600 13px 'Asap', sans-serif; color: #ffd34d; }
+.sim-oled.desligado .sim-oled-aviso { display: block; }

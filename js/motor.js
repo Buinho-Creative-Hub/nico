@@ -123,6 +123,11 @@
         case 'mk_ler_digital': return this.sensor('digital:' + v.getFieldValue('P'));
         case 'mk_ler_analogico': return this.sensor('analogico:' + v.getFieldValue('P'));
         case 'mk_var': return this.vars[v.getFieldValue('VAR')] ?? 0;
+        // Smart Science IoT Kit (no ecrã os valores vêm dos controlos «kit», qualquer que seja o pino)
+        case 'mk_kit_ruido': return this.sensor('kit_ruido');
+        case 'mk_kit_luz': return this.sensor('kit_luz');
+        case 'mk_kit_pir': return !!this.sensor('kit_pir');
+        case 'mk_kit_bme': return this.sensor('bme_' + v.getFieldValue('Q'));
         case 'mk_aleatorio': { const a = Math.round(n('A')), b = Math.round(n('B')); const lo = Math.min(a, b), hi = Math.max(a, b); return lo + Math.floor(Math.random() * (hi - lo + 1)); }
         case 'mk_resto': { const b = n('B', 1); return b ? n('A') % b : 0; }
         case 'mk_conta': {
@@ -243,6 +248,31 @@
           const v = Number(this.valor(b, 'V', 0));
           this.emTodas(s => s.registar && s.registar(nome, v));
           this.registo('out', 'registo:' + nome + ':' + v);
+          break;
+        }
+        // ---- ecrã OLED do Smart Science IoT Kit
+        case 'mk_oled_iniciar':
+          this.emTodas(s => s.oled && s.oled('iniciar'));
+          this.registo('out', 'oled:iniciar');
+          break;
+        case 'mk_oled_limpar':
+          this.emTodas(s => s.oled && s.oled('limpar'));
+          this.registo('out', 'oled:limpar');
+          break;
+        case 'mk_oled_texto': case 'mk_oled_numero': {
+          let t;
+          if (b.type === 'mk_oled_numero') { let x = Number(this.valor(b, 'N', 0)); if (!Number.isFinite(x)) x = 0; t = String(Math.round(x * 100) / 100); }
+          else t = String(this.valor(b, 'T', ''));
+          this.emTodas(s => s.oled && s.oled('texto', t));
+          this.registo('out', (b.type === 'mk_oled_numero' ? 'oled:numero:' : 'oled:texto:') + t);
+          await this.esperar(20, g);
+          break;
+        }
+        case 'mk_oled_barra': {
+          const p = Math.max(0, Math.min(100, Math.floor(Number(this.valor(b, 'V', 0)) || 0)));
+          this.emTodas(s => s.oled && s.oled('barra', p));
+          this.ecra('oled:barra:' + p);
+          await this.esperar(20, g);
           break;
         }
         case 'mk_som': {

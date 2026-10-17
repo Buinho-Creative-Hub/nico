@@ -13,6 +13,10 @@
   const CHAVE = F.chaveMissao(X);
   const params = new URLSearchParams(location.search);
   const N = F.DESAFIOS.length;
+  // Modo livre: caixa com categorias (como no MakeCode), sem caminho de desafios nem validação
+  const LIVRE = !!X.modoLivre;
+  const caixaDe = n => LIVRE ? F.caixaCategorias() : F.caixa(n);
+  if (LIVRE) document.body.classList.add('modo-livre');
 
   // ------------------------------------------------------------ marca e mascote
   document.title = M.marca.nome + ' · ' + X.titulo;
@@ -23,6 +27,7 @@
   $('tutor').setAttribute('aria-label', M.descricao);
   $('tutorNome').textContent = M.nome;
   $('tutorGambiarra').textContent = 'Ajudar ' + M.artigo + ' ' + M.nome;
+  if (LIVRE) $('editorDica').textContent = 'Escolhe uma categoria à esquerda e arrasta os blocos para a área cinzenta.';
 
   // ------------------------------------------------------------ estado guardado
   function ler() { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } }
@@ -38,7 +43,7 @@
     renderer: 'makecode',
     theme: 'makecode',
     media: 'vendor/media/',
-    toolbox: F.caixa(estado.atual),
+    toolbox: caixaDe(estado.atual),
     trashcan: true,
     sounds: false,
     zoom: { controls: true, wheel: false, startScale: 1, maxScale: 1.6, minScale: 0.6 },
@@ -79,6 +84,7 @@
     mostrarTexto: (t, n) => sim.mostrarTexto(t, n),
     servo: (p, a) => sim.servo(p, a),
     registar: (n, v) => sim.registar(n, v),
+    oled: (op, a) => sim.oled(op, a),
   };
 
   // ------------------------------------------------------------ controlos dos sensores e variáveis no ecrã
@@ -86,13 +92,16 @@
   const CONTROLOS = {
     mk_luz: ['luz'], mk_escuro: ['luz'], mk_som_nivel: ['som', 'palmas'], mk_som_alto: ['palmas', 'som'],
     mk_temperatura: ['temperatura'], mk_ler_analogico: ['analogico:P1'], mk_ler_digital: ['digital:P0'],
+    mk_kit_ruido: ['kit_ruido'], mk_kit_luz: ['kit_luz'], mk_kit_pir: ['kit_pir'],
   };
   function atualizarControlos() {
     const d = F.DESAFIOS[estado.atual];
     const lista = new Set(d.sim || []);
     const tipos = new Set();
-    for (const m of F.caixa(estado.atual).matchAll(/<block type="([a-z_]+)"/g)) tipos.add(m[1]);   // blocos que estão na caixa
+    // blocos que estão na caixa (no modo livre a caixa tem tudo: contam só os blocos do programa)
+    if (!LIVRE) for (const m of F.caixa(estado.atual).matchAll(/<block type="([a-z_]+)"/g)) tipos.add(m[1]);
     ws.getAllBlocks(false).forEach(b => {
+      if (b.type === 'mk_kit_bme') lista.add('bme_' + b.getFieldValue('Q'));
       tipos.add(b.type);
       if (b.type === 'mk_gesto') lista.add('gesto:' + b.getFieldValue('G'));
       if (b.type === 'mk_ler_analogico') lista.add('analogico:' + b.getFieldValue('P'));
@@ -101,6 +110,7 @@
     for (const t of tipos) (CONTROLOS[t] || []).forEach(c => lista.add(c));
     if (tipos.has('mk_gesto') && ![...lista].some(c => c.startsWith('gesto:'))) ['gesto:left', 'gesto:right'].forEach(c => lista.add(c));
     sim.controlos([...lista]);
+    sim.mostrarOled([...tipos].some(t => t.startsWith('mk_oled_')));
   }
   const caixaVars = document.createElement('div');
   caixaVars.className = 'sim-vars'; caixaVars.setAttribute('aria-live', 'polite');
@@ -144,6 +154,7 @@
   function entrada(k, origem) {
     if (k === 'agitar' && origem === 'microbit') { sim.svg.classList.remove('a-agitar'); void sim.svg.getBBox(); sim.svg.classList.add('a-agitar'); }
     motor.acontecimento(k);
+    if (F.DESAFIOS[estado.atual].livre) return;   // projeto livre / modo livre: não há teste que possa falhar
     // A mascote espera que o programa corra antes de concluir que o teste falhou
     tutor.testou();
     const t0 = performance.now();
@@ -231,7 +242,7 @@
     gravar();
     const d = F.DESAFIOS[n];
     const doNivel = F.DESAFIOS.filter(x => x.nivel === d.nivel && !x.livre);
-    $('missaoNum').textContent = d.livre ? `${d.nivelNome} · projeto livre` : `${d.nivelNome} · desafio ${doNivel.indexOf(d) + 1} de ${doNivel.length}`;
+    $('missaoNum').textContent = LIVRE ? 'Todos os blocos, por categorias' : d.livre ? `${d.nivelNome} · projeto livre` : `${d.nivelNome} · desafio ${doNivel.indexOf(d) + 1} de ${doNivel.length}`;
     $('missaoTitulo').textContent = d.titulo;
     $('missaoFrase').textContent = d.missao;
     $('missaoPassos').innerHTML = '';
@@ -240,7 +251,7 @@
     $('btnLuz').hidden = !d.livre;
     atualizarControlos();
     if (ble.ligado) ble.enviar('W' + (d.livre ? 1 : 0));
-    ws.updateToolbox(F.caixa(n));
+    ws.updateToolbox(caixaDe(n));
     desenharCaminho();
     reiniciar();
     tutor.entrarDesafio(n, n < estado.feitos);
@@ -284,6 +295,7 @@
   function desenharCaminho() {
     const nav = $('caminho');
     nav.innerHTML = '';
+    if (LIVRE) return;
     const nivelAtual = F.DESAFIOS[estado.atual].nivel;
     const nNiveis = X.niveis.length;
     if (nNiveis > 1) X.niveis.forEach((nv, k) => {
@@ -378,7 +390,7 @@
 
   // ------------------------------------------------ Enviar para o micro:bit (.hex por USB)
   let hexPronto = null;
-  const nomeHex = () => 'nico-' + X.id + '-' + (estado.atual + 1) + '.hex';
+  const nomeHex = () => LIVRE ? 'nico-livre.hex' : 'nico-' + X.id + '-' + (estado.atual + 1) + '.hex';
   const podeGravar = typeof window.showSaveFilePicker === 'function';
   function estadoEnviar(txt, tipo = '') { const e = $('enviarEstado'); e.textContent = txt; e.className = 'enviar-estado ' + tipo; }
   async function prepararHex() {

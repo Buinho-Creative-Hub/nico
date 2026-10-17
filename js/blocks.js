@@ -44,6 +44,9 @@
     variaveis:'#dc143c',
     matematica:'#9400d3',
     registo:  '#378273',
+    // extensão do ELECFREAKS Smart Science IoT Kit (pxt-iot-environment-kit): gavetas Octopus e OLED
+    octopus:  '#ff7a4b',
+    oled:     '#27b0ba',
   };
   const blockStyles = {};
   for (const [nome, cor] of Object.entries(GAVETAS)) {
@@ -111,6 +114,7 @@
   // Variáveis: um conjunto fixo e simples (sem janelas para criar variáveis)
   const VARIAVEIS = [['contador', 'contador'], ['pontos', 'pontos'], ['medida', 'medida'], ['recorde', 'recorde'], ['vidas', 'vidas'], ['passos', 'passos']];
   const PINOS_LER = [['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']];
+  const PINOS_PIR = ['P13', 'P0', 'P1', 'P2', 'P8', 'P12', 'P14', 'P15', 'P16'].map(p => [p, p]);
   const stmt = { previousStatement: null, nextStatement: null };
   const F_BLOCOS_NOVOS = [
     // ---- eventos
@@ -150,6 +154,21 @@
     { type: 'mk_servo', message0: 'escrever servo pin %1 para %2', args0: [{ type: 'field_dropdown', name: 'P', options: [['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']] }, num('A')], inputsInline: true, ...stmt, style: 'pinos', tooltip: 'Roda o servomotor para este ângulo (0 a 180 graus).' },
     // ---- registo de dados (micro:bit V2)
     { type: 'mk_registar', message0: 'registar dados %1 = %2', args0: [menu('NOME'), num('V')], inputsInline: true, ...stmt, style: 'registo', tooltip: 'Guarda uma linha na tabela de dados do micro:bit (abre o MY_DATA.HTM).' },
+    // ---- ELECFREAKS Smart Science IoT Kit (extensão «Environment and Science IoT»: Octopus + OLED)
+    //      textos e lógica iguais aos da extensão do MakeCode, traduzidos
+    { type: 'mk_kit_ruido', message0: 'valor do ruído (dB) no pin %1', args0: [{ type: 'field_dropdown', name: 'P', options: [['P1', 'P1'], ['P0', 'P0'], ['P2', 'P2']] }],
+      output: 'Number', style: 'octopus', tooltip: 'Sensor de ruído do kit. Cerca de 40 dB numa sala calma, 60–70 dB com conversa.' },
+    { type: 'mk_kit_luz', message0: 'valor da intensidade da luz (0~100) no pin %1', args0: [{ type: 'field_dropdown', name: 'P', options: [['P2', 'P2'], ['P0', 'P0'], ['P1', 'P1']] }],
+      output: 'Number', style: 'octopus', tooltip: 'Sensor de luz do kit: 0 = escuro, 100 = muita luz (valor relativo, não são lux).' },
+    { type: 'mk_kit_pir', message0: 'sensor PIR %1 deteta movimento', args0: [{ type: 'field_dropdown', name: 'P', options: PINOS_PIR }],
+      output: 'Boolean', style: 'octopus', tooltip: 'Verdadeiro quando o sensor PIR vê alguém a mexer-se à frente dele.' },
+    { type: 'mk_kit_bme', message0: 'valor do BME280 %1', args0: [{ type: 'field_dropdown', name: 'Q', options: [['temperatura (℃)', 'temp'], ['humidade (0~100)', 'hum'], ['pressão (hPa)', 'pres']] }],
+      output: 'Number', style: 'octopus', tooltip: 'Sensor BME280 do kit (ligado ao I2C): temperatura do ar, humidade ou pressão.' },
+    { type: 'mk_oled_iniciar', message0: 'inicializar OLED com largura %1 altura %2', args0: [num('L'), num('A')], inputsInline: true, ...stmt, style: 'oled', tooltip: 'Liga o ecrã OLED. Põe-no no «no arranque».' },
+    { type: 'mk_oled_texto', message0: 'OLED mostrar texto %1', args0: [menu('T')], inputsInline: true, ...stmt, style: 'oled', tooltip: 'Escreve um texto no ecrã OLED e muda de linha.' },
+    { type: 'mk_oled_numero', message0: 'OLED mostrar número %1', args0: [num('N')], inputsInline: true, ...stmt, style: 'oled', tooltip: 'Escreve um número no ecrã OLED e muda de linha.' },
+    { type: 'mk_oled_limpar', message0: 'limpar ecrã OLED', ...stmt, style: 'oled', tooltip: 'Apaga tudo no ecrã OLED e volta à primeira linha.' },
+    { type: 'mk_oled_barra', message0: 'desenhar barra de carregamento a %1 por cento', args0: [num('V')], inputsInline: true, ...stmt, style: 'oled', tooltip: 'Desenha uma barra de 0 a 100 % no ecrã OLED.' },
     // ---- sombras
     { type: 'mk_texto', message0: '%1', args0: [{ type: 'field_input', name: 'TXT', text: 'Olá!' }], output: 'String', style: 'valor' },
   ];
@@ -199,6 +218,14 @@
     { type: 'mk_pino_menu', message0: '%1', args0: [{ type: 'field_dropdown', name: 'V', options: [['P2', 'P2'], ['P0', 'P0'], ['P1', 'P1']] }], output: null, style: 'pinos' },
     ...F_BLOCOS_NOVOS,
   ]);
+
+  // ------------------------------------------------------------------ categorias (modo livre)
+  // Linhas da caixa com categorias à maneira do MakeCode: quadradinho da cor da gaveta + nome;
+  // a escolhida fica pintada com a cor da gaveta (isso já o Blockly faz em setSelected).
+  class MkCategoria extends Blockly.ToolboxCategory {
+    addColourBorder_(cor) { if (this.rowDiv_) this.rowDiv_.style.setProperty('--cor', cor); }
+  }
+  Blockly.registry.register(Blockly.registry.Type.TOOLBOX_ITEM, Blockly.ToolboxCategory.registrationName, MkCategoria, true);
 
   window.Faisca = window.Faisca || {};
   Object.assign(window.Faisca, { ICONES, NOMES_ICONES, SONS, NOTAS, GAVETAS, GESTOS, VARIAVEIS, iconeSvg });

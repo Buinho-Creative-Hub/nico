@@ -64,6 +64,17 @@
     mk_som: '<block type="mk_som"><value name="S"><shadow type="mk_som_menu"><field name="V">giggle</field></shadow></value></block>',
     mk_tom: '<block type="mk_tom"><value name="F"><shadow type="mk_nota_menu"><field name="V">262</field></shadow></value><value name="BAT"><shadow type="mk_batida_menu"><field name="V">1</field></shadow></value></block>',
     mk_digital_1: '<block type="mk_digital"><value name="P"><shadow type="mk_pino_menu"><field name="V">P2</field></shadow></value><value name="V"><shadow type="mk_num"><field name="NUM">1</field></shadow></value></block>',
+    // ELECFREAKS Smart Science IoT Kit (pinos por defeito do kit: ruído P1, luz P2, PIR P13; BME280 e OLED no I2C)
+    mk_kit_ruido: '<block type="mk_kit_ruido"><field name="P">P1</field></block>',
+    mk_kit_luz: '<block type="mk_kit_luz"><field name="P">P2</field></block>',
+    mk_kit_pir: '<block type="mk_kit_pir"><field name="P">P13</field></block>',
+    mk_kit_bme: '<block type="mk_kit_bme"><field name="Q">temp</field></block>',
+    mk_kit_bme_hum: '<block type="mk_kit_bme"><field name="Q">hum</field></block>',
+    mk_oled_iniciar: '<block type="mk_oled_iniciar"><value name="L"><shadow type="mk_num"><field name="NUM">128</field></shadow></value><value name="A"><shadow type="mk_num"><field name="NUM">64</field></shadow></value></block>',
+    mk_oled_texto: '<block type="mk_oled_texto"><value name="T"><shadow type="mk_texto"><field name="TXT">Olá!</field></shadow></value></block>',
+    mk_oled_numero: '<block type="mk_oled_numero"><value name="N"><shadow type="mk_num"><field name="NUM">0</field></shadow></value></block>',
+    mk_oled_limpar: '<block type="mk_oled_limpar"></block>',
+    mk_oled_barra: '<block type="mk_oled_barra"><value name="V"><shadow type="mk_num"><field name="NUM">50</field></shadow></value></block>',
     mk_digital_0: '<block type="mk_digital"><value name="P"><shadow type="mk_pino_menu"><field name="V">P2</field></shadow></value><value name="V"><shadow type="mk_num"><field name="NUM">0</field></shadow></value></block>',
   };
 
@@ -147,9 +158,11 @@
     mk_var_definir: 'Variáveis', mk_var_mudar: 'Variáveis', mk_var: 'Variáveis',
     mk_conta: 'Matemática', mk_aleatorio: 'Matemática', mk_resto: 'Matemática',
     mk_digital: 'Pinos', mk_ler_digital: 'Pinos', mk_ler_analogico: 'Pinos', mk_servo: 'Pinos', mk_registar: 'Registo de dados',
+    mk_kit_ruido: 'Octopus', mk_kit_luz: 'Octopus', mk_kit_pir: 'Octopus', mk_kit_bme: 'Octopus',
+    mk_oled_iniciar: 'OLED', mk_oled_texto: 'OLED', mk_oled_numero: 'OLED', mk_oled_limpar: 'OLED', mk_oled_barra: 'OLED',
   };
   const CORES_GAVETA = { 'Básico': '#1e90ff', 'Entrada': '#d400d4', 'Música': '#e63022', 'LED': '#5c2d91', 'Ciclos': '#00aa00', 'Lógica': '#00a4a6',
-    'Variáveis': '#dc143c', 'Matemática': '#9400d3', 'Pinos': '#b22222', 'Registo de dados': '#378273', 'Novos': '#ffb000' };
+    'Variáveis': '#dc143c', 'Matemática': '#9400d3', 'Pinos': '#b22222', 'Registo de dados': '#378273', 'Octopus': '#ff7a4b', 'OLED': '#27b0ba', 'Novos': '#ffb000' };
   function gavetas(chaves, novos) {
     const tipo = k => (XML[k].match(/type="([a-z_]+)"/) || [])[1];
     const grupos = {};
@@ -166,6 +179,36 @@
 
   F.caixa = caixa;
   F.gavetas = gavetas;
+
+  // ---------------------------------------------------- modo livre: caixa com categorias, como no MakeCode
+  // Só os blocos que o Nico usa, arrumados pelas gavetas do MakeCode (Básico, Entrada, Música…)
+  // e, no fim, as gavetas da extensão do ELECFREAKS Smart Science IoT Kit (Octopus e OLED).
+  F.CATEGORIAS_LIVRE = [
+    ['Básico', ['mk_mostrar_numero', 'mk_icone', 'mk_mostrar_texto', 'mk_limpar', 'mk_iniciar', 'mk_sempre', 'mk_pausa']],
+    ['Entrada', ['mk_botao', 'mk_agitar', 'mk_gesto', 'mk_logo', 'mk_pino_tocado', 'mk_som_alto', 'mk_botao_premido', 'mk_escuro',
+      'mk_luz', 'mk_som_nivel', 'mk_temperatura', 'mk_tempo']],
+    ['Música', ['mk_tom', 'mk_tom_livre', 'mk_som']],
+    ['LED', ['mk_acender', 'mk_apagar_led', 'mk_grafico']],
+    ['Ciclos', ['mk_repetir']],
+    ['Lógica', ['mk_se_entao', 'mk_se_senao', 'mk_comparar']],
+    ['Variáveis', ['mk_var_definir', 'mk_var_mudar', 'mk_var']],
+    ['Matemática', ['mk_conta', 'mk_aleatorio', 'mk_resto']],
+    ['Pinos', ['mk_digital_1', 'mk_ler_digital', 'mk_ler_analogico', 'mk_servo']],
+    ['Registo de dados', ['mk_registar']],
+    ['Octopus', ['mk_kit_ruido', 'mk_kit_luz', 'mk_kit_pir', 'mk_kit_bme', 'mk_kit_bme_hum'], 'Smart Science IoT Kit · sensores'],
+    ['OLED', ['mk_oled_iniciar', 'mk_oled_texto', 'mk_oled_numero', 'mk_oled_limpar', 'mk_oled_barra'], 'Smart Science IoT Kit · ecrã OLED'],
+  ];
+  F.corGaveta = nome => CORES_GAVETA[nome] || '#888';
+  F.caixaCategorias = function () {
+    const esc = t => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    let xml = '<xml>';
+    for (const [nome, blocos, titulo] of F.CATEGORIAS_LIVRE) {
+      xml += `<category name="${esc(nome)}" colour="${CORES_GAVETA[nome]}">`;
+      if (titulo) xml += `<label text="${esc(titulo)}" web-class="gaveta"></label>`;
+      xml += blocos.filter(k => XML[k]).map(k => XML[k]).join('') + '</category>';
+    }
+    return xml + '</xml>';
+  };
   // houve(reg, 'numero:') — alguma saída começa por / corresponde a (texto ou RegExp)?
   const houve = (reg, t) => reg.some(e => e.dir === 'out' && (t instanceof RegExp ? t.test(e.v) : e.v.startsWith(t)));
   // números mostrados no ecrã, por ordem
@@ -229,7 +272,7 @@
   }
   F.registarMissao = m => {
     if (m.xml) Object.assign(XML, m.xml);
-    criarLivres(m);
+    if (!m.modoLivre) criarLivres(m);   // o modo livre já é só um projeto livre (sem níveis nem validação)
     F.MISSOES[m.id] = m; F.ORDEM_MISSOES.push(m.id);
   };
   // desafios de uma missão, por ordem, com o nível de cada um

@@ -11,6 +11,8 @@ vivia na rua do Buinho.
   solução, reconhecem os erros mais comuns e às vezes fazem «gambiarras» para a criança reparar.
 - **6 missões × 3 níveis × 12 atividades** (216): Primeiros passos, Reparar, Toy hacking, Citizen sensing,
   Matemática e Natureza. Em cada nível: 6 atividades curtas, 5 projetos de 15–20 min e um projeto livre.
+- **Modo livre**: todos os blocos arrumados por categorias, como no MakeCode, incluindo os sensores (ruído, luz,
+  PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**.
 - **Validação pelo comportamento**: o desafio fica feito quando o micro:bit *faz* o que se pede.
 - **micro:bit no ecrã** com sensores simulados (luz, som, temperatura, pinos, gestos) e **envio para o micro:bit
   verdadeiro por USB** (.hex gerado no próprio browser, com MicroPython). **Funciona sem internet.**

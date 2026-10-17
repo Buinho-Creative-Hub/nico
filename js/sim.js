@@ -64,11 +64,14 @@
       this.escuro = false;
       this.botoes = { A: false, B: false };
       // valores dos sensores (mudam com os controlos por baixo do micro:bit)
-      this.sensores = { luz: 150, som: 20, temperatura: 21 };
+      this.sensores = { luz: 150, som: 20, temperatura: 21,
+        // Smart Science IoT Kit: ruído (dB), luz (0~100), PIR (0/1), BME280 (°C, %, hPa)
+        kit_ruido: 45, kit_luz: 60, kit_pir: 0, bme_temp: 22, bme_hum: 55, bme_pres: 1013 };
       for (const p of ['P0', 'P1', 'P2']) { this.sensores['digital:' + p] = 0; this.sensores['analogico:' + p] = 0; }
       this.svg = el('svg', { viewBox: '0 0 340 330', role: 'img', 'aria-label': 'micro:bit simulado' }, host);
       this.desenhar();
       this.criarControlos(host);
+      this.criarOled(host);
     }
     sensor(nome) { return this.sensores[nome] ?? 0; }
     desenhar() {
@@ -185,6 +188,64 @@
       this.tabela.innerHTML = '<caption>Dados registados</caption>' +
         this.dados.map(([n, x]) => `<tr><td>${String(n).replace(/[<&]/g, '')}</td><td>${Math.round(x * 100) / 100}</td></tr>`).join('');
     }
+    // ---- ecrã OLED do Smart Science IoT Kit (128×64, 21 letras × 8 linhas, como a extensão SSD1306 do MakeCode)
+    criarOled(host) {
+      const caixa = document.createElement('div');
+      caixa.className = 'sim-oled'; caixa.hidden = true;
+      caixa.innerHTML = '<span class="sim-oled-rotulo">OLED</span><canvas width="256" height="128" role="img" aria-label="Ecrã OLED do kit"></canvas>' +
+        '<span class="sim-oled-aviso">Desligado — falta o bloco «inicializar OLED»</span>';
+      host.appendChild(caixa);
+      this.oledCaixa = caixa;
+      this.oledCanvas = caixa.querySelector('canvas');
+      this.oledReset();
+    }
+    oledReset() { this.oledLigado = false; this.oledLinhas = Array(8).fill(''); this.oledX = 0; this.oledY = 0; this.oledBarra = null; this.oledDesenhar(); }
+    mostrarOled(ver) { if (this.oledCaixa) this.oledCaixa.hidden = !ver; }
+    oled(op, a) {
+      this.mostrarOled(true);
+      const escrever = t => {
+        for (const ch of String(t)) {
+          if (this.oledX > 20) this.oledNovaLinha();
+          const l = this.oledLinhas[this.oledY].padEnd(this.oledX, ' ');
+          this.oledLinhas[this.oledY] = l.slice(0, this.oledX) + F.semAcentos(ch) + l.slice(this.oledX + 1);
+          this.oledX++;
+        }
+      };
+      if (op === 'iniciar') { this.oledLigado = true; this.oledLinhas = Array(8).fill(''); this.oledX = 0; this.oledY = 0; this.oledBarra = null; }
+      else if (op === 'limpar') { this.oledLinhas = Array(8).fill(''); this.oledX = 0; this.oledY = 0; this.oledBarra = null; }
+      else if (op === 'texto') { escrever(a); this.oledNovaLinha(); }
+      else if (op === 'barra') {
+        if (this.oledBarra === null) { this.oledX = 5; this.oledY = 2; escrever('Loading:'); }
+        this.oledBarra = a; this.oledX = 13; this.oledY = 2; escrever((a + '% ').padEnd(5, ' '));
+      }
+      this.oledDesenhar();
+    }
+    oledNovaLinha() { this.oledX = 0; this.oledY = (this.oledY + 1) % 8; this.oledLinhas[this.oledY] = ''; }
+    oledDesenhar() {
+      const c = this.oledCanvas; if (!c) return;
+      const g = c.getContext('2d');
+      g.fillStyle = '#05070a'; g.fillRect(0, 0, c.width, c.height);
+      this.oledCaixa.classList.toggle('desligado', !this.oledLigado);
+      if (!this.oledLigado) return;
+      g.fillStyle = '#e8f6ff'; g.strokeStyle = '#e8f6ff';
+      // letra 5×8 da extensão, píxel a píxel (cada píxel do OLED = 2×2 no ecrã)
+      const L = F.LETRA_OLED;
+      this.oledLinhas.forEach((l, y) => {
+        for (let x = 0; x < l.length && x < 21; x++) {
+          let k = l.charCodeAt(x) - 32; if (k < 0 || k > 94) k = 31;
+          for (let c = 0; c < 5; c++) {
+            const col = parseInt(L.substr((k * 5 + c) * 2, 2), 16);
+            for (let bit = 0; bit < 8; bit++) if (col & (1 << bit)) g.fillRect((x * 6 + c) * 2, (y * 8 + bit) * 2, 2, 2);
+          }
+        }
+      });
+      if (this.oledBarra !== null) {   // moldura e enchimento como no desenho da extensão (páginas 3 a 5)
+        const px = (x, y, w, h) => g.fillRect(x * 2, y * 2, w * 2, h * 2);
+        px(13, 29, 103, 2); px(13, 41, 103, 2);          // em cima e em baixo
+        px(12, 32, 2, 8); px(115, 32, 2, 8);             // lados
+        px(14, 33, Math.floor(101 * this.oledBarra / 100), 6);   // enchimento
+      }
+    }
     // ---- controlos dos sensores (só aparecem os que o desafio usa)
     criarControlos(host) {
       const caixa = document.createElement('div');
@@ -233,6 +294,18 @@
           this.onInput('digital:' + p + ':' + v);
         });
       }
+      // Smart Science IoT Kit
+      slider('kit_ruido', 'Ruído do kit', 30, 120, ' dB');
+      slider('kit_luz', 'Luz do kit', 0, 100);
+      botao('kit_pir', 'Passar à frente do PIR', b => {
+        clearTimeout(this._pir);
+        this.sensores.kit_pir = 1; b.setAttribute('aria-pressed', 'true'); b.textContent = 'PIR: movimento!';
+        this.onInput('kit_pir:1');
+        this._pir = setTimeout(() => { this.sensores.kit_pir = 0; b.setAttribute('aria-pressed', 'false'); b.textContent = 'Passar à frente do PIR'; this.onInput('kit_pir:0'); }, 3000);
+      });
+      slider('bme_temp', 'Temperatura BME280', -10, 45, ' °C');
+      slider('bme_hum', 'Humidade BME280', 0, 100, ' %');
+      slider('bme_pres', 'Pressão BME280', 950, 1050, ' hPa');
       for (const [g, rotulo] of [['left', '↶ Inclinar esq.'], ['right', 'Inclinar dir. ↷'], ['face down', 'Virar ao contrário'], ['face up', 'Ecrã para cima'],
         ['up', 'Logotipo para cima'], ['down', 'Logotipo para baixo'], ['freefall', 'Deixar cair']]) {
         botao('gesto:' + g, rotulo, () => this.onInput('gesto:' + g));
@@ -269,6 +342,7 @@
       this.limpar();
       if (this.servoG) this.servoG.setAttribute('opacity', 0.35);
       this.dados = []; if (this.tabela) { this.tabela.hidden = true; this.tabela.innerHTML = ''; }
+      if (this.oledCanvas) this.oledReset();
       this.ledFora.setAttribute('opacity', 0);
       this.ledBolbo.setAttribute('fill', '#5a1a1a');
       for (const p in this.padP) this.padP[p].setAttribute('fill', '#c9a227');

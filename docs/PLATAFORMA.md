@@ -283,3 +283,32 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
   caso a caso, «parece pronto», Python válido, .hex e voz — 6 missões × 2 mascotes.
 - **Para saber:** um texto longo a passar no ecrã bloqueia o botão até acabar (como no micro:bit); as validações
   de sensores só olham para as saídas até à entrada seguinte.
+
+## 10. Modo livre e Smart Science IoT Kit (desde 17 Out 2026, noite — pedido do Carlos)
+
+- **Modo livre** (`missoes/livre.js`, `?m=livre`): primeiro cartão das missões no ecrã inicial. Sem desafios, sem
+  níveis e sem validação; a mascote só dá as boas-vindas (nos projetos livres já não diz «ainda não é bem isso»).
+  O programa fica guardado no browser (`faisca.missao.livre.v1`); o .hex chama-se `nico-livre.hex`.
+- **Caixa com categorias, como no MakeCode** (`F.caixaCategorias()` + `F.CATEGORIAS_LIVRE` em `js/desafios.js`):
+  só os blocos que o Nico usa, pela ordem das gavetas do MakeCode — Básico (inclui `mostrar texto`, o *show string*),
+  Entrada, Música, LED, Ciclos, Lógica, Variáveis, Matemática, Pinos, Registo de dados — e no fim as gavetas da
+  extensão do kit: **Octopus** e **OLED**. Linhas desenhadas por `MkCategoria` (`js/blocks.js`): quadradinho da cor
+  da gaveta + nome; a escolhida fica pintada.
+- **ELECFREAKS Smart Science IoT Kit** — mesma lógica da extensão do MakeCode *Environment and Science IoT*
+  (`github:tinkertanker/pxt-iot-environment-kit` v5.6.5, que traz a OLED `pxt-oled-ssd1306`):
+
+| Gaveta | Bloco | MicroPython (no .hex) | Registo |
+|---|---|---|---|
+| Octopus `#ff7a4b` | `valor do ruído (dB) no pin P1` | `kit_ruido(pin1)` — amplitude do sinal, mesma tabela 30–120 dB | entrada `kit_ruido:V` |
+| | `valor da intensidade da luz (0~100) no pin P2` | `round(read_analog()*100/1023)` | `kit_luz:V` |
+| | `sensor PIR P13 deteta movimento` | `pin13.read_digital() == 1` | `kit_pir:0/1` |
+| | `valor do BME280 temperatura (℃) / humidade (0~100) / pressão (hPa)` | I2C 0x76/0x77, contas da folha de dados da Bosch | `bme_temp`, `bme_hum`, `bme_pres` |
+| OLED `#27b0ba` | `inicializar OLED com largura 128 altura 64` · `OLED mostrar texto` · `OLED mostrar número` · `limpar ecrã OLED` · `desenhar barra de carregamento a … por cento` | SSD1306 em I2C 0x3C, letra 5×8 da extensão (21 letras × 8 linhas; ao chegar ao fim volta à 1.ª linha) | `oled:iniciar`, `oled:texto:T`, `oled:numero:N`, `oled:limpar`, `oled:barra:P` |
+
+- **No ecrã:** controlos «Ruído do kit», «Luz do kit», «Passar à frente do PIR» (3 s de movimento), «Temperatura /
+  Humidade / Pressão BME280» — só aparecem os dos blocos do programa. O **OLED** aparece por baixo do micro:bit,
+  desenhado píxel a píxel com a mesma letra do .hex; sem «inicializar OLED» fica desligado e avisa.
+- **Pinos por defeito** os do kit (ruído P1, luz P2, PIR P13). No ecrã, os valores do kit não dependem do pino.
+- **Testes:** `node testes/modo-livre.js` (categorias, blocos do kit no ecrã, Python válido, .hex). As contas do
+  BME280 foram conferidas com o exemplo da folha de dados (25,08 °C; 1006,5 hPa). **Por testar com o kit verdadeiro.**
+- Os blocos do kit **não** entram (ainda) nas missões nem no projeto livre do último nível — só no modo livre.

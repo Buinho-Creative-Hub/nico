@@ -67,8 +67,24 @@
 
     const lx = $('listaMissoes');
     const abrir = id => { location.href = 'index.html?a=' + encodeURIComponent(escolhida) + '&m=' + encodeURIComponent(id); };
+    // Modo livre: primeiro cartão, sem progresso — todos os blocos por categorias (como no MakeCode)
+    const L = F.MISSOES.livre;
+    if (L) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'cartao-missao cartao-livre';
+      b.style.setProperty('--cor', L.cor);
+      b.innerHTML = '<span class="cx-tema"></span><strong></strong><span class="cx-desc"></span>' +
+        '<span class="cx-gavetas" aria-hidden="true"></span><span class="cx-feito">Abrir</span>';
+      b.querySelector('.cx-tema').textContent = L.tema;
+      b.querySelector('strong').textContent = L.titulo;
+      b.querySelector('.cx-desc').textContent = L.descricao;
+      b.querySelector('.cx-gavetas').innerHTML = F.CATEGORIAS_LIVRE.map(([n]) => `<i style="--g:${F.corGaveta(n)}" title="${n}"></i>`).join('');
+      b.addEventListener('click', () => abrir('livre'));
+      lx.appendChild(b);
+    }
     F.ORDEM_MISSOES.forEach(id => {
       const X = F.MISSOES[id];
+      if (X.modoLivre) return;
       const total = F.desafiosDe(X).filter(d => !d.livre).length;
       const todos = F.desafiosDe(X), fp = F.progressoMissao(X);
       const feitos = todos.slice(0, fp).filter(d => !d.livre).length;   // o projeto livre não conta

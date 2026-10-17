@@ -17,6 +17,8 @@
   const SONS = ['giggle', 'happy', 'hello', 'mysterious', 'sad', 'slide', 'soaring', 'spring', 'twinkle', 'yawn'];
   const PINOS = { P0: 'pin0', P1: 'pin1', P2: 'pin2' };
   const BATIDA_MS = 500;
+  // Smart Science IoT Kit: pinos que os blocos do kit podem usar
+  const PINOS_KIT = { P0: 'pin0', P1: 'pin1', P2: 'pin2', P8: 'pin8', P12: 'pin12', P13: 'pin13', P14: 'pin14', P15: 'pin15', P16: 'pin16' };
   const ESCURO = 40;
 
   function valor(b, nome, defeito) {
@@ -59,6 +61,10 @@
         case 'mk_ler_digital': return `${PINOS[v.getFieldValue('P')] || 'pin0'}.read_digital()`;
         case 'mk_ler_analogico': return `${PINOS[v.getFieldValue('P')] || 'pin1'}.read_analog()`;
         case 'mk_var': { const k = v.getFieldValue('VAR'); this.vars.add(k); return k; }
+        case 'mk_kit_ruido': this.usa.add('kit_ruido'); return `kit_ruido(${PINOS_KIT[v.getFieldValue('P')] || 'pin1'})`;
+        case 'mk_kit_luz': this.usa.add('kit_luz'); return `kit_luz(${PINOS_KIT[v.getFieldValue('P')] || 'pin2'})`;
+        case 'mk_kit_pir': return `(${PINOS_KIT[v.getFieldValue('P')] || 'pin13'}.read_digital() == 1)`;
+        case 'mk_kit_bme': this.usa.add('bme'); return `bme(${({ temp: 0, hum: 1, pres: 2 })[v.getFieldValue('Q')] || 0})`;
         case 'mk_aleatorio': this.usa.add('random'); return `random.randint(min(int(${e('A')}), int(${e('B')})), max(int(${e('A')}), int(${e('B')})))`;
         case 'mk_resto': return `(${e('A')}) % ((${e('B', '1')}) or 1)`;
         case 'mk_conta': {
@@ -108,6 +114,11 @@
           this.usa.add('servo');
           return [p + `servo(${pino}, ${this.expr(b, 'A', '90')})`];
         }
+        case 'mk_oled_iniciar': this.usa.add('oled'); return [p + 'oled_iniciar()'];
+        case 'mk_oled_limpar': this.usa.add('oled'); return [p + 'oled_limpar()'];
+        case 'mk_oled_texto': this.usa.add('oled'); return [p + `oled_texto(${this.expr(b, 'T', '""')})`];
+        case 'mk_oled_numero': this.usa.add('oled'); return [p + `oled_texto(numero_texto(${this.expr(b, 'N', '0')}))`];
+        case 'mk_oled_barra': this.usa.add('oled'); return [p + `oled_barra(${this.expr(b, 'V', '0')})`];
         case 'mk_registar': this.usa.add('log'); return [p + `log.add({str(${this.expr(b, 'NOME', '"valor"')}): ${this.expr(b, 'V')}})`];
       }
       return [];
@@ -180,6 +191,180 @@
         'def servo(p, a):',
         '    p.set_analog_period(20)',
         '    p.write_analog(int(26 + max(0, min(180, a)) * 102 / 180))',
+        '');
+      if (this.usa.has('kit_ruido')) L.push(
+        '# Smart Science IoT Kit — ruído em dB (mesma conta que a extensão do MakeCode)',
+        'def _map(v, a, b, c, d):',
+        '    return (v - a) * (d - c) / (b - a) + c',
+        '',
+        'def kit_ruido(p):',
+        '    n = 600',
+        '    m = 0',
+        '    for _ in range(n):',
+        '        m += p.read_analog()',
+        '    m = m / n',
+        '    h = l = sh = sl = 0',
+        '    for _ in range(n):',
+        '        v = p.read_analog()',
+        '        if v >= m:',
+        '            h += 1',
+        '            sh += v',
+        '        else:',
+        '            l += 1',
+        '            sl += v',
+        '    sh = sh / h if h else m',
+        '    sl = sl / l if l else m',
+        '    x = sh - sl',
+        '    for lim, a, b, c, d in ((4, 0, 4, 30, 50), (8, 4, 8, 50, 55), (14, 9, 14, 55, 60), (32, 15, 32, 60, 70),',
+        '                            (60, 33, 60, 70, 75), (100, 61, 100, 75, 80), (150, 101, 150, 80, 85), (231, 151, 231, 85, 90)):',
+        '        if x <= lim:',
+        '            return round(_map(x, a, b, c, d))',
+        '    return round(_map(x, 231, 1023, 90, 120))',
+        '');
+      if (this.usa.has('kit_luz')) L.push(
+        'def kit_luz(p):',
+        '    return round(p.read_analog() * 100 / 1023)',
+        '');
+      if (this.usa.has('bme')) L.push(
+        '# Smart Science IoT Kit — sensor BME280 no I2C (endereço 0x76 ou 0x77), contas da folha de dados da Bosch',
+        '_bme = None',
+        '',
+        'def _ler(a, r, n):',
+        '    i2c.write(a, bytes([r]))',
+        '    return i2c.read(a, n)',
+        '',
+        'def _s16(v):',
+        '    return v - 65536 if v > 32767 else v',
+        '',
+        'def _s8(v):',
+        '    return v - 256 if v > 127 else v',
+        '',
+        'def bme_iniciar():',
+        '    global _bme',
+        '    for a in (0x76, 0x77):',
+        '        try:',
+        '            if _ler(a, 0xD0, 1)[0] == 0x60:',
+        '                break',
+        '        except OSError:',
+        '            pass',
+        '    else:',
+        '        return False',
+        '    c = _ler(a, 0x88, 24)',
+        '    t = [c[0] | c[1] << 8, _s16(c[2] | c[3] << 8), _s16(c[4] | c[5] << 8)]',
+        '    pr = [c[6] | c[7] << 8] + [_s16(c[i] | c[i + 1] << 8) for i in range(8, 24, 2)]',
+        '    e = _ler(a, 0xE1, 7)',
+        '    hu = [_ler(a, 0xA1, 1)[0], _s16(e[0] | e[1] << 8), e[2], (_s8(e[3]) << 4) | (e[4] & 15), (_s8(e[5]) << 4) | (e[4] >> 4), _s8(e[6])]',
+        '    i2c.write(a, bytes([0xF2, 0x01]))',
+        '    i2c.write(a, bytes([0xF4, 0x27]))',
+        '    i2c.write(a, bytes([0xF5, 0xA0]))',
+        '    _bme = (a, t, pr, hu)',
+        '    sleep(50)',
+        '    return True',
+        '',
+        'def bme(q):',
+        '    if _bme is None and not bme_iniciar():',
+        '        return 0',
+        '    a, t, pr, hu = _bme',
+        '    d = _ler(a, 0xF7, 8)',
+        '    ap = (d[0] << 12) | (d[1] << 4) | (d[2] >> 4)',
+        '    at = (d[3] << 12) | (d[4] << 4) | (d[5] >> 4)',
+        '    ah = (d[6] << 8) | d[7]',
+        '    tf = (at / 16384 - t[0] / 1024) * t[1] + ((at / 131072 - t[0] / 8192) ** 2) * t[2]',
+        '    if q == 0:',
+        '        return round(tf / 5120)',
+        '    if q == 1:',
+        '        h = tf - 76800',
+        '        h = (ah - (hu[3] * 64 + hu[4] / 16384 * h)) * (hu[1] / 65536 * (1 + hu[5] / 67108864 * h * (1 + hu[2] / 67108864 * h)))',
+        '        h = h * (1 - hu[0] * h / 524288)',
+        '        return round(max(0, min(100, h)))',
+        '    v1 = tf / 2 - 64000',
+        '    v2 = v1 * v1 * pr[5] / 32768 + v1 * pr[4] * 2',
+        '    v2 = v2 / 4 + pr[3] * 65536',
+        '    v1 = (pr[2] * v1 * v1 / 524288 + pr[1] * v1) / 524288',
+        '    v1 = (1 + v1 / 32768) * pr[0]',
+        '    if v1 == 0:',
+        '        return 0',
+        '    x = (1048576 - ap - v2 / 4096) * 6250 / v1',
+        '    x = x + (pr[8] * x * x / 2147483648 + x * pr[7] / 32768 + pr[6]) / 16',
+        '    return round(x / 100)',
+        '');
+      if (this.usa.has('oled')) {
+        const letra = F.LETRA_OLED.match(/../g).map(h => '\\x' + h).join('');
+        L.push(
+          '# Smart Science IoT Kit — ecrã OLED SSD1306 (I2C 0x3C), como a extensão OLED do MakeCode: 21 letras × 8 linhas',
+          `_LETRA = b'${letra}'`,
+          '_ox = 0',
+          '_oy = 0',
+          '_ob = -1',
+          '',
+          'def _oc(*c):',
+          '    for x in c:',
+          '        i2c.write(0x3C, bytes([0, x]))',
+          '',
+          'def _olinha(y):',
+          '    _oc(0x21, 0, 127, 0x22, y, y)',
+          "    i2c.write(0x3C, b'\\x40' + bytes(128))",
+          '',
+          'def oled_iniciar():',
+          '    _oc(0xAE, 0xD5, 0x80, 0xA8, 0x3F, 0xD3, 0x00, 0x40, 0x8D, 0x14, 0x20, 0x00, 0xA1, 0xC8,',
+          '        0xDA, 0x12, 0x81, 0xCF, 0xD9, 0xF1, 0xDB, 0x40, 0xA4, 0xA6, 0xAF)',
+          '    oled_limpar()',
+          '',
+          'def oled_limpar():',
+          '    global _ox, _oy, _ob',
+          '    for y in range(8):',
+          '        _olinha(y)',
+          '    _ox = _oy = 0',
+          '    _ob = -1',
+          '',
+          'def _onova():',
+          '    global _ox, _oy',
+          '    _ox = 0',
+          '    _oy = (_oy + 1) % 8',
+          '    _olinha(_oy)',
+          '',
+          'def _oescrever(s):',
+          '    global _ox',
+          '    for ch in str(s):',
+          '        if _ox > 122:',
+          '            _onova()',
+          '        k = ord(ch) - 32',
+          '        if k < 0 or k > 94:',
+          '            k = 31',
+          '        _oc(0x21, _ox, _ox + 5, 0x22, _oy, _oy)',
+          "        i2c.write(0x3C, b'\\x40' + _LETRA[k * 5:k * 5 + 5] + b'\\x00')",
+          '        _ox += 6',
+          '',
+          '_SEM = {"á": "a", "à": "a", "â": "a", "ã": "a", "é": "e", "ê": "e", "í": "i", "ó": "o", "ô": "o", "õ": "o", "ú": "u", "ç": "c",',
+          '        "Á": "A", "À": "A", "Â": "A", "Ã": "A", "É": "E", "Ê": "E", "Í": "I", "Ó": "O", "Ô": "O", "Õ": "O", "Ú": "U", "Ç": "C"}',
+          '',
+          'def oled_texto(s):',
+          "    _oescrever(''.join(_SEM.get(c, c) for c in str(s)))",
+          '    _onova()',
+          '',
+          'def oled_barra(p):',
+          '    global _ox, _oy, _ob',
+          '    p = max(0, min(100, int(p)))',
+          '    if _ob < 0:',
+          '        for pg, v in ((3, 0x60), (5, 0x06)):',
+          '            _oc(0x21, 0, 127, 0x22, pg, pg)',
+          "            i2c.write(0x3C, b'\\x40' + bytes([v if 12 < c < 116 else 0 for c in range(128)]))",
+          '        _ox, _oy = 30, 2',
+          "        _oescrever('Loading:')",
+          '    _ob = p',
+          '    _ox, _oy = 78, 2',
+          "    _oescrever((str(p) + '% ') + ' ' * (4 - len(str(p))))",
+          '    _oc(0x21, 0, 127, 0x22, 4, 4)',
+          "    i2c.write(0x3C, b'\\x40' + bytes([0xFF if c in (12, 13, 115, 116) else (0x7E if 14 <= c < 14 + 101 * p // 100 else 0) for c in range(128)]))",
+          '');
+      }
+      if (this.usa.has('oled')) L.push(
+        'def numero_texto(n):',
+        '    if isinstance(n, float) and n == int(n):',
+        '        n = int(n)',
+        '    if isinstance(n, float):',
+        '        n = round(n, 2)',
+        '    return str(n)',
         '');
       for (const k of globais) L.push(`${k} = 0`);
       if (globais.length) L.push('');
