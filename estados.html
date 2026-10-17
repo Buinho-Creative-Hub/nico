@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mascote · os estados</title>
+<script src="js/escolha.js"></script>
+<link rel="stylesheet" href="css/faisca.css">
+<style>
+  body { overflow: auto; display: block; }
+  .demo { max-width: 1200px; margin: 0 auto; padding: 32px 20px 48px; }
+  .demo h1 { margin: 0 0 6px; font-size: 32px; }
+  .demo > p { margin: 0 0 24px; color: var(--cinza); font-size: 17px; }
+  .grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+  .cartao-estado { background: #fff; border: 1px solid var(--linha); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .cartao-estado figure { margin: 0; height: 150px; display: flex; align-items: flex-end; justify-content: center; background: var(--parede); }
+  .cartao-estado img { max-height: 140px; }
+  .cartao-estado h2 { margin: 0; font-size: 18px; }
+  .cartao-estado code { font-size: 13px; color: var(--cinza); }
+  .cartao-estado .tutor-balao { margin: 0; }
+  .cartao-estado .tutor-balao::before, .cartao-estado .tutor-balao::after { display: none; }
+  .cartao-estado .tutor-texto { font-size: 16px; }
+</style>
+</head>
+<body>
+<main class="demo">
+  <h1 id="titulo"></h1>
+  <p>Os estados da mascote e quando aparecem. Exemplos tirados do próprio pacote. <a id="abrir" href="index.html">Abrir os desafios</a></p>
+  <div class="grelha" id="grelha"></div>
+</main>
+<script src="js/desafios.js"></script>
+<script src="vendor/blockly_compressed.js"></script>
+<script src="js/blocks.js"></script>
+<script src="js/tutor-analise.js"></script>
+<script src="js/pistas.js"></script>
+<script src="mascotes/gabi.js"></script>
+<script src="mascotes/nico.js"></script>
+<script src="missoes/primeiros-passos.js"></script>
+<script src="missoes/reparar.js"></script>
+<script src="missoes/toy-hacking.js"></script>
+<script src="missoes/citizen-sensing.js"></script>
+<script src="missoes/matematica.js"></script>
+<script src="missoes/natureza.js"></script>
+<script>
+(function () {
+  Faisca.ativar(Faisca.MASCOTE_ID, Faisca.ORDEM_MISSOES[0]);
+  const M = Faisca.MASCOTE, P = { mascote: M }, T = Faisca.TUTOR;
+  // exemplos de todas as missões, ditos por esta mascote
+  T.DESAFIOS = Faisca.ORDEM_MISSOES.flatMap(id => Faisca.desafiosDe(Faisca.MISSOES[id]).map(d => d.tutor));
+  document.getElementById('titulo').textContent = M.descricao;
+  document.getElementById('abrir').href = 'index.html?a=' + M.id;
+  // quando aparece cada estado (o motor é comum a todos os pacotes)
+  const QUANDO = {
+    boas_vindas: 'Ao entrar num desafio.',
+    curiosa: 'Pista de nível 1, convite para pedir ajuda.',
+    a_pensar: 'Blocos no sítio errado; teste que não resultou.',
+    surpreendida: 'Erro inesperado; pedido da gambiarra.',
+    dica: 'Pistas de nível 2 e 3.',
+    celebrar: 'Desafio cumprido; gambiarra reparada.',
+    incentivar: 'A criança corrigiu sozinha um erro sobre o qual teve pista.',
+    testar: '«Agora experimenta»: o programa parece pronto e ainda não foi testado.',
+    calma: 'Três testes seguidos sem resultado.',
+  };
+  // um exemplo real de cada estado, tirado das mensagens do pacote
+  const ex = {};
+  const ver = (e, t) => { t = Faisca.voz(t); if (t && !ex[e]) ex[e] = t; };
+  Object.values(T.GERAIS).forEach(([e, t]) => ver(e, t));
+  T.DESAFIOS.forEach(d => { if (!d) return; ver(d.boasVindas[0], d.boasVindas[1]); ver('testar', d.testar); ver('celebrar', d.sucesso);
+    [...d.regras, ...T.COMUNS].forEach(r => { r.pistas.forEach(([e, t]) => ver(e, t)); ver('incentivar', r.corrigido); });
+    if (d.gambiarra) ver('surpreendida', d.gambiarra.pedido); });
+  const g = document.getElementById('grelha');
+  const vistos = new Set();
+  for (const chave of Object.keys(QUANDO)) {
+    const f = P.mascote.sprites[chave];
+    const s = document.createElement('section');
+    s.className = 'cartao-estado';
+    s.innerHTML = `<figure><img alt=""></figure><h2><code></code></h2><p style="margin:0;font-size:15px"></p><div class="tutor-balao"><p class="tutor-texto"></p></div>`;
+    s.querySelector('img').src = P.mascote.pasta + f + '.png';
+    s.querySelector('img').alt = P.mascote.nome + ' — ' + chave;
+    s.querySelector('code').textContent = chave + ' → ' + f + '.png' + (vistos.has(f) ? ' (repetido)' : '');
+    s.querySelector('p').textContent = QUANDO[chave];
+    s.querySelector('.tutor-texto').textContent = ex[chave] || '—';
+    vistos.add(f);
+    g.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

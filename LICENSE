@@ -1,0 +1,25 @@
+Nico — desafios micro:bit do Buinho Educativo
+Copyright (c) 2026 Buinho FabLab (Buinho Associação), Messejana, Alentejo, Portugal
+
+Código e conteúdos deste repositório — exceto o indicado abaixo — estão licenciados ao abrigo da licença
+Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0 Internacional (CC BY-NC-SA 4.0).
+Code and content in this repository — except as noted below — are licensed under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+
+  Texto integral / Full legal code: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+  Resumo / Summary:                 https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt
+
+Pode copiar, redistribuir e adaptar, desde que:
+  - Atribuição: dê crédito ao «Buinho FabLab — Messejana, Alentejo, Portugal» e indique se fez alterações;
+  - NãoComercial: não use para fins comerciais;
+  - CompartilhaIgual: distribua as suas contribuições com a mesma licença.
+Para usos comerciais, contacte o Buinho: info@buinho.pt
+
+Excluído desta licença / Not covered by this license:
+  - O nome «Nico» e as mascotes Nico (podengo) e Gabi (capivara), incluindo as ilustrações em img/,
+    são do Buinho e não podem ser usados para identificar outros produtos ou serviços.
+    The name "Nico" and the mascots Nico and Gabi, including the artwork in img/, are reserved by Buinho.
+  - Bibliotecas de terceiros em vendor/, com as suas próprias licenças:
+      Blockly (Google) — Apache License 2.0
+      MicroPython para micro:bit (Micro:bit Educational Foundation) — MIT License
+      @microbit/microbit-fs (Micro:bit Educational Foundation) — MIT License
