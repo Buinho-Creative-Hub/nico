@@ -78,6 +78,8 @@
     mk_digital_0: '<block type="mk_digital"><value name="P"><shadow type="mk_pino_menu"><field name="V">P2</field></shadow></value><value name="V"><shadow type="mk_num"><field name="NUM">0</field></shadow></value></block>',
   };
 
+  Object.assign(XML, F.XML_SENSORY || {});   // extensão Sensory OLED (js/sensory-oled.js)
+
   // ---------------------------------------------------- verificação
   // registo: [{t, dir:'in'|'out', v}]. «depois(in, saída)» procura uma saída
   // que aconteça até 8 s depois de uma entrada.
@@ -159,10 +161,12 @@
     mk_conta: 'Matemática', mk_aleatorio: 'Matemática', mk_resto: 'Matemática',
     mk_digital: 'Pinos', mk_ler_digital: 'Pinos', mk_ler_analogico: 'Pinos', mk_servo: 'Pinos', mk_registar: 'Registo de dados',
     mk_kit_ruido: 'Octopus', mk_kit_luz: 'Octopus', mk_kit_pir: 'Octopus', mk_kit_bme: 'Octopus',
+    so_barra: 'Sensory OLED', so_grande: 'Sensory OLED', so_grafico: 'Sensory OLED', so_grafico_reset: 'Sensory OLED', so_atividade: 'Sensory OLED',
+    so_texto: 'Sensory OLED', so_limpar: 'Sensory OLED', so_media: 'Sensory OLED', so_db: 'Sensory OLED', so_pir: 'Sensory OLED', so_nivel: 'Sensory OLED', so_movimentos: 'Sensory OLED',
     mk_oled_iniciar: 'OLED', mk_oled_texto: 'OLED', mk_oled_numero: 'OLED', mk_oled_limpar: 'OLED', mk_oled_barra: 'OLED',
   };
   const CORES_GAVETA = { 'Básico': '#1e90ff', 'Entrada': '#d400d4', 'Música': '#e63022', 'LED': '#5c2d91', 'Ciclos': '#00aa00', 'Lógica': '#00a4a6',
-    'Variáveis': '#dc143c', 'Matemática': '#9400d3', 'Pinos': '#b22222', 'Registo de dados': '#378273', 'Octopus': '#ff7a4b', 'OLED': '#27b0ba', 'Novos': '#ffb000' };
+    'Variáveis': '#dc143c', 'Matemática': '#9400d3', 'Pinos': '#b22222', 'Registo de dados': '#378273', 'Octopus': '#ff7a4b', 'OLED': '#27b0ba', 'Sensory OLED': '#534ab7', 'Novos': '#ffb000' };
   function gavetas(chaves, novos) {
     const tipo = k => (XML[k].match(/type="([a-z_]+)"/) || [])[1];
     const grupos = {};
@@ -197,6 +201,8 @@
     ['Registo de dados', ['mk_registar']],
     ['Octopus', ['mk_kit_ruido', 'mk_kit_luz', 'mk_kit_pir', 'mk_kit_bme', 'mk_kit_bme_hum'], 'Smart Science IoT Kit · sensores'],
     ['OLED', ['mk_oled_iniciar', 'mk_oled_texto', 'mk_oled_numero', 'mk_oled_limpar', 'mk_oled_barra'], 'Smart Science IoT Kit · ecrã OLED'],
+    ['Sensory OLED', ['so_barra', 'so_grande', 'so_grafico', 'so_grafico_reset', 'so_atividade', 'so_pir', 'so_nivel', 'so_movimentos', 'so_media', 'so_db', 'so_texto', 'so_limpar'],
+      'Extensão do Buinho (Invisible Cartographies) · não misturar com a gaveta OLED'],
   ];
   F.corGaveta = nome => CORES_GAVETA[nome] || '#888';
   F.caixaCategorias = function () {

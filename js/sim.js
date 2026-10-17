@@ -199,7 +199,7 @@
       this.oledCanvas = caixa.querySelector('canvas');
       this.oledReset();
     }
-    oledReset() { this.oledLigado = false; this.oledLinhas = Array(8).fill(''); this.oledX = 0; this.oledY = 0; this.oledBarra = null; this.oledDesenhar(); }
+    oledReset() { this.sensory = this.sensory || new F.SensoryOLED(); this.sensory.reset(); this.oledModo = 'texto'; this.oledLigado = false; this.oledLinhas = Array(8).fill(''); this.oledX = 0; this.oledY = 0; this.oledBarra = null; this.oledDesenhar(); }
     mostrarOled(ver) { if (this.oledCaixa) this.oledCaixa.hidden = !ver; }
     oled(op, a) {
       this.mostrarOled(true);
@@ -220,6 +220,14 @@
       }
       this.oledDesenhar();
     }
+    // extensão Sensory OLED: desenha no framebuffer (F.SensoryOLED) e mostra-o
+    soled(nome, args) {
+      this.mostrarOled(true);
+      this.oledModo = 'fb';
+      this.sensory[nome](...args);
+      this.oledLigado = this.sensory.ligado;
+      this.oledDesenhar();
+    }
     oledNovaLinha() { this.oledX = 0; this.oledY = (this.oledY + 1) % 8; this.oledLinhas[this.oledY] = ''; }
     oledDesenhar() {
       const c = this.oledCanvas; if (!c) return;
@@ -228,6 +236,11 @@
       this.oledCaixa.classList.toggle('desligado', !this.oledLigado);
       if (!this.oledLigado) return;
       g.fillStyle = '#e8f6ff'; g.strokeStyle = '#e8f6ff';
+      if (this.oledModo === 'fb') {   // Sensory OLED: framebuffer 128×64 (páginas de 8 linhas, bit 0 = em cima)
+        const fb = this.sensory.fb;
+        for (let i = 0; i < 1024; i++) if (fb[i]) for (let bit = 0; bit < 8; bit++) if (fb[i] & (1 << bit)) g.fillRect((i % 128) * 2, ((i >> 7) * 8 + bit) * 2, 2, 2);
+        return;
+      }
       // letra 5×8 da extensão, píxel a píxel (cada píxel do OLED = 2×2 no ecrã)
       const L = F.LETRA_OLED;
       this.oledLinhas.forEach((l, y) => {

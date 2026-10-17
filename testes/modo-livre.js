@@ -21,6 +21,13 @@ const oTxt = t => I('mk_oled_texto', val('T', t));
 const oNum = x => I('mk_oled_numero', val('N', x));
 const oLimpar = () => I('mk_oled_limpar');
 const oBarra = x => I('mk_oled_barra', val('V', x));
+// Sensory OLED (extensão do Buinho)
+const soBarra = (x, mn = 40, mx = 85) => I('so_barra', val('V', x) + val('MIN', mn) + val('MAX', mx) + val('ROT', 'RUÍDO') + val('UN', 'dB'));
+const soGrande = x => I('so_grande', val('V', x) + val('ROT', 'TEMP') + val('UN', 'C'));
+const soGrafico = x => I('so_grafico', val('V', x) + val('MIN', 30) + val('MAX', 90) + val('LO', 45) + val('HI', 65) + val('ROT', 'RUIDO'));
+const soAtiv = () => I('so_atividade', `<value name="MOV"><shadow type="so_pir"><field name="P">P13</field></shadow></value>` + val('S', 10) + val('ROT', 'ATIVIDADE'));
+const soTexto = (t, l) => I('so_texto', val('T', t) + val('L', l));
+const soMedia = x => blk('so_media', val('V', x) + val('S', 5) + val('C', 1));
 
 const PROGRAMAS = [
   ['ruído do kit no número', xml(E.botao('A', seq(numero(ruido())))), [{ kit_ruido: 72 }, 'botao:A'], r => r.includes('out numero:72')],
@@ -31,6 +38,10 @@ const PROGRAMAS = [
   ['OLED: iniciar, texto, número e barra', xml(E.inicio(seq(oIni(), oTxt('Olá Messejana'), oNum(bme('temp')))), E.botao('A', seq(oBarra(luzKit())))),
     [{ esperar: 300 }, { kit_luz: 40 }, 'botao:A'], r => r.includes('out oled:iniciar') && r.includes('out oled:texto:Olá Messejana') && /out oled:numero:\d+/.test(r) && r.includes('out oled:barra:40')],
   ['OLED: limpar', xml(E.botao('A', seq(oLimpar(), oTxt('ruido'), oNum(ruido())))), ['botao:A'], r => r.includes('out oled:limpar') && /out oled:numero:\d+/.test(r)],
+  ['Sensory OLED: barra de intensidade com o ruído', xml(E.sempre(seq(soBarra(ruido()), pausa(100)))), [{ kit_ruido: 70 }, { esperar: 400 }], r => r.includes('out soled:barra:70')],
+  ['Sensory OLED: número grande com média', xml(E.sempre(seq(soGrande(soMedia(bme('temp'))), pausa(100)))), [{ bme_temp: 30 }, { esperar: 600 }], r => /out soled:grande:\d+/.test(r)],
+  ['Sensory OLED: gráfico a passar', xml(E.sempre(seq(soGrafico(ruido()), pausa(100)))), [{ kit_ruido: 50 }, { esperar: 400 }], r => r.includes('out soled:grafico:50')],
+  ['Sensory OLED: medidor de atividade + texto', xml(E.sempre(seq(soAtiv(), pausa(100))), E.botao('A', seq(soTexto('Olá', 3)))), [{ kit_pir: 1 }, { esperar: 400 }, 'botao:A'], r => r.includes('out soled:atividade') && r.includes('out soled:texto:Olá')],
   ['mostrar texto (show string) no modo livre', xml(E.botao('B', seq(texto('Nico')))), ['botao:B'], r => r.includes('out texto:Nico')],
 ];
 
@@ -49,7 +60,7 @@ const PROGRAMAS = [
   await page.goto('file://' + path.join(__dirname, '..', 'index.html') + '?m=livre&a=nico');
   await page.waitForFunction(() => window.Faisca && Faisca.app);
   const cats = await page.evaluate(() => [...document.querySelectorAll('.blocklyToolboxCategoryLabel')].map(e => e.textContent));
-  const okCats = ['Básico', 'Entrada', 'Música', 'LED', 'Ciclos', 'Lógica', 'Variáveis', 'Matemática', 'Pinos', 'Registo de dados', 'Octopus', 'OLED'].every(c => cats.includes(c));
+  const okCats = ['Básico', 'Entrada', 'Música', 'LED', 'Ciclos', 'Lógica', 'Variáveis', 'Matemática', 'Pinos', 'Registo de dados', 'Octopus', 'OLED', 'Sensory OLED'].every(c => cats.includes(c));
   console.log((okCats ? 'OK   ' : 'FALHA') + ' categorias: ' + cats.join(', ')); if (!okCats) mal++;
   // todos os blocos da caixa existem (nenhum XML partido)
   const partidos = await page.evaluate(() => Faisca.CATEGORIAS_LIVRE.flatMap(([, l]) => l).filter(k => !Faisca.XML_CAIXA[k] || !Blockly.Blocks[(Faisca.XML_CAIXA[k].match(/type="([a-z_]+)"/) || [])[1]]));

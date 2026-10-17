@@ -305,10 +305,17 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
 | | `valor do BME280 temperatura (℃) / humidade (0~100) / pressão (hPa)` | I2C 0x76/0x77, contas da folha de dados da Bosch | `bme_temp`, `bme_hum`, `bme_pres` |
 | OLED `#27b0ba` | `inicializar OLED com largura 128 altura 64` · `OLED mostrar texto` · `OLED mostrar número` · `limpar ecrã OLED` · `desenhar barra de carregamento a … por cento` | SSD1306 em I2C 0x3C, letra 5×8 da extensão (21 letras × 8 linhas; ao chegar ao fim volta à 1.ª linha) | `oled:iniciar`, `oled:texto:T`, `oled:numero:N`, `oled:limpar`, `oled:barra:P` |
 
+- **Sensory OLED** (gaveta roxa `#534AB7`, `js/sensory-oled.js`): a extensão do Buinho para o Invisible Cartographies
+  (`github:Buinho-Creative-Hub/IC-Oled` v0.2.0) — `barra de intensidade` (com pico), `número grande`, `gráfico a passar`
+  (+ `recomeçar`), `medidor de atividade` com `PIR no P13 deteta movimento`, `nível de atividade`, `movimentos por
+  minuto`, `média de … em 5 s canal 1`, `dB a partir do nível de som`, `mostrar texto … na linha …`, `limpar OLED`.
+  O micro:bit do ecrã corre as mesmas contas do `main.ts` (classe `F.SensoryOLED`, framebuffer 128×64, letra 5×7
+  da extensão); o .hex leva a tradução para MicroPython (`so_barra`, `so_grafico`, …). **Não misturar com a gaveta
+  OLED no mesmo programa** (desenham no mesmo ecrã). Por testar no hardware, tal como a extensão.
 - **No ecrã:** controlos «Ruído do kit», «Luz do kit», «Passar à frente do PIR» (3 s de movimento), «Temperatura /
   Humidade / Pressão BME280» — só aparecem os dos blocos do programa. O **OLED** aparece por baixo do micro:bit,
   desenhado píxel a píxel com a mesma letra do .hex; sem «inicializar OLED» fica desligado e avisa.
 - **Pinos por defeito** os do kit (ruído P1, luz P2, PIR P13). No ecrã, os valores do kit não dependem do pino.
-- **Testes:** `node testes/modo-livre.js` (categorias, blocos do kit no ecrã, Python válido, .hex). As contas do
+- **Testes:** `node testes/modo-livre.js` (categorias, blocos do kit e do Sensory OLED no ecrã, Python válido, .hex). As contas do
   BME280 foram conferidas com o exemplo da folha de dados (25,08 °C; 1006,5 hPa). **Por testar com o kit verdadeiro.**
 - Os blocos do kit **não** entram (ainda) nas missões nem no projeto livre do último nível — só no modo livre.

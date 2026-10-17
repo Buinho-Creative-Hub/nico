@@ -128,6 +128,12 @@
         case 'mk_kit_luz': return this.sensor('kit_luz');
         case 'mk_kit_pir': return !!this.sensor('kit_pir');
         case 'mk_kit_bme': return this.sensor('bme_' + v.getFieldValue('Q'));
+        // extensão Sensory OLED (as contas com memória vivem no SensoryOLED do micro:bit do ecrã)
+        case 'so_pir': return !!this.sensor('kit_pir');
+        case 'so_db': return this.so() ? this.so().toDecibels(n('V')) : 0;
+        case 'so_media': return this.so() ? this.so().average(n('V'), n('S', 5), n('C', 1)) : 0;
+        case 'so_nivel': return this.so() ? this.so().activityLevel() : 0;
+        case 'so_movimentos': return this.so() ? this.so().movementsPerMinute() : 0;
         case 'mk_aleatorio': { const a = Math.round(n('A')), b = Math.round(n('B')); const lo = Math.min(a, b), hi = Math.max(a, b); return lo + Math.floor(Math.random() * (hi - lo + 1)); }
         case 'mk_resto': { const b = n('B', 1); return b ? n('A') % b : 0; }
         case 'mk_conta': {
@@ -143,6 +149,7 @@
         default: return v.getFieldValue('V') ?? undefined;
       }
     }
+    so() { return this.saidas[0].sensory; }
     sensor(nome) {
       const s = this.saidas[0];
       return s.sensor ? Number(s.sensor(nome)) || 0 : 0;
@@ -272,6 +279,24 @@
           const p = Math.max(0, Math.min(100, Math.floor(Number(this.valor(b, 'V', 0)) || 0)));
           this.emTodas(s => s.oled && s.oled('barra', p));
           this.ecra('oled:barra:' + p);
+          await this.esperar(20, g);
+          break;
+        }
+        // ---- extensão Sensory OLED
+        case 'so_barra': case 'so_grande': case 'so_grafico': case 'so_grafico_reset': case 'so_atividade': case 'so_texto': case 'so_limpar': {
+          const nmr = (k, d) => { const x = Number(this.valor(b, k, d)); return Number.isFinite(x) ? x : d; };
+          const str = (k, d) => String(this.valor(b, k, d));
+          const [fn, args, reg] = {
+            so_barra: () => ['intensityBar', [nmr('V', 0), nmr('MIN', 30), nmr('MAX', 90), str('ROT', 'SOUND'), str('UN', 'dB'), true], 'barra:' + Math.round(nmr('V', 0))],
+            so_grande: () => ['bigNumber', [nmr('V', 0), str('ROT', 'SOUND'), str('UN', '')], 'grande:' + Math.round(nmr('V', 0))],
+            so_grafico: () => ['scrollingGraph', [nmr('V', 0), nmr('MIN', 30), nmr('MAX', 90), nmr('LO', 45), nmr('HI', 65), str('ROT', 'SOUND')], 'grafico:' + Math.round(nmr('V', 0))],
+            so_grafico_reset: () => ['resetGraph', [], 'recomecar'],
+            so_atividade: () => ['activityMeter', [!!this.valor(b, 'MOV', false), nmr('S', 10), str('ROT', 'ACTIVITY')], 'atividade'],
+            so_texto: () => ['showText', [str('T', ''), nmr('L', 0)], 'texto:' + str('T', '')],
+            so_limpar: () => ['clear', [], 'limpar'],
+          }[b.type]();
+          this.emTodas(s => s.soled && s.soled(fn, args));
+          this.ecra('soled:' + reg);
           await this.esperar(20, g);
           break;
         }

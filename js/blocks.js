@@ -47,6 +47,8 @@
     // extensão do ELECFREAKS Smart Science IoT Kit (pxt-iot-environment-kit): gavetas Octopus e OLED
     octopus:  '#ff7a4b',
     oled:     '#27b0ba',
+    // extensão Sensory OLED do Buinho (IC-Oled, Invisible Cartographies)
+    sensory:  '#534ab7',
   };
   const blockStyles = {};
   for (const [nome, cor] of Object.entries(GAVETAS)) {

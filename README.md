@@ -12,7 +12,8 @@ vivia na rua do Buinho.
 - **6 missões × 3 níveis × 12 atividades** (216): Primeiros passos, Reparar, Toy hacking, Citizen sensing,
   Matemática e Natureza. Em cada nível: 6 atividades curtas, 5 projetos de 15–20 min e um projeto livre.
 - **Modo livre**: todos os blocos arrumados por categorias, como no MakeCode, incluindo os sensores (ruído, luz,
-  PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**.
+  PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**, e a extensão **Sensory OLED** do Buinho
+  (barra de intensidade, gráfico, número grande, medidor de atividade).
 - **Validação pelo comportamento**: o desafio fica feito quando o micro:bit *faz* o que se pede.
 - **micro:bit no ecrã** com sensores simulados (luz, som, temperatura, pinos, gestos) e **envio para o micro:bit
   verdadeiro por USB** (.hex gerado no próprio browser, com MicroPython). **Funciona sem internet.**

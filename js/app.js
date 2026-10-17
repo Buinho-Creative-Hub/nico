@@ -85,6 +85,8 @@
     servo: (p, a) => sim.servo(p, a),
     registar: (n, v) => sim.registar(n, v),
     oled: (op, a) => sim.oled(op, a),
+    soled: (nome, args) => sim.soled(nome, args),
+    get sensory() { return sim.sensory; },
   };
 
   // ------------------------------------------------------------ controlos dos sensores e variáveis no ecrã
@@ -92,7 +94,7 @@
   const CONTROLOS = {
     mk_luz: ['luz'], mk_escuro: ['luz'], mk_som_nivel: ['som', 'palmas'], mk_som_alto: ['palmas', 'som'],
     mk_temperatura: ['temperatura'], mk_ler_analogico: ['analogico:P1'], mk_ler_digital: ['digital:P0'],
-    mk_kit_ruido: ['kit_ruido'], mk_kit_luz: ['kit_luz'], mk_kit_pir: ['kit_pir'],
+    mk_kit_ruido: ['kit_ruido'], mk_kit_luz: ['kit_luz'], mk_kit_pir: ['kit_pir'], so_pir: ['kit_pir'], so_db: ['som'],
   };
   function atualizarControlos() {
     const d = F.DESAFIOS[estado.atual];
@@ -110,7 +112,8 @@
     for (const t of tipos) (CONTROLOS[t] || []).forEach(c => lista.add(c));
     if (tipos.has('mk_gesto') && ![...lista].some(c => c.startsWith('gesto:'))) ['gesto:left', 'gesto:right'].forEach(c => lista.add(c));
     sim.controlos([...lista]);
-    sim.mostrarOled([...tipos].some(t => t.startsWith('mk_oled_')));
+    const DESENHA = ['so_barra', 'so_grande', 'so_grafico', 'so_atividade', 'so_texto', 'so_limpar'];
+    sim.mostrarOled([...tipos].some(t => t.startsWith('mk_oled_') || DESENHA.includes(t)));
   }
   const caixaVars = document.createElement('div');
   caixaVars.className = 'sim-vars'; caixaVars.setAttribute('aria-live', 'polite');
