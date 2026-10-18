@@ -101,7 +101,7 @@
       try {
         for (;;) {
           // sem idTopo: não apaga o destaque no fim de cada volta (senão o bloco fica a piscar muito depressa)
-          await this.correr(corpo, g);
+          await this.correr(corpo, g, null, true);
           await this.esperar(20, g);
         }
       } catch (e) { /* parado */ }
@@ -126,12 +126,14 @@
         try { this.ws.highlightBlock(id); } catch (e) {}
       }, 120);
     }
-    async correr(bloco, g, idTopo) {
+    // sempre = este código vem de um «para sempre»: enquanto um evento (botão, pino…) está a correr, os desenhos do
+    // «para sempre» não tapam os do evento (ex.: tocar no P0 mostra corações mesmo com o «para sempre» a pôr a cara).
+    async correr(bloco, g, idTopo, sempre) {
       for (let b = bloco; b; b = b.getNextBlock()) {
         this.vivo(g);
         if (!b.isEnabled()) continue;
         this.destacar(b.id);
-        await this.executar(b, g);
+        await this.executar(b, g, false, sempre);
       }
       if (idTopo) this.destacar(null);
     }
@@ -203,7 +205,9 @@
     }
     principal() { return this.saidas.find(s => s.principal) || this.saidas[0]; }
     emTodas(fn) { for (const s of this.saidas) if (s.ligado !== false) { try { fn(s); } catch (e) { console.warn(e); } } }
-    async executar(b, g, refrescar) {
+    async executar(b, g, refrescar, sempre) {
+      const ECRA = ['mk_icone', 'mk_limpar', 'mk_mostrar_numero', 'mk_mostrar_texto', 'mk_acender', 'mk_apagar_led', 'mk_grafico'];
+      if (sempre && this.ocupado.size && ECRA.includes(b.type)) return;   // o evento tem prioridade no ecrã
       switch (b.type) {
         case 'mk_icone': {
           const nome = b.getFieldValue('I');
@@ -222,7 +226,7 @@
         case 'mk_repetir': {
           const n = Math.max(0, Math.min(100, Math.round(Number(this.valor(b, 'N', 0)))));
           for (let i = 0; i < n; i++) {
-            await this.correr(b.getInputTargetBlock('DO'), g);
+            await this.correr(b.getInputTargetBlock('DO'), g, null, sempre);
             await this.esperar(0, g);
           }
           break;
@@ -230,17 +234,17 @@
         case 'mk_enquanto':
           // como no micro:bit: repete enquanto a condição for verdadeira (com uma pausa mínima para o ecrã respirar)
           while (this.valor(b, 'C', false)) {
-            await this.correr(b.getInputTargetBlock('DO'), g);
+            await this.correr(b.getInputTargetBlock('DO'), g, null, sempre);
             await this.esperar(20, g);
           }
           break;
         case 'mk_se': {
           const ramo = this.valor(b, 'C', false) ? 'SIM' : 'NAO';
-          await this.correr(b.getInputTargetBlock(ramo), g);
+          await this.correr(b.getInputTargetBlock(ramo), g, null, sempre);
           break;
         }
         case 'mk_se_entao':
-          if (this.valor(b, 'C', false)) await this.correr(b.getInputTargetBlock('SIM'), g);
+          if (this.valor(b, 'C', false)) await this.correr(b.getInputTargetBlock('SIM'), g, null, sempre);
           break;
         case 'mk_mostrar_numero': {
           let x = Number(this.valor(b, 'N', 0));

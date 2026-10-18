@@ -88,23 +88,25 @@
     bloco(b, ind) {
       const p = '    '.repeat(ind);
       switch (b.type) {
-        case 'mk_icone': return [p + `display.show(Image.${IMAGENS[b.getFieldValue('I')] || 'HAPPY'})`];
-        case 'mk_limpar': return [p + 'display.clear()'];
-        case 'mk_pausa': return [p + `sleep(max(0, int(${this.expr(b, 'MS', '100')})))`];
+        // Cada evento e cada «para sempre» é um gerador (tarefa): as esperas («pausa», texto a passar, sons, animações)
+        // fazem «yield» e deixam as outras tarefas correr ao mesmo tempo — como no MakeCode e no micro:bit do ecrã.
+        case 'mk_icone': return [p + `_icone(Image.${IMAGENS[b.getFieldValue('I')] || 'HAPPY'})`];
+        case 'mk_limpar': return [p + '_limpar()'];
+        case 'mk_pausa': return [p + `yield from _espera(max(0, int(${this.expr(b, 'MS', '100')})))`];
         case 'mk_repetir':
-          return [p + `for _ in range(max(0, min(100, int(${this.expr(b, 'N', '0')})))):`, ...this.corpo(b.getInputTargetBlock('DO'), ind + 1)];
+          return [p + `for _ in range(max(0, min(100, int(${this.expr(b, 'N', '0')})))):`, ...this.corpo(b.getInputTargetBlock('DO'), ind + 1), '    '.repeat(ind + 1) + 'yield'];
         case 'mk_enquanto':
-          return [p + `while ${this.condicao(b)}:`, ...this.corpo(b.getInputTargetBlock('DO'), ind + 1), '    '.repeat(ind + 1) + 'sleep(20)'];
+          return [p + `while ${this.condicao(b)}:`, ...this.corpo(b.getInputTargetBlock('DO'), ind + 1), '    '.repeat(ind + 1) + 'yield'];
         case 'mk_se':
           return [p + `if ${this.condicao(b)}:`, ...this.corpo(b.getInputTargetBlock('SIM'), ind + 1),
             p + 'else:', ...this.corpo(b.getInputTargetBlock('NAO'), ind + 1)];
         case 'mk_som': {
           const s = String(valor(b, 'S', 'giggle')).toLowerCase();
-          return [p + `audio.play(Sound.${(SONS.includes(s) ? s : 'giggle').toUpperCase()}, pin=${this.somPino})`];
+          return [p + `yield from _som(Sound.${(SONS.includes(s) ? s : 'giggle').toUpperCase()})`];
         }
         case 'mk_tom': {
           const ms = Math.max(1, Math.round(Number(valor(b, 'BAT', 1)) * BATIDA_MS) || BATIDA_MS);
-          return [p + `music.pitch(max(0, int(${this.expr(b, 'F', '262')})), ${ms}, pin=${this.somPino})`];
+          return [p + `yield from _tom(max(0, int(${this.expr(b, 'F', '262')})), ${ms})`];
         }
         case 'mk_digital': {
           const pino = PINOS[valor(b, 'P', 'P2')] || 'pin2';
@@ -112,8 +114,8 @@
         }
         case 'mk_se_entao':
           return [p + `if ${this.condicao(b)}:`, ...this.corpo(b.getInputTargetBlock('SIM'), ind + 1)];
-        case 'mk_mostrar_numero': return [p + `mostrar_numero(${this.expr(b, 'N', '0')})`];
-        case 'mk_mostrar_texto': return [p + `display.scroll(str(${this.expr(b, 'T', '""')}))`];
+        case 'mk_mostrar_numero': return [p + `yield from mostrar_numero(${this.expr(b, 'N', '0')})`];
+        case 'mk_mostrar_texto': return [p + `yield from _scroll(str(${this.expr(b, 'T', '""')}))`];
         case 'mk_acender': return [p + `acender(${this.expr(b, 'X')}, ${this.expr(b, 'Y')}, 9)`];
         case 'mk_apagar_led': return [p + `acender(${this.expr(b, 'X')}, ${this.expr(b, 'Y')}, 0)`];
         case 'mk_grafico': return [p + `grafico(${this.expr(b, 'V')}, ${this.expr(b, 'MAX', '255')})`];
@@ -142,7 +144,7 @@
         case 'so_animacao': {
           this.usa.add('soled'); this.usa.add('soanim'); this.usa.add('math');
           const id = b.getFieldValue('A');
-          return [p + `so_animacao(${py(id)}, ${this.expr(b, 'N', '1')})`];
+          return [p + `yield from so_animacao(${py(id)}, ${this.expr(b, 'N', '1')})`];
         }
         case 'mk_registar': this.usa.add('log'); return [p + `log.add({str(${this.expr(b, 'NOME', '"valor"')}): ${this.expr(b, 'V')}})`];
       }
@@ -180,6 +182,7 @@
           const nome = `quando_${k.toLowerCase().replace(/[^a-z0-9_]/g, '_')}_${i + 1}`;
           funcoes.push([k, nome]);
           const c = this.corpo(corpo, 1);
+          c.push('    yield');   // garante que é um gerador (tarefa), mesmo sem esperas
           F_.push([nome, c]);
         });
       }
@@ -189,15 +192,67 @@
       if (this.usa.has('math')) L.push('import math');
       if (this.usa.has('log')) L.push('import log');
       L.push('',
+        '# tarefas: cada evento / «para sempre» corre como gerador; o ciclo principal avança-as todas à vez',
+        '_tarefas = {}',
+        '',
+        'def _lancar(k, f):',
+        '    if k not in _tarefas:  # como no micro:bit: um evento não se empilha enquanto ainda está a correr',
+        '        _tarefas[k] = f()',
+        '',
+        'def _espera(ms):',
+        '    t = running_time() + ms',
+        '    while running_time() < t:',
+        '        yield',
+        '',
+        '_ultimo = None',
+        '_em_sempre = False  # o «para sempre» não desenha por cima de um evento que esteja a correr',
+        '',
+        'def _icone(img):',
+        '    global _ultimo',
+        '    if _em_sempre:',
+        '        return',
+        '    if img is not _ultimo:  # não redesenhar o mesmo ícone (sem tremer e sem atrapalhar o sensor de luz)',
+        '        display.show(img)',
+        '        _ultimo = img',
+        '',
+        'def _limpar():',
+        '    global _ultimo',
+        '    if _em_sempre:',
+        '        return',
+        '    display.clear()',
+        '    _ultimo = None',
+        '',
+        'def _scroll(s):',
+        '    global _ultimo',
+        '    if _em_sempre:',
+        '        return',
+        '    _ultimo = None',
+        '    display.scroll(s, wait=False)',
+        '    yield from _espera((len(s) * 6 + 6) * 150)',
+        '',
+        `def _som(snd):`,
+        `    audio.play(snd, wait=False, pin=${this.somPino})`,
+        '    while audio.is_playing():',
+        '        yield',
+        '',
+        `def _tom(f, ms):`,
+        `    music.pitch(f, ms, pin=${this.somPino}, wait=False)`,
+        '    yield from _espera(ms)',
+        '',
         'def mostrar_numero(n):',
+        '    global _ultimo',
+        '    if _em_sempre:',
+        '        return',
         '    if isinstance(n, float) and n == int(n):',
         '        n = int(n)',
         '    if isinstance(n, float):',
         '        n = round(n, 2)',
         '    if isinstance(n, int) and 0 <= n <= 9:',
         '        display.show(n)',
+        '        _ultimo = None',
+        '        yield from _espera(150)',
         '    else:',
-        '        display.scroll(str(n))',
+        '        yield from _scroll(str(n))',
         '',
         'def divide(a, b):',
         '    return a / b if b else 0',
@@ -205,10 +260,18 @@
         'def acender(x, y, v):',
         '    x = int(x)',
         '    y = int(y)',
+        '    global _ultimo',
+        '    if _em_sempre:',
+        '        return',
+        '    _ultimo = None',
         '    if 0 <= x <= 4 and 0 <= y <= 4:',
         '        display.set_pixel(x, y, v)',
         '',
         'def grafico(v, m):',
+        '    global _ultimo',
+        '    if _em_sempre:',
+        '        return',
+        '    _ultimo = None',
         '    n = max(0, min(25, round(25 * v / (m or 1))))',
         '    for i in range(25):',
         '        display.set_pixel(i % 5, 4 - i // 5, 9 if i < n else 0)',
@@ -767,7 +830,7 @@
         '            _sclear()',
         '            f(i)',
         '            _sshow()',
-        '            sleep(max(0, ms - (running_time() - t)))',
+        '            yield from _espera(max(0, ms - (running_time() - t)))',
         '');
       if (this.usa.has('oled')) L.push(
         'def numero_texto(n):',
@@ -784,12 +847,13 @@
         if (globais.length) L.push('    global ' + globais.join(', '));
         L.push(...c, '');
       }
-      const chamar = (k, ind) => funcoes.filter(f => f[0] === k).map(f => '    '.repeat(ind) + f[1] + '()');
+      const chamar = (k, ind) => funcoes.filter(f => f[0] === k).map(f => '    '.repeat(ind) + `_lancar(${py(f[1])}, ${f[1]})`);
       const tem = k => ev[k].length > 0;
 
       if (this.usa.has('ecraoff')) L.push('display.off()  # o servo usa um pino do ecrã de luzes');
       if (this.usaLuz) L.push('display.read_light_level()  # o primeiro valor vem sempre a 0');
-      L.push(...chamar('inicio', 0));
+      // «no arranque» corre até ao fim antes de tudo o resto (como no MakeCode)
+      funcoes.filter(f => f[0] === 'inicio').forEach(f => L.push(`for _ in ${f[1]}():`, '    pass'));
       L.push('a_antes = b_antes = ab_ativo = False',
         'logo_antes = p0_antes = p1_antes = False', '', 'while True:');
       if (tem('agitar')) L.push("    if accelerometer.was_gesture('shake'):", ...chamar('agitar', 2));
@@ -811,7 +875,21 @@
       }
       if (this.usa.has('contapir')) L.push(`    _sativ(${this.pinoPir || 'pin13'}.read_digital() == 1, 10)`);
       if (this.usa.has('soled')) L.push('    if _sviva and running_time() - _svt >= 100:', '        _sviva()', '        _svt = running_time()');
-      L.push(...chamar('sempre', 1), '    sleep(20)', '');
+      L.push(...chamar('sempre', 1),   // o «para sempre» volta a começar quando acaba
+        '    _ev = False',
+        '    for _k in _tarefas:',
+        "        if not _k.startswith('quando_sempre'):",
+        '            _ev = True',
+        '    for _k in list(_tarefas):',
+        "        _em_sempre = _ev and _k.startswith('quando_sempre')",
+        '        try:',
+        '            next(_tarefas[_k])',
+        '        except StopIteration:',
+        '            del _tarefas[_k]',
+        "            if not _k.startswith('quando_sempre'):",
+        '                _ultimo = None',
+        '    _em_sempre = False',
+        '    sleep(10)', '');
       return L.join('\n');
     }
   }
