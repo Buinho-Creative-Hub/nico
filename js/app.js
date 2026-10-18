@@ -112,8 +112,8 @@
     for (const t of tipos) (CONTROLOS[t] || []).forEach(c => lista.add(c));
     if (tipos.has('mk_gesto') && ![...lista].some(c => c.startsWith('gesto:'))) ['gesto:left', 'gesto:right'].forEach(c => lista.add(c));
     sim.controlos([...lista]);
-    const DESENHA = ['so_barra', 'so_grande', 'so_grafico', 'so_atividade', 'so_texto', 'so_limpar'];
-    sim.mostrarOled([...tipos].some(t => t.startsWith('mk_oled_') || DESENHA.includes(t)));
+    const DESENHA = ['so_barra', 'so_grande', 'so_grafico', 'so_atividade', 'so_texto', 'so_limpar', 'so_escrever', 'so_animacao'];
+    sim.mostrarOled([...tipos].some(t => t.startsWith('mk_oled_') || DESENHA.includes(t)), [...tipos].some(t => t.startsWith('mk_oled_')));
   }
   const caixaVars = document.createElement('div');
   caixaVars.className = 'sim-vars'; caixaVars.setAttribute('aria-live', 'polite');

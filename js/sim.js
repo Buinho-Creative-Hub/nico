@@ -200,7 +200,8 @@
       this.oledReset();
     }
     oledReset() { this.sensory = this.sensory || new F.SensoryOLED(); this.sensory.reset(); this.oledModo = 'texto'; this.oledLigado = false; this.oledLinhas = Array(8).fill(''); this.oledX = 0; this.oledY = 0; this.oledBarra = null; this.oledDesenhar(); }
-    mostrarOled(ver) { if (this.oledCaixa) this.oledCaixa.hidden = !ver; }
+    // avisar = o programa usa a gaveta OLED (precisa de «inicializar»); a Sensory OLED liga-se sozinha
+    mostrarOled(ver, avisar) { if (!this.oledCaixa) return; this.oledCaixa.hidden = !ver; if (avisar !== undefined) { this.oledAvisar = avisar; this.oledDesenhar(); } }
     oled(op, a) {
       this.mostrarOled(true);
       const escrever = t => {
@@ -233,7 +234,7 @@
       const c = this.oledCanvas; if (!c) return;
       const g = c.getContext('2d');
       g.fillStyle = '#05070a'; g.fillRect(0, 0, c.width, c.height);
-      this.oledCaixa.classList.toggle('desligado', !this.oledLigado);
+      this.oledCaixa.classList.toggle('desligado', !this.oledLigado && this.oledAvisar !== false);
       if (!this.oledLigado) return;
       g.fillStyle = '#e8f6ff'; g.strokeStyle = '#e8f6ff';
       if (this.oledModo === 'fb') {   // Sensory OLED: framebuffer 128×64 (páginas de 8 linhas, bit 0 = em cima)

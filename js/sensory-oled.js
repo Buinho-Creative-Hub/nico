@@ -60,7 +60,7 @@
       if (peak) { const px = 2 + this.scale(this.peakValue, min, max, W - 4); this.vline(Math.min(px, W - 2), 12, 43); this.vline(Math.min(px + 1, W - 1), 12, 43); }
       this.text(0, 52, this.fmt(min));
       this.textRight(W - 1, 52, this.fmt(max));
-      if (peak) { const p = 'PEAK ' + this.fmt(this.peakValue); this.text(Math.round((W - p.length * 6) / 2), 52, p); }
+      if (peak) { const p = 'PICO ' + this.fmt(this.peakValue); this.text(Math.round((W - p.length * 6) / 2), 52, p); }
     }
     scrollingGraph(value, min, max, low, high, label = 'SOUND') {
       this.history.push(value); if (this.history.length > W) this.history.shift();
@@ -110,9 +110,84 @@
     activityLevel() { return Math.round(this.energy); }
     movementsPerMinute() { return this.moves.length; }
     clear() { this.clearBuffer(); }
+    // ---- acrescentos do Nico (não existem na IC-Oled v0.2.0): texto com tamanho, formas e animações
+    // texto com tamanho 1–4 em qualquer sítio, sem apagar o resto do ecrã
+    escrever(s, x, y, k) {
+      this.begin();
+      k = Math.max(1, Math.min(4, Math.round(k) || 1));
+      s = F.semAcentos(textoNum(s));
+      if (k === 1) this.text(Math.round(x), Math.round(y), s); else this.textScaled(Math.round(x), Math.round(y), s, k);
+    }
+    circle(cx, cy, r) {   // contorno (algoritmo do ponto médio)
+      let x = r, y = 0, e = 1 - r;
+      while (x >= y) {
+        for (const [a, b] of [[x, y], [y, x], [-y, x], [-x, y], [-x, -y], [-y, -x], [y, -x], [x, -y]]) this.pixel(cx + a, cy + b);
+        y++; if (e < 0) e += 2 * y + 1; else { x--; e += 2 * (y - x) + 1; }
+      }
+    }
+    fillCircle(cx, cy, r) { for (let dy = -r; dy <= r; dy++) { const w = Math.floor(Math.sqrt(r * r - dy * dy)); this.hline(cx - w, cx + w, cy + dy); } }
+    line(x0, y0, x1, y1) {
+      const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1);
+      for (let i = 0; i <= n; i++) this.pixel(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n));
+    }
+    // desenha a moldura i (de ANIMACOES[nome].n) — a mesma conta que o so_anim_* do .hex
+    moldura(nome, i) { this.clearBuffer(); ANIMACOES[nome].desenhar(this, i); }
     showText(s, line) { this.begin(); const y = Math.max(0, Math.min(7, Math.round(line))) * 8; for (let x = 0; x < W; x++) this.fb[(y >> 3) * W + x] = 0; this.text(0, y, s); }
   }
   F.SensoryOLED = SensoryOLED;
+  function textoNum(s) { if (typeof s === 'number') return String(Math.round(s * 100) / 100); return String(s); }
+
+  // ------------------------------------------------------------ animações (galeria, como o «mostrar ícone»)
+  // n molduras, ms por moldura. Cada desenho é traduzido 1:1 para MicroPython em js/hex.js (so_anim_<nome>).
+  const ANIMACOES = {
+    olhos: { nome: 'olhos', n: 12, ms: 110, desenhar(o, i) {
+      const fecha = i === 9 || i === 10;
+      for (const cx of [40, 88]) {
+        if (fecha) { o.hline(cx - 18, cx + 18, 32); o.hline(cx - 18, cx + 18, 33); continue; }
+        o.circle(cx, 32, 20); o.circle(cx, 32, 19);
+        o.fillCircle(cx + Math.round(8 * Math.cos(2 * Math.PI * i / 12)), 32 + Math.round(5 * Math.sin(2 * Math.PI * i / 12)), 7);
+      }
+    } },
+    coracao: { nome: 'coração', n: 8, ms: 120, desenhar(o, i) {
+      const s = [10, 13, 10, 12, 10, 10, 10, 10][i];
+      const d = Math.round(s * 0.9);
+      o.fillCircle(64 - d, 24, s); o.fillCircle(64 + d, 24, s);
+      for (let y = 0; y <= 2 * s + 4; y++) { const w = Math.round((d + s) * (1 - y / (2 * s + 4))); o.hline(64 - w, 64 + w, 26 + y); }
+    } },
+    bola: { nome: 'bola a saltar', n: 16, ms: 70, desenhar(o, i) {
+      o.hline(0, 127, 63);
+      const x = 10 + i * 7, y = 56 - Math.round(44 * Math.abs(Math.sin(Math.PI * i / 8)));
+      o.fillCircle(x, y, 6);
+    } },
+    chuva: { nome: 'chuva', n: 8, ms: 90, desenhar(o, i) {
+      for (const [cx, cy, r] of [[44, 10, 8], [60, 7, 10], [78, 9, 9], [92, 11, 6]]) o.fillCircle(cx, cy, r);   // nuvem
+      for (let k = 0; k < 16; k++) { const x = 30 + (k * 37) % 70, y = 20 + (k * 23 + i * 7) % 44; o.vline(x, y, Math.min(63, y + 4)); }
+    } },
+    ondas: { nome: 'ondas do mar', n: 8, ms: 100, desenhar(o, i) {
+      for (const [y0, a, f] of [[24, 8, 10], [42, 6, 7]]) {
+        let py = -1;
+        for (let x = 0; x < 128; x++) { const y = y0 + Math.round(a * Math.sin((x + i * 8) / f)); if (py < 0) o.pixel(x, y); else o.vline(x, py, y); py = y; }
+      }
+    } },
+    fogo: { nome: 'fogo de artifício', n: 14, ms: 90, desenhar(o, i) {
+      for (const [cx, cy, t0] of [[40, 24, 0], [92, 30, 5]]) {
+        const t = i - t0; if (t < 0 || t > 8) continue;
+        const r = t * 4;
+        if (r === 0) { o.fillCircle(cx, cy, 2); continue; }
+        for (let k = 0; k < 12; k++) { const a = 2 * Math.PI * k / 12; o.fillRect(cx + Math.round(r * Math.cos(a)), cy + Math.round(r * Math.sin(a)), 2, 2); }
+      }
+    } },
+  };
+  F.ANIMACOES_OLED = ANIMACOES;
+  // miniatura da galeria: uma moldura desenhada num SVG pequeno (como os ícones do «mostrar ícone»)
+  function miniatura(id) {
+    const o = new SensoryOLED(); const a = ANIMACOES[id];
+    o.moldura(id, Math.floor(a.n / 4));
+    let r = '';
+    for (let i = 0; i < 1024; i++) if (o.fb[i]) for (let b = 0; b < 8; b++) if (o.fb[i] & (1 << b)) r += `M${i % 128} ${(i >> 7) * 8 + b}h1v1h-1z`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="128" height="64" viewBox="0 0 128 64"><rect width="128" height="64" rx="4" fill="#05070a"/><path d="${r}" fill="#e8f6ff"/></svg>`);
+  }
+  const opcoesAnim = Object.keys(ANIMACOES).map(k => [{ src: miniatura(k), width: 64, height: 32, alt: ANIMACOES[k].nome }, k]);
 
   // ------------------------------------------------------------ blocos (gaveta «Sensory OLED», roxa como na extensão)
   const num = n => ({ type: 'input_value', name: n, check: 'Number' });
@@ -130,6 +205,11 @@
       tooltip: 'Cada movimento enche o medidor; quando nada mexe, esvazia. Mostra os movimentos do último minuto.' },
     { type: 'so_texto', message0: 'mostrar texto %1 na linha %2', args0: [txt('T'), num('L')], ...stmt, tooltip: 'Escreve um texto curto (até 21 letras) numa das 8 linhas (0 = em cima).' },
     { type: 'so_limpar', message0: 'limpar OLED', ...stmt, tooltip: 'Apaga o ecrã.' },
+    { type: 'so_escrever', message0: 'escrever %1 em x %2 y %3 tamanho %4', args0: [txt('T'), num('X'), num('Y'),
+      { type: 'field_dropdown', name: 'K', options: [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4']] }], ...stmt,
+      tooltip: 'Escreve um texto ou um número onde quiseres (x de 0 a 127, y de 0 a 63), com letra pequena (1) a muito grande (4). Não apaga o resto: usa «limpar OLED» antes.' },
+    { type: 'so_animacao', message0: 'mostrar animação %1 %2 vezes', args0: [{ type: 'field_dropdown', name: 'A', options: opcoesAnim }, num('N')], ...stmt,
+      tooltip: 'Mostra uma animação no ecrã OLED. Enquanto a animação corre, o resto do programa espera.' },
     { type: 'so_media', message0: 'média de %1 em %2 s canal %3', args0: [num('V'), num('S'), num('C')], inputsInline: true, output: 'Number', style: 'sensory',
       tooltip: 'Média dos últimos segundos: mais estável do que uma leitura só. Um canal (1, 2 ou 3) por sensor.' },
     { type: 'so_db', message0: 'dB a partir do nível de som %1', args0: [num('V')], inputsInline: true, output: 'Number', style: 'sensory', tooltip: 'Converte o nível de som do micro:bit (0–255) em dB aproximados (35–100).' },
@@ -147,6 +227,9 @@
     so_atividade: `<block type="so_atividade"><value name="MOV"><shadow type="so_pir"><field name="P">P13</field></shadow></value>${n('S', 10)}${t('ROT', 'ATIVIDADE')}</block>`,
     so_texto: `<block type="so_texto">${t('T', 'Olá')}${n('L', 0)}</block>`,
     so_limpar: '<block type="so_limpar"></block>',
+    so_barra_luz: `<block type="so_barra"><value name="V"><block type="mk_kit_luz"><field name="P">P2</field></block></value>${n('MIN', 0)}${n('MAX', 100)}${t('ROT', 'LUZ')}${t('UN', '%')}</block>`,
+    so_escrever: `<block type="so_escrever">${t('T', 'Olá!')}${n('X', 0)}${n('Y', 20)}<field name="K">2</field></block>`,
+    so_animacao: `<block type="so_animacao"><field name="A">olhos</field>${n('N', 2)}</block>`,
     so_media: `<block type="so_media">${n('V', 50)}${n('S', 5)}${n('C', 1)}</block>`,
     so_db: `<block type="so_db"><value name="V"><block type="mk_som_nivel"></block></value></block>`,
     so_pir: '<block type="so_pir"><field name="P">P13</field></block>',

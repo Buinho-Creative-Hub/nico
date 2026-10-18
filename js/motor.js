@@ -35,6 +35,7 @@
       this._dig = {};
       this._emSempre = false;
       this.mudouVars && this.mudouVars(this.vars);
+      this.destacar(null);
       const arranque = [];
       for (const top of this.ws.getTopBlocks(true)) {
         if (!top.isEnabled() || top.isInFlyout) continue;
@@ -82,7 +83,8 @@
       this._emSempre = true;
       try {
         for (;;) {
-          await this.correr(corpo, g, top.id);
+          // sem idTopo: não apaga o destaque no fim de cada volta (senão o bloco fica a piscar muito depressa)
+          await this.correr(corpo, g);
           await this.esperar(20, g);
         }
       } catch (e) { /* parado */ }
@@ -283,6 +285,24 @@
           break;
         }
         // ---- extensão Sensory OLED
+        case 'so_animacao': {
+          const id = b.getFieldValue('A'), A = F.ANIMACOES_OLED[id];
+          const vezes = Math.max(0, Math.min(20, Math.round(Number(this.valor(b, 'N', 1)) || 0)));
+          this.ecra('soled:animacao:' + id);
+          for (let v = 0; v < vezes; v++) for (let i = 0; i < A.n; i++) {
+            this.emTodas(s => s.soled && s.soled('moldura', [id, i]));
+            await this.esperar(A.ms, g);
+          }
+          break;
+        }
+        case 'so_escrever': {
+          const t = this.valor(b, 'T', '');
+          const x = Number(this.valor(b, 'X', 0)) || 0, y = Number(this.valor(b, 'Y', 0)) || 0, k = Number(b.getFieldValue('K')) || 1;
+          this.emTodas(s => s.soled && s.soled('escrever', [t, x, y, k]));
+          this.ecra('soled:escrever:' + t + ':' + k);
+          await this.esperar(20, g);
+          break;
+        }
         case 'so_barra': case 'so_grande': case 'so_grafico': case 'so_grafico_reset': case 'so_atividade': case 'so_texto': case 'so_limpar': {
           const nmr = (k, d) => { const x = Number(this.valor(b, k, d)); return Number.isFinite(x) ? x : d; };
           const str = (k, d) => String(this.valor(b, k, d));

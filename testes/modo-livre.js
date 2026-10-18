@@ -27,6 +27,9 @@ const soGrande = x => I('so_grande', val('V', x) + val('ROT', 'TEMP') + val('UN'
 const soGrafico = x => I('so_grafico', val('V', x) + val('MIN', 30) + val('MAX', 90) + val('LO', 45) + val('HI', 65) + val('ROT', 'RUIDO'));
 const soAtiv = () => I('so_atividade', `<value name="MOV"><shadow type="so_pir"><field name="P">P13</field></shadow></value>` + val('S', 10) + val('ROT', 'ATIVIDADE'));
 const soTexto = (t, l) => I('so_texto', val('T', t) + val('L', l));
+const soAnim = (a, n = 1) => I('so_animacao', `<field name="A">${a}</field>` + val('N', n));
+const soEscrever = (t, x, y, k) => I('so_escrever', val('T', t) + val('X', x) + val('Y', y) + `<field name="K">${k}</field>`);
+const soLimpar = () => I('so_limpar');
 const soMedia = x => blk('so_media', val('V', x) + val('S', 5) + val('C', 1));
 
 const PROGRAMAS = [
@@ -42,6 +45,11 @@ const PROGRAMAS = [
   ['Sensory OLED: número grande com média', xml(E.sempre(seq(soGrande(soMedia(bme('temp'))), pausa(100)))), [{ bme_temp: 30 }, { esperar: 600 }], r => /out soled:grande:\d+/.test(r)],
   ['Sensory OLED: gráfico a passar', xml(E.sempre(seq(soGrafico(ruido()), pausa(100)))), [{ kit_ruido: 50 }, { esperar: 400 }], r => r.includes('out soled:grafico:50')],
   ['Sensory OLED: medidor de atividade + texto', xml(E.sempre(seq(soAtiv(), pausa(100))), E.botao('A', seq(soTexto('Olá', 3)))), [{ kit_pir: 1 }, { esperar: 400 }, 'botao:A'], r => r.includes('out soled:atividade') && r.includes('out soled:texto:Olá')],
+  ['Sensory OLED: barra calibrada para a luz', xml(E.sempre(seq(soBarra(luzKit(), 0, 100), pausa(100)))), [{ kit_luz: 80 }, { esperar: 400 }], r => r.includes('out soled:barra:80')],
+  ['Sensory OLED: limpar + escrever com tamanho', xml(E.botao('A', seq(soLimpar(), soEscrever('Olá', 0, 0, 3), soEscrever(bme('temp'), 0, 40, 2)))), [{ bme_temp: 24 }, 'botao:A'],
+    r => r.includes('out soled:escrever:Olá:3') && r.includes('out soled:escrever:24:2')],
+  ...['olhos', 'coracao', 'bola', 'chuva', 'ondas', 'fogo'].map(a => ['Sensory OLED: animação ' + a, xml(E.botao('A', seq(soAnim(a, 1), icone('Yes')))), ['botao:A', { esperar: 1800 }],
+    r => r.includes('out soled:animacao:' + a) && r.indexOf('out icone:Yes') > r.indexOf('out soled:animacao:' + a)]),
   ['mostrar texto (show string) no modo livre', xml(E.botao('B', seq(texto('Nico')))), ['botao:B'], r => r.includes('out texto:Nico')],
 ];
 

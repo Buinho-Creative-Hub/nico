@@ -114,7 +114,7 @@
   const GESTOS = [['inclinado para a esquerda', 'left'], ['inclinado para a direita', 'right'], ['logotipo para cima', 'up'],
     ['logotipo para baixo', 'down'], ['ecrã para cima', 'face up'], ['ecrã para baixo', 'face down'], ['queda livre', 'freefall']];
   // Variáveis: um conjunto fixo e simples (sem janelas para criar variáveis)
-  const VARIAVEIS = [['contador', 'contador'], ['pontos', 'pontos'], ['medida', 'medida'], ['recorde', 'recorde'], ['vidas', 'vidas'], ['passos', 'passos']];
+  const VARIAVEIS = [['contador', 'contador'], ['pontos', 'pontos'], ['medida', 'medida'], ['recorde', 'recorde'], ['vidas', 'vidas'], ['passos', 'passos'], ['modo', 'modo']];
   const PINOS_LER = [['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']];
   const PINOS_PIR = ['P13', 'P0', 'P1', 'P2', 'P8', 'P12', 'P14', 'P15', 'P16'].map(p => [p, p]);
   const stmt = { previousStatement: null, nextStatement: null };

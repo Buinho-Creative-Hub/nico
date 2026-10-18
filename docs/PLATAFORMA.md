@@ -312,6 +312,13 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
   O micro:bit do ecrã corre as mesmas contas do `main.ts` (classe `F.SensoryOLED`, framebuffer 128×64, letra 5×7
   da extensão); o .hex leva a tradução para MicroPython (`so_barra`, `so_grafico`, …). **Não misturar com a gaveta
   OLED no mesmo programa** (desenham no mesmo ecrã). Por testar no hardware, tal como a extensão.
+- **Acrescentos do Nico ao Sensory OLED (18 Out, pedido do Carlos):** `barra de intensidade` já calibrada para a luz
+  do kit (0–100, «LUZ», «%») na caixa, além da do ruído (40–85 dB); `escrever … em x … y … tamanho 1–4` (texto ou número,
+  sem apagar o resto); `mostrar animação [galeria] … vezes` com 6 animações (olhos, coração, bola a saltar, chuva, ondas
+  do mar, fogo de artifício) — miniaturas no menu, como o «mostrar ícone»; desenhadas em `ANIMACOES` (sensory-oled.js)
+  e `_a_<nome>` (hex.js), com I2C a 400 kHz. «PEAK» passou a «PICO». Variável nova `modo` (padrão: botão A → modo 1,
+  botão B → modo 2, «para sempre» → se modo = 1 mostra um sensor, senão outro). O bloco a correr num «para sempre»
+  fica destacado sem piscar.
 - **No ecrã:** controlos «Ruído do kit», «Luz do kit», «Passar à frente do PIR» (3 s de movimento), «Temperatura /
   Humidade / Pressão BME280» — só aparecem os dos blocos do programa. O **OLED** aparece por baixo do micro:bit,
   desenhado píxel a píxel com a mesma letra do .hex; sem «inicializar OLED» fica desligado e avisa.
