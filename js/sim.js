@@ -172,12 +172,14 @@
         this.servoG = el('g', {}, this.svg);
         el('path', { d: `M${cx} 252 C ${cx} 285 ${cx - 30} 290 ${cx - 40} 300`, stroke: '#e0a020', 'stroke-width': 3, fill: 'none' }, this.servoG);
         el('rect', { x: cx - 70, y: 292, width: 44, height: 30, rx: 4, fill: '#2b6cb0' }, this.servoG);
+        this.servoPino = el('text', { x: cx - 58, y: 318, fill: '#fff', 'font-size': 10, 'font-weight': 700, 'font-family': 'Asap, sans-serif' }, this.servoG);
         this.servoBraco = el('g', { transform: `translate(${cx - 48} 296)` }, this.servoG);
         el('rect', { x: -3, y: -26, width: 6, height: 28, rx: 3, fill: '#fff', stroke: '#333', 'stroke-width': 1.5 }, this.servoBraco);
         el('circle', { cx: 0, cy: 0, r: 5, fill: '#ddd', stroke: '#333' }, this.servoBraco);
         this._servoBase = `translate(${cx - 48} 296)`;
       }
       this.servoG.setAttribute('opacity', 1);
+      this.servoPino.textContent = p;
       this.servoBraco.setAttribute('transform', `${this._servoBase} rotate(${a - 90})`);
     }
     registar(nome, v) {

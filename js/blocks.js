@@ -116,6 +116,7 @@
   // Variáveis: um conjunto fixo e simples (sem janelas para criar variáveis)
   const VARIAVEIS = [['contador', 'contador'], ['pontos', 'pontos'], ['medida', 'medida'], ['recorde', 'recorde'], ['vidas', 'vidas'], ['passos', 'passos'], ['modo', 'modo']];
   const PINOS_LER = [['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']];
+  const PINOS_SERVO = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10', 'P11', 'P12', 'P13', 'P14', 'P15', 'P16'].map(p => [p, p]);
   const PINOS_PIR = ['P13', 'P0', 'P1', 'P2', 'P8', 'P12', 'P14', 'P15', 'P16'].map(p => [p, p]);
   const stmt = { previousStatement: null, nextStatement: null };
   const F_BLOCOS_NOVOS = [
@@ -153,7 +154,10 @@
     // ---- pinos
     { type: 'mk_ler_digital', message0: 'leitura digital pin %1', args0: [{ type: 'field_dropdown', name: 'P', options: PINOS_LER }], output: 'Number', style: 'pinos', tooltip: '1 se o circuito estiver fechado, 0 se estiver aberto.' },
     { type: 'mk_ler_analogico', message0: 'leitura analógica pin %1', args0: [{ type: 'field_dropdown', name: 'P', options: PINOS_LER }], output: 'Number', style: 'pinos', tooltip: 'De 0 a 1023: quanto passa de eletricidade.' },
-    { type: 'mk_servo', message0: 'escrever servo pin %1 para %2', args0: [{ type: 'field_dropdown', name: 'P', options: [['P0', 'P0'], ['P1', 'P1'], ['P2', 'P2']] }, num('A')], inputsInline: true, ...stmt, style: 'pinos', tooltip: 'Roda o servomotor para este ângulo (0 a 180 graus).' },
+    // pinos como no MakeCode (o IoT:bit do kit tem fichas de servo noutros pinos). P3, P4, P6, P7, P9 e P10 são do ecrã de
+    // luzes (o ecrã desliga-se); P5 e P11 são os botões A e B (deixam de funcionar como botões).
+    { type: 'mk_servo', message0: 'escrever servo pin %1 para %2', args0: [{ type: 'field_dropdown', name: 'P', options: PINOS_SERVO }, num('A')], inputsInline: true, ...stmt, style: 'pinos',
+      tooltip: 'Roda o servomotor para este ângulo (0 a 180 graus). Atenção: P3, P4, P6, P7, P9 e P10 desligam o ecrã de luzes; P5 e P11 são os botões A e B.' },
     // ---- registo de dados (micro:bit V2)
     { type: 'mk_registar', message0: 'registar dados %1 = %2', args0: [menu('NOME'), num('V')], inputsInline: true, ...stmt, style: 'registo', tooltip: 'Guarda uma linha na tabela de dados do micro:bit (abre o MY_DATA.HTM).' },
     // ---- ELECFREAKS Smart Science IoT Kit (extensão «Environment and Science IoT»: Octopus + OLED)

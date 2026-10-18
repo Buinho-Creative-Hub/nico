@@ -325,6 +325,8 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
   do ruído» troca. No .hex: `_sviver(lambda: …)` + refresco no ciclo principal. «movimentos por minuto»/«nível de
   atividade» contam o PIR em segundo plano (pino do bloco PIR do programa, ou P13). Textos compridos em `escrever` e
   `mostrar texto na linha` continuam na linha de baixo (quebra nas palavras).
+- **Servo em mais pinos (18 Out):** `escrever servo pin` aceita P0–P16 (como no MakeCode; o IoT:bit tem fichas de servo
+  noutros pinos). P3, P4, P6, P7, P9 e P10 são do ecrã de luzes → o .hex põe `display.off()`; P5 e P11 são os botões A/B.
 - **No ecrã:** controlos «Ruído do kit», «Luz do kit», «Passar à frente do PIR» (3 s de movimento), «Temperatura /
   Humidade / Pressão BME280» — só aparecem os dos blocos do programa. O **OLED** aparece por baixo do micro:bit,
   desenhado píxel a píxel com a mesma letra do .hex; sem «inicializar OLED» fica desligado e avisa.

@@ -118,7 +118,9 @@
         case 'mk_var_definir': { const k = b.getFieldValue('VAR'); this.vars.add(k); return [p + `${k} = ${this.expr(b, 'V')}`]; }
         case 'mk_var_mudar': { const k = b.getFieldValue('VAR'); this.vars.add(k); return [p + `${k} = ${k} + ${this.expr(b, 'V', '1')}`]; }
         case 'mk_servo': {
-          const pino = PINOS[b.getFieldValue('P')] || 'pin0';
+          const P = b.getFieldValue('P') || 'P0';
+          const pino = 'pin' + (/^P\d+$/.test(P) ? P.slice(1) : '0');
+          if (['P3', 'P4', 'P6', 'P7', 'P9', 'P10'].includes(P)) this.usa.add('ecraoff');   // pinos do ecrã de luzes
           this.usa.add('servo');
           return [p + `servo(${pino}, ${this.expr(b, 'A', '90')})`];
         }
@@ -783,6 +785,7 @@
       const chamar = (k, ind) => funcoes.filter(f => f[0] === k).map(f => '    '.repeat(ind) + f[1] + '()');
       const tem = k => ev[k].length > 0;
 
+      if (this.usa.has('ecraoff')) L.push('display.off()  # o servo usa um pino do ecrã de luzes');
       if (this.usaLuz) L.push('display.read_light_level()  # o primeiro valor vem sempre a 0');
       L.push(...chamar('inicio', 0));
       L.push('a_antes = b_antes = ab_ativo = False',
