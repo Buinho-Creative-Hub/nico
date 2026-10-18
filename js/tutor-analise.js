@@ -73,7 +73,7 @@
     for (; b; b = b.getNextBlock()) {
       if (!b.isEnabled()) continue;
       const d = descrever(b);
-      if (b.type === 'mk_repetir') d.corpo = sequencia(b.getInputTargetBlock('DO'));
+      if (b.type === 'mk_repetir' || b.type === 'mk_enquanto') d.corpo = sequencia(b.getInputTargetBlock('DO'));
       if (b.type === 'mk_se') { d.sim = sequencia(b.getInputTargetBlock('SIM')); d.nao = sequencia(b.getInputTargetBlock('NAO')); }
       if (b.type === 'mk_se_entao') d.sim = sequencia(b.getInputTargetBlock('SIM'));
       out.push(d);

@@ -213,6 +213,13 @@
           }
           break;
         }
+        case 'mk_enquanto':
+          // como no micro:bit: repete enquanto a condição for verdadeira (com uma pausa mínima para o ecrã respirar)
+          while (this.valor(b, 'C', false)) {
+            await this.correr(b.getInputTargetBlock('DO'), g);
+            await this.esperar(20, g);
+          }
+          break;
         case 'mk_se': {
           const ramo = this.valor(b, 'C', false) ? 'SIM' : 'NAO';
           await this.correr(b.getInputTargetBlock(ramo), g);

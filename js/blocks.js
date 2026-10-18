@@ -199,6 +199,8 @@
     // Ciclos e lógica
     { type: 'mk_repetir', message0: 'repetir %1 vezes', args0: [num('N')], message1: 'fazer %1', args1: [{ type: 'input_statement', name: 'DO' }],
       inputsInline: true, previousStatement: null, nextStatement: null, style: 'ciclos', tooltip: 'Faz o que está dentro várias vezes.' },
+    { type: 'mk_enquanto', message0: 'enquanto %1', args0: [{ type: 'input_value', name: 'C', check: 'Boolean' }], message1: 'fazer %1', args1: [{ type: 'input_statement', name: 'DO' }],
+      previousStatement: null, nextStatement: null, style: 'ciclos', tooltip: 'Repete o que está dentro enquanto a condição for verdadeira.' },
     { type: 'mk_se', message0: 'se %1 então', args0: [{ type: 'input_value', name: 'C', check: 'Boolean' }],
       message1: '%1', args1: [{ type: 'input_statement', name: 'SIM' }], message2: 'senão', message3: '%1', args3: [{ type: 'input_statement', name: 'NAO' }],
       previousStatement: null, nextStatement: null, style: 'logica' },

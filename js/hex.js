@@ -93,6 +93,8 @@
         case 'mk_pausa': return [p + `sleep(max(0, int(${this.expr(b, 'MS', '100')})))`];
         case 'mk_repetir':
           return [p + `for _ in range(max(0, min(100, int(${this.expr(b, 'N', '0')})))):`, ...this.corpo(b.getInputTargetBlock('DO'), ind + 1)];
+        case 'mk_enquanto':
+          return [p + `while ${this.condicao(b)}:`, ...this.corpo(b.getInputTargetBlock('DO'), ind + 1), '    '.repeat(ind + 1) + 'sleep(20)'];
         case 'mk_se':
           return [p + `if ${this.condicao(b)}:`, ...this.corpo(b.getInputTargetBlock('SIM'), ind + 1),
             p + 'else:', ...this.corpo(b.getInputTargetBlock('NAO'), ind + 1)];
