@@ -423,3 +423,10 @@ html[data-mascote="nico"] .inicio-topo { background: var(--azul); }
 .sim-oled-rotulo { font: 700 12px 'Asap', sans-serif; color: #dbe8ff; letter-spacing: 0.08em; }
 .sim-oled-aviso { display: none; font: 600 13px 'Asap', sans-serif; color: #ffd34d; }
 .sim-oled.desligado .sim-oled-aviso { display: block; }
+
+/* menus de valores brancos (pausa, notas…): o Blockly pinta o texto de branco sobre fundo branco → texto escuro */
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItem,
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemContent,
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemCheckbox { color: #222 !important; }
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemHighlight { background-color: #dfe7ff !important; }
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemSelected .blocklyMenuItemContent { font-weight: 700; }
