@@ -205,6 +205,8 @@
       message1: '%1', args1: [{ type: 'input_statement', name: 'SIM' }], message2: 'senão', message3: '%1', args3: [{ type: 'input_statement', name: 'NAO' }],
       previousStatement: null, nextStatement: null, style: 'logica' },
     { type: 'mk_escuro', message0: 'está escuro', output: 'Boolean', style: 'entrada', tooltip: 'Verdadeiro quando há pouca luz.' },
+    { type: 'mk_pino_premido', message0: '%1 premido', args0: [{ type: 'field_dropdown', name: 'P', options: [['pin P0', 'P0'], ['pin P1', 'P1'], ['pin P2', 'P2'], ['logotipo', 'logo']] }],
+      output: 'Boolean', style: 'entrada', tooltip: 'Verdadeiro enquanto estás a tocar no pin (com a outra mão no GND) ou no logotipo. Usa com «enquanto» ou «se».' },
     { type: 'mk_botao_premido', message0: 'botão %1 premido', args0: [{ type: 'field_dropdown', name: 'B', options: [['A', 'A'], ['B', 'B']] }], output: 'Boolean', style: 'entrada' },
 
     // Música

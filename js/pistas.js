@@ -24,7 +24,7 @@
     mk_icone: ['mostrar ícone', 'basico'], mk_limpar: ['limpar ecrã', 'basico'], mk_pausa: ['pausa (ms)', 'basico'],
     mk_mostrar_numero: ['mostrar número', 'basico'], mk_mostrar_texto: ['mostrar texto', 'basico'],
     mk_repetir: ['repetir … vezes', 'ciclos'], mk_enquanto: ['enquanto … fazer', 'ciclos'], mk_se: ['se … então … senão', 'logica'], mk_se_entao: ['se … então', 'logica'],
-    mk_comparar: ['comparar (< = >)', 'logica'], mk_escuro: ['está escuro', 'entrada'], mk_botao_premido: ['botão … premido', 'entrada'],
+    mk_comparar: ['comparar (< = >)', 'logica'], mk_escuro: ['está escuro', 'entrada'], mk_botao_premido: ['botão … premido', 'entrada'], mk_pino_premido: ['pin … premido', 'entrada'],
     mk_som: ['tocar som', 'musica'], mk_tom: ['tocar tom', 'musica'],
     mk_digital: ['gravação digital pin', 'pinos'], mk_ler_digital: ['leitura digital pin', 'pinos'],
     mk_ler_analogico: ['leitura analógica pin', 'pinos'], mk_servo: ['escrever servo pin', 'pinos'],

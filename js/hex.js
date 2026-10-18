@@ -53,6 +53,7 @@
         case 'mk_num': { const x = Number(v.getFieldValue('NUM')); return Number.isFinite(x) ? String(x) : '0'; }
         case 'mk_texto': return py(v.getFieldValue('TXT'));
         case 'mk_escuro': this.usaLuz = true; return `(display.read_light_level() < ${ESCURO})`;
+        case 'mk_pino_premido': { const P = v.getFieldValue('P'); return P === 'logo' ? 'pin_logo.is_touched()' : `pin${P.slice(1)}.is_touched()`; }
         case 'mk_botao_premido': return v.getFieldValue('B') === 'B' ? 'button_b.is_pressed()' : 'button_a.is_pressed()';
         case 'mk_luz': this.usaLuz = true; return 'display.read_light_level()';
         case 'mk_som_nivel': return 'microphone.sound_level()';
@@ -172,7 +173,7 @@
           case 'mk_gesto': { const g = top.getFieldValue('G'); const k = 'g_' + g.replace(' ', '_'); (ev[k] = ev[k] || []).push(corpo); gestos[k] = g; break; }
         }
       }
-      if (ev.P0.length) this.somPino = 'None';  // o som não pode sair pelo pino que estamos a ler
+      if (ev.P0.length || this.ws.getAllBlocks(false).some(x => x.type === 'mk_pino_premido' && x.getFieldValue('P') === 'P0')) this.somPino = 'None';  // o som não pode sair pelo pino que estamos a ler
 
       // as funções primeiro (para saber que variáveis e módulos se usam), o cabeçalho depois
       const F_ = [];

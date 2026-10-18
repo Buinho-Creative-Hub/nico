@@ -150,6 +150,7 @@
         case 'mk_num': return Number(v.getFieldValue('NUM'));
         case 'mk_texto': return String(v.getFieldValue('TXT'));
         case 'mk_escuro': return this.estaEscuro();
+        case 'mk_pino_premido': return !!this.saidas[0].tocados?.[v.getFieldValue('P')];
         case 'mk_botao_premido': return !!this.saidas[0].botoes?.[v.getFieldValue('B')];
         case 'mk_luz': return this.sensor('luz');
         case 'mk_som_nivel': return this.sensor('som');

@@ -62,6 +62,7 @@
     mk_se: '<block type="mk_se"><value name="C"><block type="mk_escuro"></block></value></block>',
     mk_escuro: '<block type="mk_escuro"></block>',
     mk_botao_premido: '<block type="mk_botao_premido"></block>',
+    mk_pino_premido: '<block type="mk_pino_premido"><field name="P">P0</field></block>',
     mk_som: '<block type="mk_som"><value name="S"><shadow type="mk_som_menu"><field name="V">giggle</field></shadow></value></block>',
     mk_tom: '<block type="mk_tom"><value name="F"><shadow type="mk_nota_menu"><field name="V">262</field></shadow></value><value name="BAT"><shadow type="mk_batida_menu"><field name="V">1</field></shadow></value></block>',
     mk_digital_1: '<block type="mk_digital"><value name="P"><shadow type="mk_pino_menu"><field name="V">P2</field></shadow></value><value name="V"><shadow type="mk_num"><field name="NUM">1</field></shadow></value></block>',
@@ -155,7 +156,7 @@
   const GAVETA_DE = {
     mk_sempre: 'Básico', mk_iniciar: 'Básico', mk_icone: 'Básico', mk_mostrar_numero: 'Básico', mk_mostrar_texto: 'Básico', mk_limpar: 'Básico', mk_pausa: 'Básico',
     mk_agitar: 'Entrada', mk_logo: 'Entrada', mk_botao: 'Entrada', mk_pino_tocado: 'Entrada', mk_gesto: 'Entrada', mk_som_alto: 'Entrada',
-    mk_escuro: 'Entrada', mk_botao_premido: 'Entrada', mk_luz: 'Entrada', mk_som_nivel: 'Entrada', mk_temperatura: 'Entrada', mk_tempo: 'Entrada',
+    mk_escuro: 'Entrada', mk_botao_premido: 'Entrada', mk_pino_premido: 'Entrada', mk_luz: 'Entrada', mk_som_nivel: 'Entrada', mk_temperatura: 'Entrada', mk_tempo: 'Entrada',
     mk_som: 'Música', mk_tom: 'Música', mk_acender: 'LED', mk_apagar_led: 'LED', mk_grafico: 'LED',
     mk_repetir: 'Ciclos', mk_enquanto: 'Ciclos', mk_se: 'Lógica', mk_se_entao: 'Lógica', mk_comparar: 'Lógica',
     mk_var_definir: 'Variáveis', mk_var_mudar: 'Variáveis', mk_var: 'Variáveis',
@@ -190,7 +191,7 @@
   // e, no fim, as gavetas da extensão do ELECFREAKS Smart Science IoT Kit (Octopus e OLED).
   F.CATEGORIAS_LIVRE = [
     ['Básico', ['mk_mostrar_numero', 'mk_icone', 'mk_mostrar_texto', 'mk_limpar', 'mk_iniciar', 'mk_sempre', 'mk_pausa']],
-    ['Entrada', ['mk_botao', 'mk_agitar', 'mk_gesto', 'mk_logo', 'mk_pino_tocado', 'mk_som_alto', 'mk_botao_premido', 'mk_escuro',
+    ['Entrada', ['mk_botao', 'mk_agitar', 'mk_gesto', 'mk_logo', 'mk_pino_tocado', 'mk_som_alto', 'mk_botao_premido', 'mk_pino_premido', 'mk_escuro',
       'mk_luz', 'mk_som_nivel', 'mk_temperatura', 'mk_tempo']],
     ['Música', ['mk_tom', 'mk_tom_livre', 'mk_som']],
     ['LED', ['mk_acender', 'mk_apagar_led', 'mk_grafico']],

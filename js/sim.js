@@ -63,6 +63,7 @@
       this.pinos = { P0: 0, P1: 0, P2: 0 };
       this.escuro = false;
       this.botoes = { A: false, B: false };
+      this.tocados = { P0: false, P1: false, P2: false, logo: false };
       // valores dos sensores (mudam com os controlos por baixo do micro:bit)
       this.sensores = { luz: 150, som: 20, temperatura: 21,
         // Smart Science IoT Kit: ruído (dB), luz (0~100), PIR (0/1), BME280 (°C, %, hPa)
@@ -83,6 +84,7 @@
       el('circle', { cx: 160, cy: 48, r: 3.5, fill: '#d4af37' }, logo);
       el('circle', { cx: 180, cy: 48, r: 3.5, fill: '#d4af37' }, logo);
       this.ligar(logo, () => this.onInput('logo'));
+      this.segurar(logo, 'logo');
       // ecrã 5×5
       for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
         const cx = 122 + x * 24, cy = 82 + y * 24;
@@ -96,6 +98,7 @@
         el('circle', { cx, cy: 134, r: 14, fill: '#111', stroke: '#555', 'stroke-width': 2 }, g);
         el('text', { x: cx, y: 102, fill: '#fff', 'font-size': 16, 'font-weight': 700, 'text-anchor': 'middle', 'font-family': 'Asap, sans-serif' }, g).textContent = nome;
         this.ligar(g, () => this.onInput('botao:' + nome));
+        this.segurar(g, nome);
         return g;
       };
       botao(60, 'A'); botao(280, 'B');
@@ -110,6 +113,7 @@
         if (nome.startsWith('P')) {
           this.padP[nome] = r;
           if (nome !== 'P2') this.ligar(g, () => this.onInput('pino:' + nome));
+          this.segurar(g, nome);
         }
       }
       // LED de fora no P2 (aparece quando é usado)
@@ -121,6 +125,12 @@
       // altifalante a vibrar
       this.som = el('g', { opacity: 0 }, s);
       el('path', { d: 'M296 62 a 10 10 0 0 1 0 16 M302 56 a 18 18 0 0 1 0 28', stroke: '#ffc850', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }, this.som);
+    }
+    // manter carregado (rato/dedo em baixo) → «pin … premido» / «botão … premido» verdadeiros enquanto se carrega
+    segurar(g, chave) {
+      const pôr = v => { this.tocados[chave] = v; if (chave === 'A' || chave === 'B') this.botoes[chave] = v; };
+      g.addEventListener('pointerdown', () => pôr(true));
+      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) g.addEventListener(ev, () => pôr(false));
     }
     ligar(g, fn) {
       g.addEventListener('click', () => { audio(); fn(); });

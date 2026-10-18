@@ -78,6 +78,7 @@
     digital: (p, v) => sim.digital(p, v),
     estaEscuro: () => sim.sensor('luz') < 40,
     botoes: sim.botoes,
+    tocados: sim.tocados,
     sensor: k => sim.sensor(k),
     pixel: (x, y, on) => sim.pixel(x, y, on),
     grafico: (v, m) => sim.grafico(v, m),
