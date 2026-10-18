@@ -111,7 +111,21 @@
     esperar(ms, g) {
       return new Promise((res, rej) => setTimeout(() => (g === this.geracao ? res() : rej(new Parado())), ms));
     }
-    destacar(id) { try { this.ws.highlightBlock(id); } catch (e) {} }
+    // Destaque do bloco que está a correr. Em ciclos rápidos (para sempre, enquanto…) o bloco a correr muda dezenas de
+    // vezes por segundo e o destaque ficava a piscar: agora só aparece quando o mesmo bloco fica a correr ~120 ms
+    // (ex.: numa pausa); enquanto muda depressa, não se destaca nada.
+    destacar(id) {
+      if (id === this._dAtual && !this._dPendente) return;
+      if (id === this._dPendente) return;
+      clearTimeout(this._dTimer);
+      if (this._dAtual) { this._dAtual = null; try { this.ws.highlightBlock(null); } catch (e) {} }
+      this._dPendente = id;
+      if (!id) return;
+      this._dTimer = setTimeout(() => {
+        this._dPendente = null; this._dAtual = id;
+        try { this.ws.highlightBlock(id); } catch (e) {}
+      }, 120);
+    }
     async correr(bloco, g, idTopo) {
       for (let b = bloco; b; b = b.getNextBlock()) {
         this.vivo(g);
