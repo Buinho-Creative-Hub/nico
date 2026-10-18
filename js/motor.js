@@ -7,6 +7,7 @@
   const F = window.Faisca;
 
   class Parado extends Error {}
+  const VIVOS = new Set(['so_barra', 'so_grande', 'so_grafico', 'so_atividade']);
   const BATIDA_MS = 500;      // 120 bpm, como o MakeCode
   // No MakeCode o «mostrar ícone» espera 600 ms. Aqui é quase imediato, de propósito:
   // sem «pausa» os desenhos mudam tão depressa que não se vêem — é isso que o desafio 2 ensina.
@@ -36,6 +37,22 @@
       this._emSempre = false;
       this.mudouVars && this.mudouVars(this.vars);
       this.destacar(null);
+      this.soViva = null;
+      // Sensory OLED: refresca o ecrã «vivo» e conta os movimentos do PIR (para «movimentos por minuto»/«nível de atividade»)
+      const contaPir = this.ws.getAllBlocks(false).some(x => x.type === 'so_movimentos' || x.type === 'so_nivel');
+      (async () => {
+        try {
+          for (;;) {
+            await this.esperar(100, g);
+            if (contaPir && this.so()) this.so().updateActivity(!!this.sensor('kit_pir'), 10);
+            const v = this.soViva;
+            if (v && !this._soOcupado && performance.now() - (this._soT || 0) >= 95) {
+              this._soOcupado = true;
+              try { await this.executar(v, g, true); } finally { this._soOcupado = false; }
+            }
+          }
+        } catch (e) { /* parado */ }
+      })();
       const arranque = [];
       for (const top of this.ws.getTopBlocks(true)) {
         if (!top.isEnabled() || top.isInFlyout) continue;
@@ -172,7 +189,7 @@
     }
     principal() { return this.saidas.find(s => s.principal) || this.saidas[0]; }
     emTodas(fn) { for (const s of this.saidas) if (s.ligado !== false) { try { fn(s); } catch (e) { console.warn(e); } } }
-    async executar(b, g) {
+    async executar(b, g, refrescar) {
       switch (b.type) {
         case 'mk_icone': {
           const nome = b.getFieldValue('I');
@@ -289,6 +306,7 @@
           const id = b.getFieldValue('A'), A = F.ANIMACOES_OLED[id];
           const vezes = Math.max(0, Math.min(20, Math.round(Number(this.valor(b, 'N', 1)) || 0)));
           this.ecra('soled:animacao:' + id);
+          this.soViva = null;
           for (let v = 0; v < vezes; v++) for (let i = 0; i < A.n; i++) {
             this.emTodas(s => s.soled && s.soled('moldura', [id, i]));
             await this.esperar(A.ms, g);
@@ -298,6 +316,7 @@
         case 'so_escrever': {
           const t = this.valor(b, 'T', '');
           const x = Number(this.valor(b, 'X', 0)) || 0, y = Number(this.valor(b, 'Y', 0)) || 0, k = Number(b.getFieldValue('K')) || 1;
+          this.soViva = null;
           this.emTodas(s => s.soled && s.soled('escrever', [t, x, y, k]));
           this.ecra('soled:escrever:' + t + ':' + k);
           await this.esperar(20, g);
@@ -317,7 +336,11 @@
           }[b.type]();
           this.emTodas(s => s.soled && s.soled(fn, args));
           this.ecra('soled:' + reg);
-          await this.esperar(20, g);
+          // barra, número grande, gráfico e medidor ficam «vivos»: continuam a atualizar-se sozinhos (10× por segundo)
+          // até outro bloco do ecrã os substituir — assim «no botão A → barra da luz» mostra a luz sem parar.
+          if (VIVOS.has(b.type)) { this.soViva = b; this._soT = performance.now(); }
+          else if (b.type !== 'so_grafico_reset') this.soViva = null;
+          if (!refrescar) await this.esperar(20, g);
           break;
         }
         case 'mk_som': {

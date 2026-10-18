@@ -116,7 +116,11 @@
       this.begin();
       k = Math.max(1, Math.min(4, Math.round(k) || 1));
       s = F.semAcentos(textoNum(s));
-      if (k === 1) this.text(Math.round(x), Math.round(y), s); else this.textScaled(Math.round(x), Math.round(y), s, k);
+      x = Math.round(x); y = Math.round(y);
+      // textos compridos continuam na linha de baixo (quebra nas palavras), em vez de ficarem cortados
+      partir(s, Math.max(1, Math.floor((W - x) / (6 * k)))).forEach((l, j) => {
+        if (k === 1) this.text(x, y + j * 8, l); else this.textScaled(x, y + j * 8 * k, l, k);
+      });
     }
     circle(cx, cy, r) {   // contorno (algoritmo do ponto médio)
       let x = r, y = 0, e = 1 - r;
@@ -132,9 +136,26 @@
     }
     // desenha a moldura i (de ANIMACOES[nome].n) — a mesma conta que o so_anim_* do .hex
     moldura(nome, i) { this.clearBuffer(); ANIMACOES[nome].desenhar(this, i); }
-    showText(s, line) { this.begin(); const y = Math.max(0, Math.min(7, Math.round(line))) * 8; for (let x = 0; x < W; x++) this.fb[(y >> 3) * W + x] = 0; this.text(0, y, s); }
+    showText(s, line) {   // na IC-Oled corta aos 21; no Nico continua nas linhas de baixo
+      this.begin();
+      const l0 = Math.max(0, Math.min(7, Math.round(line)));
+      partir(F.semAcentos(textoNum(s)), 21).slice(0, 8 - l0).forEach((t, j) => {
+        const y = (l0 + j) * 8; for (let x = 0; x < W; x++) this.fb[(y >> 3) * W + x] = 0; this.text(0, y, t);
+      });
+    }
   }
   F.SensoryOLED = SensoryOLED;
+  // divide um texto em linhas de até n letras, a partir nas palavras (palavras maiores do que n são cortadas)
+  function partir(s, n) {
+    const linhas = []; let l = '';
+    for (let p of String(s).split(' ')) {
+      while (p.length > n) { if (l) { linhas.push(l); l = ''; } linhas.push(p.slice(0, n)); p = p.slice(n); }
+      if (!l) l = p; else if (l.length + 1 + p.length <= n) l += ' ' + p; else { linhas.push(l); l = p; }
+    }
+    if (l) linhas.push(l);
+    return linhas;
+  }
+  F.partirTexto = partir;
   function textoNum(s) { if (typeof s === 'number') return String(Math.round(s * 100) / 100); return String(s); }
 
   // ------------------------------------------------------------ animações (galeria, como o «mostrar ícone»)

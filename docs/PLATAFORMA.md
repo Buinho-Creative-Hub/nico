@@ -319,6 +319,12 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
   e `_a_<nome>` (hex.js), com I2C a 400 kHz. «PEAK» passou a «PICO». Variável nova `modo` (padrão: botão A → modo 1,
   botão B → modo 2, «para sempre» → se modo = 1 mostra um sensor, senão outro). O bloco a correr num «para sempre»
   fica destacado sem piscar.
+- **Ecrã «vivo» (18 Out, depois do teste do Carlos):** `barra de intensidade`, `número grande`, `gráfico a passar` e
+  `medidor de atividade` continuam a atualizar-se sozinhos 10× por segundo até outro bloco do ecrã (limpar, escrever,
+  texto, animação, outro painel) os substituir — «no botão A → barra da luz» mostra a luz sem parar, «no botão B → barra
+  do ruído» troca. No .hex: `_sviver(lambda: …)` + refresco no ciclo principal. «movimentos por minuto»/«nível de
+  atividade» contam o PIR em segundo plano (pino do bloco PIR do programa, ou P13). Textos compridos em `escrever` e
+  `mostrar texto na linha` continuam na linha de baixo (quebra nas palavras).
 - **No ecrã:** controlos «Ruído do kit», «Luz do kit», «Passar à frente do PIR» (3 s de movimento), «Temperatura /
   Humidade / Pressão BME280» — só aparecem os dos blocos do programa. O **OLED** aparece por baixo do micro:bit,
   desenhado píxel a píxel com a mesma letra do .hex; sem «inicializar OLED» fica desligado e avisa.

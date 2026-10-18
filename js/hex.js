@@ -63,12 +63,15 @@
         case 'mk_var': { const k = v.getFieldValue('VAR'); this.vars.add(k); return k; }
         case 'mk_kit_ruido': this.usa.add('kit_ruido'); return `kit_ruido(${PINOS_KIT[v.getFieldValue('P')] || 'pin1'})`;
         case 'mk_kit_luz': this.usa.add('kit_luz'); return `kit_luz(${PINOS_KIT[v.getFieldValue('P')] || 'pin2'})`;
-        case 'mk_kit_pir': return `(${PINOS_KIT[v.getFieldValue('P')] || 'pin13'}.read_digital() == 1)`;
-        case 'so_pir': return `(${PINOS_KIT[v.getFieldValue('P')] || 'pin13'}.read_digital() == 1)`;
+        case 'mk_kit_pir': case 'so_pir': {
+          const pino = PINOS_KIT[v.getFieldValue('P')] || 'pin13';
+          this.pinoPir = this.pinoPir || pino;
+          return `(${pino}.read_digital() == 1)`;
+        }
         case 'so_db': this.usa.add('soled'); return `so_db(${e('V')})`;
         case 'so_media': this.usa.add('soled'); return `so_media(${e('V')}, ${e('S', '5')}, ${e('C', '1')})`;
-        case 'so_nivel': this.usa.add('soled'); return 'so_nivel()';
-        case 'so_movimentos': this.usa.add('soled'); return 'len(_smoves)';
+        case 'so_nivel': this.usa.add('soled'); this.usa.add('contapir'); return 'so_nivel()';
+        case 'so_movimentos': this.usa.add('soled'); this.usa.add('contapir'); return 'len(_smoves)';
         case 'mk_kit_bme': this.usa.add('bme'); return `bme(${({ temp: 0, hum: 1, pres: 2 })[v.getFieldValue('Q')] || 0})`;
         case 'mk_aleatorio': this.usa.add('random'); return `random.randint(min(int(${e('A')}), int(${e('B')})), max(int(${e('A')}), int(${e('B')})))`;
         case 'mk_resto': return `(${e('A')}) % ((${e('B', '1')}) or 1)`;
@@ -124,11 +127,11 @@
         case 'mk_oled_texto': this.usa.add('oled'); return [p + `oled_texto(${this.expr(b, 'T', '""')})`];
         case 'mk_oled_numero': this.usa.add('oled'); return [p + `oled_texto(numero_texto(${this.expr(b, 'N', '0')}))`];
         case 'mk_oled_barra': this.usa.add('oled'); return [p + `oled_barra(${this.expr(b, 'V', '0')})`];
-        case 'so_barra': this.usa.add('soled'); return [p + `so_barra(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '"dB"')}))`];
-        case 'so_grande': this.usa.add('soled'); return [p + `so_grande(${this.expr(b, 'V')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '""')}))`];
-        case 'so_grafico': this.usa.add('soled'); return [p + `so_grafico(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, ${this.expr(b, 'LO', '45')}, ${this.expr(b, 'HI', '65')}, str(${this.expr(b, 'ROT', '"SOUND"')}))`];
+        case 'so_barra': this.usa.add('soled'); return [p + `_sviver(lambda: so_barra(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '"dB"')})))`];
+        case 'so_grande': this.usa.add('soled'); return [p + `_sviver(lambda: so_grande(${this.expr(b, 'V')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '""')})))`];
+        case 'so_grafico': this.usa.add('soled'); return [p + `_sviver(lambda: so_grafico(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, ${this.expr(b, 'LO', '45')}, ${this.expr(b, 'HI', '65')}, str(${this.expr(b, 'ROT', '"SOUND"')})))`];
         case 'so_grafico_reset': this.usa.add('soled'); return [p + 'so_recomecar()'];
-        case 'so_atividade': this.usa.add('soled'); return [p + `so_atividade(${this.expr(b, 'MOV', 'False')}, ${this.expr(b, 'S', '10')}, str(${this.expr(b, 'ROT', '"ACTIVITY"')}))`];
+        case 'so_atividade': this.usa.add('soled'); return [p + `_sviver(lambda: so_atividade(${this.expr(b, 'MOV', 'False')}, ${this.expr(b, 'S', '10')}, str(${this.expr(b, 'ROT', '"ACTIVITY"')})))`];
         case 'so_texto': this.usa.add('soled'); return [p + `so_texto(${this.expr(b, 'T', '""')}, ${this.expr(b, 'L', '0')})`];
         case 'so_limpar': this.usa.add('soled'); return [p + 'so_limpar()'];
         case 'so_escrever': this.usa.add('soled'); return [p + `so_escrever(${this.expr(b, 'T', '""')}, ${this.expr(b, 'X', '0')}, ${this.expr(b, 'Y', '0')}, ${Number(b.getFieldValue('K')) || 1})`];
@@ -568,7 +571,7 @@
           'def so_nivel():',
           '    return _sr(_sen)',
           '',
-          'def so_atividade(mov, seg, label):',
+          'def _sativ(mov, seg):',
           '    global _sen, _swas, _slast',
           '    now = running_time()',
           '    dt = (now - _slast) / 1000 if _slast > 0 else 0',
@@ -586,6 +589,9 @@
           '    _swas = mov',
           '    while _smoves and now - _smoves[0] > 60000:',
           '        _smoves.pop(0)',
+          '',
+          'def so_atividade(mov, seg, label):',
+          '    _sativ(mov, seg)',
           '    _sclear()',
           '    _stext(0, 0, label)',
           "    _sright(127, 0, str(len(_smoves)) + '/min')",
@@ -601,7 +607,44 @@
           '    while _shist:',
           '        _shist.pop()',
           '',
+          '# barra, número grande, gráfico e medidor ficam «vivos»: o ciclo principal volta a desenhá-los',
+          '# 10× por segundo até outro bloco do ecrã os substituir (ex.: no botão A → barra da luz sem parar)',
+          '_sviva = None',
+          '_svt = 0',
+          '',
+          'def _sviver(f):',
+          '    global _sviva, _svt',
+          '    _sviva = f',
+          '    f()',
+          '    _svt = running_time()',
+          '',
+          'def _sparar():',
+          '    global _sviva',
+          '    _sviva = None',
+          '',
+          'def _spartir(s, n):',
+          '    linhas = []',
+          "    l = ''",
+          "    for p in s.split(' '):",
+          '        while len(p) > n:',
+          '            if l:',
+          '                linhas.append(l)',
+          "                l = ''",
+          '            linhas.append(p[:n])',
+          '            p = p[n:]',
+          '        if not l:',
+          '            l = p',
+          '        elif len(l) + 1 + len(p) <= n:',
+          "            l = l + ' ' + p",
+          '        else:',
+          '            linhas.append(l)',
+          '            l = p',
+          '    if l:',
+          '        linhas.append(l)',
+          '    return linhas',
+          '',
           'def so_limpar():',
+          '    _sparar()',
           '    _sclear()',
           '    _sshow()',
           '',
@@ -611,17 +654,26 @@
           '    return str(s)',
           '',
           'def so_escrever(s, x, y, k):',
+          '    _sparar()',
           '    _sbegin()',
           '    k = max(1, min(4, _sr(k)))',
-          '    _stext(_sr(x), _sr(y), _snum(s), k)',
+          '    x = _sr(x)',
+          '    y = _sr(y)',
+          '    linhas = _spartir(_stxt(_snum(s)), max(1, (128 - x) // (6 * k)))',
+          '    for j in range(len(linhas)):',
+          '        _stext(x, y + j * 8 * k, linhas[j], k)',
           '    _sshow()',
           '',
           'def so_texto(s, linha):',
+          '    _sparar()',
           '    _sbegin()',
-          '    y = max(0, min(7, _sr(linha))) * 8',
-          '    for x in range(128):',
-          '        _fb[(y >> 3) * 128 + x] = 0',
-          '    _stext(0, y, s)',
+          '    l0 = max(0, min(7, _sr(linha)))',
+          '    linhas = _spartir(_stxt(_snum(s)), 21)[:8 - l0]',
+          '    for j in range(len(linhas)):',
+          '        y = (l0 + j) * 8',
+          '        for x in range(128):',
+          '            _fb[(y >> 3) * 128 + x] = 0',
+          '        _stext(0, y, linhas[j])',
           '    _sshow()',
           '');
       }
@@ -703,6 +755,7 @@
         '          "chuva": (_a_chuva, 8, 90), "ondas": (_a_ondas, 8, 100), "fogo": (_a_fogo, 14, 90)}',
         '',
         'def so_animacao(nome, vezes):',
+        '    _sparar()',
         '    f, n, ms = _SANIM[nome]',
         '    for _ in range(max(0, min(20, _sr(vezes)))):',
         '        for i in range(n):',
@@ -751,6 +804,8 @@
       for (const [k, pino, antes] of [['P0', 'pin0', 'p0_antes'], ['P1', 'pin1', 'p1_antes']]) {
         if (tem(k)) L.push(`    t = ${pino}.is_touched()`, `    if t and not ${antes}:`, ...chamar(k, 2), `    ${antes} = t`);
       }
+      if (this.usa.has('contapir')) L.push(`    _sativ(${this.pinoPir || 'pin13'}.read_digital() == 1, 10)`);
+      if (this.usa.has('soled')) L.push('    if _sviva and running_time() - _svt >= 100:', '        _sviva()', '        _svt = running_time()');
       L.push(...chamar('sempre', 1), '    sleep(20)', '');
       return L.join('\n');
     }
