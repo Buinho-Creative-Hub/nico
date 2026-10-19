@@ -430,3 +430,22 @@ html[data-mascote="nico"] .inicio-topo { background: var(--azul); }
 .blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemCheckbox { color: #222 !important; }
 .blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemHighlight { background-color: #dfe7ff !important; }
 .blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemSelected .blocklyMenuItemContent { font-weight: 700; }
+
+/* ---------------------------------------------------------------- palco (Missão 0, sem micro:bit) */
+body.modo-palco .lado { flex-basis: 500px; }
+.cena { padding: 14px 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.cena-caixa { border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 2px var(--linha); background: #cfe6f5; }
+.cena-svg { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; user-select: none; }
+.cena-svg.cena-troca { animation: cena-troca 380ms ease-out; }
+@keyframes cena-troca { from { opacity: .35; } to { opacity: 1; } }
+.cena-balao { animation: cena-balao 160ms ease-out; transform-box: fill-box; }
+@keyframes cena-balao { from { opacity: 0; } to { opacity: 1; } }
+.cena-comandos { display: flex; gap: 10px; flex-wrap: wrap; }
+.cena-comandos .btn { display: inline-flex; align-items: center; gap: 8px; }
+.cena-comandos svg { width: 20px; height: 20px; }
+.btn-comecar { background: #20bf6b; border-color: #1a9e58; color: #fff; font-size: 18px; padding-inline: 22px; }
+.btn-comecar:hover { background: #1aa95e; }
+.btn-comecar.a-correr { box-shadow: 0 0 0 4px rgba(32, 191, 107, .3); }
+.btn-parar:disabled { opacity: .45; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .cena-svg.cena-troca, .cena-balao { animation: none; } }
+@media (max-width: 900px) { body.modo-palco .lado { flex-basis: auto; } }

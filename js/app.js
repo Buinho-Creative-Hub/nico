@@ -6,6 +6,8 @@
 
   // Sem missão escolhida: ecrã inicial (inicio.js) e mais nada
   if (!F.MISSAO_ID || !F.MISSOES[F.MISSAO_ID]) { F.mostrarInicio(); return; }
+  // missões com página própria (ex.: o palco da Missão 0, sem micro:bit)
+  if (F.MISSOES[F.MISSAO_ID].pagina) { location.replace(F.MISSOES[F.MISSAO_ID].pagina + location.search); return; }
   F.ativar(F.MASCOTE_ID, F.MISSAO_ID);
   const M = F.MASCOTE, X = F.MISSAO;
   F.lembrarMascote(M.id);

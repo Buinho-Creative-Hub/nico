@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nico · Palco</title>
+<script src="js/escolha.js"></script>
+<link rel="icon" href="img/nico/01_boas_vindas.png">
+<link rel="stylesheet" href="css/faisca.css">
+</head>
+<body>
+<!-- ============================================================ desafios -->
+<header class="topo">
+  <a class="btn-missoes" id="btnMissoes" href="index.html" title="Escolher missão ou mascote">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <span>Missões</span>
+  </a>
+  <div class="marca">
+    <span class="marca-icone-caixa" id="marcaIcone"></span>
+    <span class="marca-nome" id="marcaNome"></span>
+    <span class="marca-sub" id="marcaSub"></span>
+  </div>
+  <nav class="caminho" id="caminho" aria-label="Desafios"></nav>
+  <div class="ligacao">
+    <div class="sons" data-sons></div>
+    <span class="estado ok">Palco · sem micro:bit</span>
+  </div>
+</header>
+
+<main class="palco">
+  <aside class="lado">
+    <section class="missao" aria-labelledby="missaoTitulo">
+      <div class="missao-num" id="missaoNum">Desafio 1</div>
+      <h1 id="missaoTitulo">Acorda-o</h1>
+      <p class="missao-frase" id="missaoFrase"></p>
+      <ol class="missao-passos" id="missaoPassos"></ol>
+      <div class="missao-material"><span>Precisas de</span> <strong id="missaoMaterial"></strong></div>
+    </section>
+
+    <section class="cena" aria-label="Palco">
+      <div class="cena-caixa" id="cena"></div>
+      <div class="cena-comandos">
+        <button type="button" class="btn btn-comecar" id="btnComecar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>Começar</button>
+        <button type="button" class="btn btn-claro btn-parar" id="btnParar" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>Parar</button>
+      </div>
+    </section>
+  </aside>
+
+  <section class="editor" aria-label="Blocos">
+    <div class="editor-barra">
+      <span class="editor-dica" id="editorDica">Arrasta os blocos da coluna branca para a área cinzenta.</span>
+      <button type="button" class="btn btn-texto" id="btnLimparTudo">Começar de novo</button>
+    </div>
+    <div id="blocos" class="blocos"></div>
+    <section class="tutor" id="tutor" aria-label="Mascote">
+      <button type="button" class="tutor-avatar" id="tutorAvatar" aria-expanded="true" aria-label="Esconder a mascote">
+        <img id="tutorImg" src="" alt="">
+      </button>
+      <div class="tutor-balao" id="tutorBalao">
+        <div class="tutor-cabeca"><span class="tutor-nome" id="tutorNome"></span><span class="tutor-nivel" id="tutorNivel" hidden></span></div>
+        <p class="tutor-texto" id="tutorTexto" role="status" aria-live="polite"></p>
+      </div>
+      <div class="tutor-acoes">
+        <button type="button" class="btn btn-escuro" id="tutorAjuda">Ajuda</button>
+        <button type="button" class="btn btn-texto" id="tutorGambiarra" hidden></button>
+        <button type="button" class="btn btn-texto" id="tutorVoltar" hidden>Voltar ao meu programa</button>
+        <button type="button" class="tutor-fechar" id="tutorFechar" aria-label="Esconder a mascote">Esconder</button>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div class="festa" id="festa" hidden>
+  <div class="festa-cartao" role="dialog" aria-modal="true" aria-labelledby="festaTitulo">
+    <img class="festa-mascote" id="festaMascote" src="" alt="">
+    <h2 id="festaTitulo">Conseguiste!</h2>
+    <p id="festaTexto">Desbloqueaste blocos novos.</p>
+    <p class="festa-extra" id="festaExtra" hidden></p>
+    <div class="festa-botoes">
+      <button type="button" class="btn btn-texto" id="btnFicar">Ficar aqui</button>
+      <button type="button" class="btn btn-escuro" id="btnSeguinte">Desafio seguinte</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/blockly_compressed.js"></script>
+<script src="vendor/blockly-msg-pt.js"></script>
+<script src="js/blocks.js"></script>
+<script src="js/blocos-palco.js"></script>
+<script src="js/fonte.js"></script>
+<script src="js/sim.js"></script>   <!-- só pelo F.audio (o som da plataforma) -->
+<script src="js/som.js"></script>
+<script src="js/desafios.js"></script>
+<script src="js/tutor-analise.js"></script>
+<script src="js/pistas.js"></script>
+<script src="mascotes/gabi.js"></script>
+<script src="mascotes/nico.js"></script>
+<script src="js/palco.js"></script>
+<script src="js/palco-motor.js"></script>
+<script src="missoes/palco.js"></script>
+<script src="js/tutor-motor.js"></script>
+<script src="js/tutor-ui.js"></script>
+<script src="js/inicio.js"></script>
+<script src="js/palco-app.js"></script>
+</body>
+</html>

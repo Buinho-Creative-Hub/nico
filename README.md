@@ -11,6 +11,10 @@ vivia na rua do Buinho.
   solução, reconhecem os erros mais comuns e às vezes fazem «gambiarras» para a criança reparar.
 - **6 missões × 3 níveis × 12 atividades** (216): Primeiros passos, Reparar, Toy hacking, Citizen sensing,
   Matemática e Natureza. Em cada nível: 6 atividades curtas, 5 projetos de 15–20 min e um projeto livre.
+- **Missão 0 · O palco do Nico e da Gabi** (sem micro:bit): para quem nunca programou, os atores falam, andam, mudam
+  de cara e de cenário (rua de Messejana, FabLab, montado, horta, palco), como no Scratch — mas com blocos com o aspecto
+  do **MakeCode Arcade**, para a passagem para o micro:bit ser natural. Abre em `palco.html`. Nível 1 pronto (11 desafios
+  + projeto livre); níveis 2 (repetir e reagir) e 3 (decidir) em preparação.
 - **Modo livre**: todos os blocos arrumados por categorias, como no MakeCode, incluindo os sensores (ruído, luz,
   PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**, e a extensão **Sensory OLED** do Buinho
   (barra de intensidade, gráfico, número grande, medidor de atividade).
@@ -27,7 +31,7 @@ vivia na rua do Buinho.
 
 ### Documentação
 `docs/PLATAFORMA.md` (como está feita, como acrescentar missões e mascotes), `docs/TESTES-MASCOTE.md`.
-Testes automáticos: `node testes/testar.js` e `node testes/blocos-novos.js` (playwright-core + Chromium).
+Testes automáticos: `node testes/testar.js`, `node testes/blocos-novos.js` e `node testes/palco.js` (Missão 0) (playwright-core + Chromium).
 
 ---
 

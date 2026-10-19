@@ -15,6 +15,7 @@
     mk_iniciar: () => 'inicio',
     mk_gesto: b => 'gesto:' + b.getFieldValue('G'),
     mk_som_alto: () => 'somalto',
+    pk_comecar: () => 'comecar',          // palco (Missão 0)
   };
 
   function valor(b, nome) {
@@ -61,6 +62,14 @@
       case 'mk_var_definir': case 'mk_var_mudar': d.var = b.getFieldValue('VAR'); d.n = valor(b, 'V'); break;
       case 'mk_servo': d.pino = b.getFieldValue('P'); d.angulo = valor(b, 'A'); break;
       case 'mk_registar': d.nome = valor(b, 'NOME'); break;
+    }
+    // blocos do palco (Missão 0): ator, sítio, imagem, cenário… e o texto/número que levam
+    if (b.type.startsWith('pk_')) {
+      d.campos = {};
+      for (const inp of b.inputList) for (const f of inp.fieldRow) if (f.name) d.campos[f.name] = f.getValue();
+      d.ator = d.campos.ATOR;
+      if (b.getInput('T')) d.texto = valor(b, 'T');
+      if (b.getInput('N')) d.n = valor(b, 'N');
     }
     // blocos de valor lá dentro (ex.: «mostrar número (nível de luz)» → usa: [{tipo:'mk_luz'}])
     d.usa = valores(b);
@@ -117,7 +126,7 @@
       vazio() { return eventos.length === 0 && soltos.length === 0; },
       assinatura: '',
     };
-    a.assinatura = JSON.stringify([eventos.map(e => [e.chave, e.plano.map(p => [p.tipo, p.icone, p.ms, p.n, p.som, p.freq, p.pino, p.v, p.prof, p.var, p.x, p.y, p.texto, p.angulo, JSON.stringify(p.usa)])]), soltos.map(s => s.plano.map(p => p.tipo))]);
+    a.assinatura = JSON.stringify([eventos.map(e => [e.chave, e.plano.map(p => [p.tipo, p.icone, p.ms, p.n, p.som, p.freq, p.pino, p.v, p.prof, p.var, p.x, p.y, p.texto, p.angulo, JSON.stringify(p.usa), JSON.stringify(p.campos)])]), soltos.map(s => s.plano.map(p => p.tipo))]);
     return a;
   }
 

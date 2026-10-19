@@ -66,7 +66,7 @@
     });
 
     const lx = $('listaMissoes');
-    const abrir = id => { location.href = 'index.html?a=' + encodeURIComponent(escolhida) + '&m=' + encodeURIComponent(id); };
+    const abrir = id => { location.href = (F.MISSOES[id].pagina || 'index.html') + '?a=' + encodeURIComponent(escolhida) + '&m=' + encodeURIComponent(id); };
     // Modo livre: primeiro cartão, sem progresso — todos os blocos por categorias (como no MakeCode)
     const L = F.MISSOES.livre;
     if (L) {
@@ -96,7 +96,8 @@
       b.querySelector('.cx-tema').textContent = X.tema;
       b.querySelector('strong').textContent = X.titulo;
       b.querySelector('.cx-desc').textContent = X.descricao;
-      b.querySelector('.cx-niveis').textContent = X.niveis.length + ' níveis · ' + total + ' desafios + ' + X.niveis.length + ' projetos livres';
+      const nn = X.niveis.length;
+      b.querySelector('.cx-niveis').textContent = (nn === 1 ? '1 nível · ' : nn + ' níveis · ') + total + ' desafios + ' + (nn === 1 ? '1 projeto livre' : nn + ' projetos livres') + (X.emPreparacao ? ' · ' + X.emPreparacao : '');
       b.querySelector('.cx-barra span').style.width = (total ? 100 * feitos / total : 0) + '%';
       b.querySelector('.cx-feito').textContent = feitos === 0 ? 'Começar' : feitos >= total ? 'Feita! Voltar' : `Continuar · ${feitos} de ${total}`;
       b.addEventListener('click', () => abrir(id));

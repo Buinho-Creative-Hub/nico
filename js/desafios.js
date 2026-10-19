@@ -268,11 +268,11 @@
       for (const d of nv.desafios) for (const key of [...(d.novos || []), ...(d.caixa || [])]) if (!blocos.includes(key)) blocos.push(key);
       const ultimo = k === m.niveis.length - 1;
       const t = m.livres[k] || {};
-      const caixa = ultimo ? F.TODOS_BLOCOS.slice() : blocos.slice();
+      const caixa = ultimo ? (m.todosBlocos || F.TODOS_BLOCOS).slice() : blocos.slice();   // o palco tem os seus
       nv.desafios.push({
         titulo: t.titulo || 'Projeto livre',
         missao: t.missao || (ultimo ? 'Agora é contigo: inventa um projeto com todos os blocos.' : `Agora é contigo: inventa um projeto com os blocos ${k ? 'dos níveis 1 e 2' : 'do nível 1'}.`),
-        passos: t.passos || ['Escolhe uma ideia: um brinquedo, um aparelho, um jogo…', 'Experimenta no micro:bit do ecrã.', 'Envia para o micro:bit e mostra à turma.'],
+        passos: t.passos || m.livrePassos || ['Escolhe uma ideia: um brinquedo, um aparelho, um jogo…', 'Experimenta no micro:bit do ecrã.', 'Envia para o micro:bit e mostra à turma.'],
         material: t.material || 'o que tiveres',
         novos: [], caixa, livre: true, gerado: true, ok: () => false,
         tutor: { boasVindas: ['testar', t.boasVindas || LIVRE_TXT[ultimo ? 2 : Math.min(k, 1)]], parecePronto: () => false, testar: '', regras: [], sucesso: '', extensao: '' },
@@ -295,8 +295,9 @@
     F.DESAFIOS = F.desafiosDe(X);
     F.TUTOR = {
       DESAFIOS: F.DESAFIOS.map(d => d.tutor),
-      COMUNS: [...(X.comuns || []), ...(M.comuns || [])],
-      GERAIS: M.gerais,
+      // uma missão pode trazer as suas regras comuns e mensagens gerais (ex.: o palco não tem micro:bit nem blocos cor-de-rosa)
+      COMUNS: X.comunsProprios ? [...(X.comuns || [])] : [...(X.comuns || []), ...(M.comuns || [])],
+      GERAIS: Object.assign({}, M.gerais, X.gerais || {}),
     };
   };
 

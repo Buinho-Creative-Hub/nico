@@ -334,3 +334,41 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
 - **Testes:** `node testes/modo-livre.js` (categorias, blocos do kit e do Sensory OLED no ecrã, Python válido, .hex). As contas do
   BME280 foram conferidas com o exemplo da folha de dados (25,08 °C; 1006,5 hPa). **Por testar com o kit verdadeiro.**
 - Os blocos do kit **não** entram (ainda) nas missões nem no projeto livre do último nível — só no modo livre.
+
+## 11. Missão 0 · O palco do Nico e da Gabi — sem micro:bit (desde 19 Out 2026 — pedido do Carlos)
+
+**Para quê.** Missões iniciais só gráficas, «tipo Scratch», para quem nunca programou: os atores **Nico** e **Gabi**
+falam, andam, mudam de cara e de cenário. Princípio 1 mantido: os blocos têm o aspecto do **MakeCode Arcade** (a versão
+gráfica do MakeCode: mesma forma, letra e cores das gavetas — Sprites `#4b7bec`, Scene `#4b6584`, Loops `#20bf6b`),
+para a passagem para o micro:bit e depois para o MakeCode ser natural. A pausa é o mesmo bloco dos desafios micro:bit.
+
+**Ficheiros.**
+
+| Ficheiro | Papel |
+|---|---|
+| `palco.html` | página da missão: o palco no lugar do micro:bit, botões ▶ Começar / ■ Parar; sem Enviar nem Bluetooth |
+| `js/blocos-palco.js` | blocos `pk_*` (ao começar · dizer … durante … s · andar … passos · ir até · mudar imagem · mudar cenário · mudar para a noite/o dia) e o XML da caixa (`F.XML_PALCO`) |
+| `js/palco.js` | o palco em SVG 480×320 (chão em y=272): 5 cenários (rua de Messejana com o FabLab, FabLab por dentro, montado, horta, palco), noite, objetos (bola, maçã, micro:bit, caixa de ferramentas), atores e balões |
+| `js/palco-motor.js` | corre o programa; escreve o **registo** (`in comecar` · `out diz:nico:…`, `pos:gabi:400`, `ir:nico:porta`, `imagem:…`, `cenario:…`, `hora:…`, `pausa`) e as ajudas de verificação `F.verifPalco` (`saidas`, `falas`, `ultimaPos`, `ordem`) |
+| `js/palco-app.js` | versão enxuta de `app.js` para o palco |
+| `missoes/palco.js` | a missão (`pagina: 'palco.html'`), com regras comuns e mensagens gerais próprias (não há micro:bit nem blocos cor-de-rosa) e `F.palcoXml` para escrever programas (gambiarras e testes) |
+| `testes/palco.js` | testes: certo passa · errados não passam e a mascote reconhece a dificuldade certa · gambiarra · ajuda em 3 níveis · ecrã inicial |
+
+**Imagens dos atores** = os 8 estados aprovados de cada mascote (`olá, curiosidade, a pensar, surpresa, uma dica, festa,
+ideia, calma`) — sem desenhos novos. Tamanho no palco por ator em `TAMANHO` (`js/palco.js`): o Nico é de corpo inteiro
+(retrato), a Gabi é meio corpo.
+
+**Como corre.** Mudar o programa repõe a cena do desafio (campo `palco` de cada desafio: cenário, atores, objetos). A
+criança carrega em **▶ Começar** (= o «testar» da mascote); a mascote só conclui que não deu quando a cena acaba.
+
+**Mudanças na base (servem outras missões):** `pagina` numa missão abre-a noutra página (o ecrã inicial e `index.html?m=`
+reencaminham); `comunsProprios` e `gerais` numa missão substituem as regras comuns/mensagens da mascote; `todosBlocos` e
+`livrePassos` afinam o projeto livre; `tutor-analise.js` conhece o evento `pk_comecar` e guarda os campos dos blocos `pk_*`.
+
+**Conteúdo.** Nível 1 · Pôr os atores a mexer (sequência): 1 Olá, palco! · 2 A Gabi atravessa a rua · 3 Até à porta do
+FabLab · 4 Conversa a dois · 5 Cara de festa · 6 Para dentro do FabLab · projetos: 7 Apresentação · 8 Passeio por
+Messejana · 9 Onde está a bola? · 10 Teatro de três falas · 11 Boa noite, Messejana · ★ A minha primeira cena.
+
+**A seguir (proposto, por fazer):** Nível 2 · Repetir e reagir (repetir, para sempre, ao clicar no ator, ao carregar numa
+tecla, tocar som) · Nível 3 · Decidir (se/senão, se tocar em…, pontos, enviar/receber mensagem), a acabar com o Nico a
+encontrar um micro:bit no chão — a ponte para «Primeiros passos».
