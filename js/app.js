@@ -396,7 +396,7 @@
 
   // ------------------------------------------------ Enviar para o micro:bit (.hex por USB)
   let hexPronto = null;
-  const nomeHex = () => LIVRE ? 'nico-livre.hex' : 'nico-' + X.id + '-' + (estado.atual + 1) + '.hex';
+  const nomeHex = () => LIVRE ? (nomeAberto || 'nico-livre') + '.hex' : 'nico-' + X.id + '-' + (estado.atual + 1) + '.hex';
   const podeGravar = typeof window.showSaveFilePicker === 'function';
   function estadoEnviar(txt, tipo = '') { const e = $('enviarEstado'); e.textContent = txt; e.className = 'enviar-estado ' + tipo; }
   async function prepararHex() {
@@ -448,6 +448,53 @@
     }
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') $('enviar').hidden = true; });
+
+  // ------------------------------------------------ Modo livre: abrir um projeto guardado (.hex) para continuar
+  // O .hex que o Nico gera leva os blocos lá dentro (F.gerarHex); aqui fazemos o caminho inverso.
+  let nomeAberto = '';
+  function avisoAbrir(txt, tipo, desfazer) {
+    const a = $('abrirAviso');
+    a.hidden = !txt; a.className = 'abrir-aviso ' + (tipo || '');
+    $('abrirTexto').textContent = txt || '';
+    $('btnDesfazerAbrir').hidden = !desfazer;
+  }
+  async function abrirHex(ficheiro) {
+    if (!ficheiro) return;
+    if (!/\.hex$/i.test(ficheiro.name)) { avisoAbrir('Escolhe um ficheiro que acabe em .hex.', 'erro'); return; }
+    avisoAbrir('A abrir ' + ficheiro.name + '…');
+    try {
+      const { xml } = await F.lerHex(await ficheiro.text());
+      const dom = Blockly.utils.xml.textToDom(xml);
+      const tinhaBlocos = ws.getAllBlocks(false).length > 0;
+      // num só grupo de eventos: «Desfazer» (ou Ctrl+Z) volta ao programa que lá estava
+      silencio = true;
+      Blockly.Events.setGroup(true);
+      try { ws.clear(); Blockly.Xml.domToWorkspace(dom, ws); } finally { Blockly.Events.setGroup(false); setTimeout(() => { silencio = false; }, 0); }
+      ws.scrollCenter();
+      nomeAberto = ficheiro.name.replace(/\.hex$/i, '').replace(/[^\w\-À-ÿ ]/g, '').trim();
+      avisoAbrir('Abri o projeto «' + ficheiro.name + '». Podes continuar a mexer nele.', 'ok', tinhaBlocos);
+      F.Som.tocar('encaixe');
+    } catch (err) {
+      console.warn(err);
+      avisoAbrir(err && err.message ? err.message : 'Não consegui abrir este ficheiro.', 'erro');
+    }
+  }
+  if (LIVRE) {
+    $('btnAbrirHex').hidden = false;
+    $('btnAbrirHex').addEventListener('click', () => { $('ficheiroHex').value = ''; $('ficheiroHex').click(); });
+    $('ficheiroHex').addEventListener('change', e => abrirHex(e.target.files[0]));
+    $('btnDesfazerAbrir').addEventListener('click', () => { ws.undo(false); nomeAberto = ''; avisoAbrir(''); });
+    // também dá para arrastar o .hex para cima da área dos blocos
+    const area = $('blocos');
+    const temFicheiro = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+    area.addEventListener('dragover', e => { if (!temFicheiro(e)) return; e.preventDefault(); area.classList.add('a-largar'); });
+    area.addEventListener('dragleave', () => area.classList.remove('a-largar'));
+    area.addEventListener('drop', e => {
+      if (!temFicheiro(e)) return;
+      e.preventDefault(); area.classList.remove('a-largar');
+      abrirHex(e.dataTransfer.files[0]);
+    });
+  }
 
   mudarDesafio(estado.atual);
   window.addEventListener('resize', () => Blockly.svgResize(ws));

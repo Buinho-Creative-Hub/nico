@@ -21,6 +21,7 @@
           'Abre as categorias (Básico, Entrada, Música…) e arrasta os blocos.',
           'Tens o kit? Usa as gavetas Octopus e OLED.',
           'Experimenta no ecrã e envia para o micro:bit.',
+          'Já tinhas começado? Carrega em «Abrir projeto» e escolhe o teu ficheiro .hex.',
         ],
         material: 'micro:bit (e o Smart Science IoT Kit, se o tiveres)',
         novos: [], livre: true, ok: () => false,

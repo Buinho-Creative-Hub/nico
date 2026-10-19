@@ -18,6 +18,7 @@ vivia na rua do Buinho.
 - **Modo livre**: todos os blocos arrumados por categorias, como no MakeCode, incluindo os sensores (ruído, luz,
   PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**, e a extensão **Sensory OLED** do Buinho
   (barra de intensidade, gráfico, número grande, medidor de atividade).
+  Botão **«Abrir projeto»**: abre um .hex feito no Nico para retomar e modificar (os blocos vão dentro do .hex).
 - **Validação pelo comportamento**: o desafio fica feito quando o micro:bit *faz* o que se pede.
 - **micro:bit no ecrã** com sensores simulados (luz, som, temperatura, pinos, gestos) e **envio para o micro:bit
   verdadeiro por USB** (.hex gerado no próprio browser, com MicroPython). **Funciona sem internet.**

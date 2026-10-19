@@ -916,11 +916,37 @@
     return pronto;
   }
 
+  // Os blocos vão dentro do .hex (ficheiro nico.xml no sistema de ficheiros do MicroPython, que o
+  // micro:bit ignora) para que o projeto possa ser aberto outra vez no Nico e continuado.
+  const FICHEIRO_BLOCOS = 'nico.xml';
   F.gerarHex = async function (ws) {
     await carregar();
     const fs = new window.MicrobitFs.MicropythonFsHex(window.FAISCA_MICROPYTHON);
     fs.write('main.py', F.paraPython(ws));
+    try {
+      fs.write(FICHEIRO_BLOCOS, Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(ws)));
+      if (fs.getStorageRemaining() < 0) fs.remove(FICHEIRO_BLOCOS);   // programa enorme: grava só o Python
+    } catch (e) { console.warn('blocos não guardados no .hex', e); }
     return fs.getIntelHex();
+  };
+
+  /* Do .hex para os blocos. Devolve { xml } ou lança Error com uma frase para a criança:
+   *  - .hex do Nico (desde 19 Out 2026) → traz os blocos;
+   *  - .hex de MicroPython sem blocos (Nico antigo, python.microbit.org) → não dá para abrir em blocos;
+   *  - .hex do MakeCode ou outro → não é um programa do Nico. */
+  F.lerHex = async function (texto) {
+    await carregar();
+    texto = String(texto || '');
+    if (!/^:[0-9A-Fa-f]{10}/.test(texto.trim())) throw new Error('Este ficheiro não é um programa do micro:bit (.hex).');
+    const fs = new window.MicrobitFs.MicropythonFsHex(window.FAISCA_MICROPYTHON);
+    let nomes = [];
+    try { nomes = fs.importFilesFromHex(texto, { overwrite: true, formatFirst: true }); } catch (e) { nomes = []; }
+    if (nomes.includes(FICHEIRO_BLOCOS)) {
+      const xml = fs.read(FICHEIRO_BLOCOS);
+      if (/^<xml[\s>]/.test(xml.trim())) return { xml };
+    }
+    if (nomes.includes('main.py')) throw new Error('Este programa foi feito numa versão antiga do Nico (ou noutro editor) e não traz os blocos lá dentro. Os programas que enviares a partir de agora já se podem abrir.');
+    throw new Error('Este ficheiro não foi feito no Nico (talvez no MakeCode). Só consigo abrir programas guardados aqui no Nico.');
   };
   F.prepararHex = carregar;
 })();

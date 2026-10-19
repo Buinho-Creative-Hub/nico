@@ -335,6 +335,21 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
   BME280 foram conferidas com o exemplo da folha de dados (25,08 °C; 1006,5 hPa). **Por testar com o kit verdadeiro.**
 - Os blocos do kit **não** entram (ainda) nas missões nem no projeto livre do último nível — só no modo livre.
 
+### 10.1 Abrir projeto (.hex) — retomar e modificar (desde 19 Out 2026 — pedido do Carlos)
+
+- **Porquê.** Os alunos retomam e alteram projetos que já começaram (noutra aula, noutro computador).
+- **Como funciona.** `F.gerarHex` grava, além do `main.py`, um ficheiro **`nico.xml`** com os blocos no sistema de ficheiros do
+  MicroPython dentro do .hex (o micro:bit ignora-o). `F.lerHex(texto)` (js/hex.js) faz o inverso com a `microbit-fs`
+  (`importFilesFromHex`) e devolve o XML. Programa enorme sem espaço → grava só o Python (não abre em blocos).
+- **No ecrã (só modo livre):** botão **«Abrir projeto»** na barra do editor ou **arrastar o .hex** para a área dos blocos.
+  Substitui o programa atual num só grupo de eventos: **«Desfazer»** (ou Ctrl+Z) volta ao anterior. O nome do ficheiro
+  aberto passa a ser o nome do próximo .hex descarregado.
+- **Mensagens:** .hex do Nico anterior a 19 Out 2026 ou de python.microbit.org (só `main.py`) → «versão antiga… não traz os
+  blocos»; .hex do MakeCode ou outro → «não foi feito no Nico»; ficheiro que não é .hex → aviso.
+- **Atenção na aula:** o micro:bit não devolve o programa pela pasta MICROBIT — o aluno tem de guardar o ficheiro .hex
+  (pen, pasta da turma, Drive) para o voltar a abrir.
+- **Teste:** `node testes/abrir-hex.js` (ida e volta .hex → blocos iguais, corre, Desfazer, mensagens de erro).
+
 ## 11. Missão 0 · O palco do Nico e da Gabi — sem micro:bit (desde 19 Out 2026 — pedido do Carlos)
 
 **Para quê.** Missões iniciais só gráficas, «tipo Scratch», para quem nunca programou: os atores **Nico** e **Gabi**

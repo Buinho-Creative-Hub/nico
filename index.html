@@ -74,7 +74,13 @@
   <section class="editor" aria-label="Blocos">
     <div class="editor-barra">
       <span class="editor-dica" id="editorDica">Arrasta os blocos da coluna branca para a área cinzenta.</span>
+      <button type="button" class="btn btn-texto" id="btnAbrirHex" hidden title="Abrir um projeto guardado (.hex) para continuar">Abrir projeto</button>
+      <input type="file" id="ficheiroHex" accept=".hex" hidden>
       <button type="button" class="btn btn-texto" id="btnLimparTudo">Começar de novo</button>
+    </div>
+    <div class="abrir-aviso" id="abrirAviso" role="status" aria-live="polite" hidden>
+      <span id="abrirTexto"></span>
+      <button type="button" class="btn btn-texto" id="btnDesfazerAbrir" hidden>Desfazer</button>
     </div>
     <div id="blocos" class="blocos"></div>
     <section class="tutor" id="tutor" aria-label="Mascote">
