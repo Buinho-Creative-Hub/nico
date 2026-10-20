@@ -463,3 +463,51 @@ body.modo-palco .lado { flex-basis: 500px; }
 .abrir-aviso.erro { background: #fdeeee; }
 .abrir-aviso .btn { padding-top: 4px; padding-bottom: 4px; }
 .blocos.a-largar { outline: 4px dashed var(--tinta); outline-offset: -8px; }
+
+/* ---------------------------------------------------------------- logotipo do Buinho */
+.logo-buinho { display: inline-flex; align-items: center; flex: 0 0 auto; opacity: .95; }
+.logo-buinho:hover { opacity: 1; }
+.logo-buinho img { height: 26px; width: auto; display: block; }
+.inicio-topo .logo-buinho { margin: 0 10px 0 6px; }
+.topo .logo-topo { padding-left: 14px; margin-left: 4px; border-left: 1px solid rgba(255,255,255,.35); }
+.topo .logo-topo img { height: 20px; }
+@media (max-width: 1250px) { .topo .logo-topo { display: none; } }
+.inicio-rodape { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 8px 20px 36px; display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap; color: var(--cinza); font-size: 14px; }
+.inicio-rodape img { height: 30px; width: auto; display: block; }
+.inicio-rodape .rodape-prof { margin-left: auto; color: var(--tinta); font-weight: 700; }
+
+.abrir-aviso[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- turmas (entrada do aluno) */
+.turma-barra { display: inline-flex; align-items: center; gap: 8px; }
+.turma-barra:empty { display: none; }
+.turma-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 999px;
+  background: rgba(255,255,255,.14); color: #fff; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.turma-chip .turma-avatar { font-size: 22px; line-height: 1; }
+.turma-pend { color: var(--sol); font-size: 12px; }
+.turma-sair, .turma-entrar { padding: 6px 12px; font-size: 15px; }
+.turma-fundo { position: fixed; inset: 0; z-index: 1000; background: rgba(10,15,40,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.turma-caixa { position: relative; width: min(720px, 100%); max-height: 92vh; overflow: auto; background: #fff; border-radius: 18px; padding: 28px 30px 24px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.turma-caixa h2 { margin: 0 0 6px; font-size: 28px; display: flex; align-items: center; gap: 10px; }
+.turma-dica { margin: 0 0 18px; color: var(--cinza); font-size: 17px; }
+.turma-fechar { position: absolute; top: 10px; right: 14px; border: 0; background: none; font-size: 30px; cursor: pointer; color: var(--cinza); }
+.turma-form { display: flex; gap: 12px; flex-wrap: wrap; }
+.turma-codigo { font: 700 40px/1 'Asap', system-ui, sans-serif; letter-spacing: .25em; text-transform: uppercase; width: 230px;
+  padding: 10px 14px; border: 3px solid var(--tinta); border-radius: 12px; }
+.turma-msg { min-height: 1.4em; color: #b3261e; font-weight: 700; margin: 12px 0 0; }
+.turma-nomes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.turma-nome { display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid var(--linha); border-radius: 12px;
+  background: #fff; font: 700 18px 'Asap', system-ui, sans-serif; cursor: pointer; text-align: left; }
+.turma-nome:hover, .turma-nome:focus-visible { border-color: var(--tinta); }
+.turma-nome .turma-avatar { font-size: 30px; }
+.turma-slots { display: flex; gap: 12px; margin-bottom: 16px; }
+.turma-slot { width: 64px; height: 64px; border: 3px dashed var(--linha); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
+.turma-slot.cheio { border-style: solid; border-color: var(--tinta); }
+.turma-imagens { display: grid; grid-template-columns: repeat(3, 96px); gap: 12px; }
+.turma-imagem { width: 96px; height: 96px; font-size: 54px; border: 2px solid var(--linha); border-radius: 18px; background: #fff; cursor: pointer; }
+.turma-imagem:hover, .turma-imagem:focus-visible { border-color: var(--tinta); transform: translateY(-2px); }
+.turma-linha { display: flex; gap: 10px; margin-top: 14px; }
+.abanar { animation: abanar 360ms ease-in-out; }
+@keyframes abanar { 0%,100% { transform: translateX(0) } 25% { transform: translateX(-10px) } 75% { transform: translateX(10px) } }
+@media (max-width: 1250px) { .topo .turma-chip-nome { display: none; } }

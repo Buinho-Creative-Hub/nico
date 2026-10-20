@@ -401,3 +401,12 @@ encontrar um micro:bit no chão — a ponte para «Primeiros passos».
   conteúdo — sem isto, ficheiros novos não ficam disponíveis offline).
 - **Pasta offline (já existia):** Code → Download ZIP, descompactar, `Abrir Nico.bat` (abre em `file://`, não precisa do SW).
 - **Teste:** `node testes/offline.js` (abre com rede, corta a rede: ecrã inicial, modo livre + .hex, palco e Reparar).
+
+## 13. Turmas e logotipo do Buinho (desde 20 Out 2026 — pedido do Carlos)
+
+- **Turmas** (área do professor, entrada do aluno com código + senha de imagens, progresso por aluno e
+  sincronizado com a API no Webtuga): tudo em `docs/TURMAS.md`.
+- **Logotipo do Buinho** (`img/buinho/`, SVG oficial azul #294898 e versão branca): no topo do ecrã inicial, no
+  topo das missões e do palco (esconde-se abaixo de 1250 px) e no rodapé do ecrã inicial («Um projeto do Buinho
+  Educativo»), que tem também o link «Área do professor».
+

@@ -4,7 +4,7 @@ Correr antes de cada publicação:  python3 ferramentas/gerar-sw.py
 A versão é um resumo do conteúdo: se algum ficheiro mudar, os browsers apanham a versão nova."""
 import hashlib, json, os, pathlib
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
-FORA_PASTAS = {'.git', 'docs', 'testes', 'microbit', 'ferramentas'}
+FORA_PASTAS = {'.git', 'docs', 'testes', 'microbit', 'ferramentas', 'servidor'}
 FORA_FICH = {'sw.js', 'LICENSE', 'CNAME', '.gitignore', '.nojekyll'}
 lista, h = [], hashlib.sha256()
 for p in sorted(RAIZ.rglob('*')):

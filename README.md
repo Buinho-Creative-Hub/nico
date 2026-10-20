@@ -26,6 +26,7 @@ vivia na rua do Buinho.
 
 ### Usar
 - Online: https://nico.buinho.pt (`?a=nico` ou `?a=gabi` escolhe a mascote; `&m=reparar` abre uma missão).
+- **Turmas**: área do professor (`professor.html`) com turmas, alunos com senha de imagens, cartões para imprimir e progresso; o aluno entra com o código da turma. Ver `docs/TURMAS.md`.
 - Sem internet (app): abrir o nico.buinho.pt uma vez com internet no Chrome/Edge e carregar em «Instalar Nico»; depois funciona sem rede nesse computador
 - Sem internet: descarregar o repositório (Code → Download ZIP), descompactar e abrir `Abrir Nico.bat`
   (Windows) ou `index.html` no Chrome/Edge.

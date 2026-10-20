@@ -32,7 +32,7 @@
 
   // ------------------------------------------------------------ estado guardado
   function ler() { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } }
-  function gravar() { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) { /* sem armazenamento: segue */ } }
+  function gravar() { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) { /* sem armazenamento: segue */ } if (F.Turma) F.Turma.mudou(CHAVE); }
   const estado = Object.assign({ feitos: 0, atual: 0, xml: '' }, ler());
   if (params.has('todos')) estado.feitos = Math.max(estado.feitos, N - 1);   // modo professor
   const desbloqueado = i => i <= Math.min(estado.feitos, N - 1);

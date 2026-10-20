@@ -10,7 +10,8 @@
   // Ideias de missões ainda sem conteúdo aparecem aqui como «em preparação» ({ titulo, tema, descricao, cor }).
   const EM_PREPARACAO = [];
 
-  F.chaveMissao = m => m.chave || ('faisca.missao.' + m.id + '.v1');
+  // com um aluno da turma com sessão, as chaves levam o prefixo dele (js/turma.js)
+  F.chaveMissao = m => (F.Turma ? F.Turma.prefixo() : '') + (m.chave || ('faisca.missao.' + m.id + '.v1'));
   F.progressoMissao = m => {
     try { return (JSON.parse(localStorage.getItem(F.chaveMissao(m))) || {}).feitos || 0; } catch (e) { return 0; }
   };
@@ -39,6 +40,11 @@
   function mostrarInicio() {
     document.body.classList.add('modo-inicio');
     $('inicio').hidden = false;
+    // aluno da turma: traz o que fez noutros computadores (uma vez por visita; sem rede segue com o que há)
+    if (F.Turma && F.Turma.sessao() && !sessionStorage.getItem('nico.turma.puxado')) {
+      sessionStorage.setItem('nico.turma.puxado', '1');
+      F.Turma.puxar().then(mudou => { if (mudou) location.reload(); }).catch(() => {});
+    }
     let escolhida = F.MASCOTES[F.MASCOTE_ID] ? F.MASCOTE_ID : F.ORDEM_MASCOTES[0];
 
     function marca() {
