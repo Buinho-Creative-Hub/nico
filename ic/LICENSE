@@ -14,6 +14,8 @@ You may copy, redistribute and adapt it, provided that:
   - ShareAlike: you distribute your contributions under the same licence.
 
 Not covered by this licence:
+  - The guide characters Lio (bat) and Mo (mole), including the artwork in img/lio/ and img/mo/, are reserved by the
+    Invisible Cartographies consortium / Buinho and may not be used to identify other products or services.
   - Third-party libraries in vendor/ and fonts/, under their own licences:
       Blockly (Google) — Apache License 2.0
       MicroPython for micro:bit (Micro:bit Educational Foundation) — MIT License

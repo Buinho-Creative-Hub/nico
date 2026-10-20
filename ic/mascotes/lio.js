@@ -1,6 +1,6 @@
-/* Mascote Lio — o morcego que mapeia pelo som (PROVISÓRIA: desenho SVG do Pacheco; identidade final pelo Ambrósio,
- * handoff 2026-10-20_pacheco_ambrosio_ic-identidade-plataforma). Ouve o eco das salas; gosta de lugares calmos e
- * tem uns abafadores para quando há barulho a mais — como muitas crianças.
+/* Mascote Lio — o morcego que mapeia pelo som. Ilustrações do Ambrósio (pacote v1, 20 Out 2026), revisão plana aprovada
+ * pelo Carlos. Orelhas altas de interior coral, focinho creme, colete azul, lenço coral, asas escuras. Reutilizar sempre os
+ * mesmos 8 estados; não gerar expressões novas. Poses de palco e cenários: buinho-os handoffs/assets/2026-10-20_ic-lio-mo-v1/.
  */
 (function () {
   'use strict';
@@ -11,11 +11,11 @@
     artigo: 'o',
     descricao: { en: 'Lio, the bat who maps by sound', sr: 'Лио, слепи миш који мапира звуком', es: 'Lio, el murciélago que mapea con el sonido', pt: 'Lio, o morcego que mapeia pelo som' },
     ola: { en: 'Hi! I’m Lio. I find my way by listening.', sr: 'Здраво! Ја сам Лио. Сналазим се слушајући.', es: '¡Hola! Soy Lio. Me oriento escuchando.', pt: 'Olá! Sou o Lio. Oriento-me a ouvir.' },
-    perfil: { en: 'Hears echoes that others miss. Loves quiet corners and carries ear defenders for loud days.',
-      sr: 'Чује одјеке које други не примећују. Воли тихе кутке и носи заштиту за уши за бучне дане.',
-      es: 'Oye ecos que otros no notan. Le encantan los rincones tranquilos y lleva protectores para los días ruidosos.',
-      pt: 'Ouve ecos que os outros não notam. Adora cantos sossegados e leva abafadores para os dias barulhentos.' },
-    pasta: 'img/lio/', ext: '.svg',
+    perfil: { en: 'Hears echoes that others miss and can tell how big a room is by listening. Loves quiet corners.',
+      sr: 'Чује одјеке које други не примећују и слушањем зна колика је соба. Воли тихе кутке.',
+      es: 'Oye ecos que otros no notan y sabe lo grande que es una sala escuchándola. Le encantan los rincones tranquilos.',
+      pt: 'Ouve ecos que os outros não notam e percebe o tamanho de uma sala só de a ouvir. Adora cantos sossegados.' },
+    pasta: 'img/lio/',
     sprites: {
       boas_vindas: '01_boas_vindas', curiosa: '02_curiosa', a_pensar: '03_a_pensar', surpreendida: '04_surpreendida',
       dica: '05_a_dar_uma_dica', celebrar: '06_a_celebrar', incentivar: '07_a_incentivar', calma: '08_calma',

@@ -15,7 +15,7 @@
 | Perspetivas | `missoes/perspetivas.js`: Ana (autista, hiperacusia, masking), Luka (PHDA), Mira (cega), Teo (autista, procura sensações, comunica com tablet/cartões), Dani (dislexia), Nina (amiga da Mira). Cartão no lado esquerdo (aberto quando a voz muda), «Para pensar» na festa de cada desafio. A rever com pessoas com experiência vivida. |
 | Missões | `ouvir` (7), `detetives` (6), `sentir` (6), `estacao` (6), `calma` (6) + projeto livre em cada uma + `livre` (modo livre sem a gaveta OLED da ELECFREAKS — no IC só a Sensory OLED). Ajudas comuns em `missoes/_base.js` (`F.IC.T/V/X`). |
 | Motor | `motor.js`: `so_barra` regista `barra:V:MIN:MAX`; `so_atividade` regista o nível (`atividade:N`). `tutor-analise.js` conhece min/max/rótulo/texto dos blocos Sensory OLED. «PICO» → «PEAK» (como a extensão). |
-| Mascotes | Lio (morcego, mapeia pelo som) e Mo (toupeira, mapeia pelo tato) — **SVG provisórios** (`ferramentas/mascotes-provisorias.py`); identidade final pedida ao Ambrósio (handoff `2026-10-20_pacheco_ambrosio_ic-identidade-plataforma`). Sem palco (Missão 0) nesta versão. Sem Turmas nesta versão. |
+| Mascotes | Lio (morcego, mapeia pelo som) e Mo (toupeira, mapeia pelo tato) — ilustrações do Ambrósio (pacote v1, 20 Out 2026, revisão plana aprovada pelo Carlos), 8 estados cada, recortados a um enquadramento comum por mascote e reduzidos a 300 px de largura. Poses de palco (8 por mascote) e 6 cenários de museu guardados no buinho-os (`handoffs/assets/2026-10-20_ic-lio-mo-v1/`) para uma futura Missão 0 de museu. Arte reservada (fora da licença CC). Sem Turmas nesta versão. |
 | Marca | Paleta e letras do site do IC (Roboto/Roboto Slab com cirílico), símbolo e texturas do IC, logótipo UE no rodapé; Buinho só como autor técnico. |
 
 ## Missões ↔ guia «Sensory Mapping in Museums»
@@ -35,7 +35,7 @@ idiomas passaram a 20 Out 2026. Mais `modo-livre.js`, `abrir-hex.js`, `blocos-no
 
 ## Por fazer
 - Revisão nativa SR (Veljko) e ES (FabLab Cuenca); revisão das perspetivas com pessoas com experiência vivida.
-- Identidade final (Ambrósio) → substituir `img/lio`, `img/mo` (PNG, mesmos nomes; tirar `ext: '.svg'`).
+- Nome da plataforma: «Sensing Lab» é proposta, não decisão de naming (nota do Ambrósio).
 - Teste com o kit verdadeiro e com crianças (Belgrado, ronda de novembro/janeiro).
 - Navegação por teclado no editor de blocos (plugin de teclado do Blockly), níveis 2 das missões, Missão 0 de museu
   (palco) quando houver ilustrações, Turmas (como no Nico) se o consórcio quiser.

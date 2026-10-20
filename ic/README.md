@@ -21,8 +21,8 @@ person and too much for another.
 - **For educators:** `educadores.html` (how to use it in the three workshop formats, how to talk about the perspectives,
   accessibility, practical notes).
 
-Engine: **Nico / Faísca** by Buinho FabLab (same blocks, simulator, tutor and `.hex` engine). Guide characters
-(Lio the bat, Mo the mole) are **provisional drawings** until the project’s own illustrations are ready.
+Engine: **Nico / Faísca** by Buinho FabLab (same blocks, simulator, tutor and `.hex` engine). Guide characters:
+**Lio the bat** (maps by sound) and **Mo the mole** (maps by touch) — artwork reserved, not under the CC licence.
 
 ### Use
 - Online: open `index.html` (`?l=sr` language, `&a=lio|mo` guide, `&m=ouvir|detetives|sentir|estacao|calma|livre` mission,

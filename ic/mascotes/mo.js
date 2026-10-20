@@ -1,4 +1,5 @@
-/* Mascote Mo — a toupeira que mapeia pelo tato (PROVISÓRIA: desenho SVG do Pacheco; identidade final pelo Ambrósio).
+/* Mascote Mo — a toupeira que mapeia pelo tato. Ilustrações do Ambrósio (pacote v1, 20 Out 2026), aprovadas pelo Carlos:
+ * castanha, nariz coral, camisola creme, jardineiras verdes, bolsa azul; abafadores no estado calma (apoio normal, não clínico).
  * Quase não vê: conhece os túneis pelas mãos, pelo cheiro e pelas vibrações do chão. Curiosa, direta, gosta de saber
  * o que vem a seguir.
  */
@@ -11,11 +12,11 @@
     artigo: 'a',
     descricao: { en: 'Mo, the mole who maps by touch', sr: 'Мо, кртица која мапира додиром', es: 'Mo, el topo que mapea con el tacto', pt: 'Mo, a toupeira que mapeia pelo tato' },
     ola: { en: 'Hi! I’m Mo. I know places by touch and by the shake of the ground.', sr: 'Здраво! Ја сам Мо. Места препознајем додиром и подрхтавањем тла.', es: '¡Hola! Soy Mo. Conozco los lugares por el tacto y las vibraciones del suelo.', pt: 'Olá! Sou a Mo. Conheço os sítios pelo tato e pelas vibrações do chão.' },
-    perfil: { en: 'Barely sees, but feels every texture and vibration. Likes to know what comes next — surprises are hard work.',
-      sr: 'Скоро да не види, али осећа сваку текстуру и вибрацију. Воли да зна шта следи — изненађења су напорна.',
-      es: 'Casi no ve, pero siente cada textura y vibración. Le gusta saber qué viene después: las sorpresas le cuestan.',
-      pt: 'Quase não vê, mas sente cada textura e vibração. Gosta de saber o que vem a seguir — as surpresas cansam.' },
-    pasta: 'img/mo/', ext: '.svg',
+    perfil: { en: 'Barely sees, but feels every texture and vibration. Likes to know what comes next, and wears ear defenders on loud days.',
+      sr: 'Скоро да не види, али осећа сваку текстуру и вибрацију. Воли да зна шта следи и носи заштиту за уши у бучним данима.',
+      es: 'Casi no ve, pero siente cada textura y vibración. Le gusta saber qué viene después y usa protectores auditivos los días ruidosos.',
+      pt: 'Quase não vê, mas sente cada textura e vibração. Gosta de saber o que vem a seguir e usa abafadores nos dias barulhentos.' },
+    pasta: 'img/mo/',
     sprites: {
       boas_vindas: '01_boas_vindas', curiosa: '02_curiosa', a_pensar: '03_a_pensar', surpreendida: '04_surpreendida',
       dica: '05_a_dar_uma_dica', celebrar: '06_a_celebrar', incentivar: '07_a_incentivar', calma: '08_calma',
