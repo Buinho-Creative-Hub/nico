@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For educators · Invisible Cartographies Sensing Lab</title>
+<script src="js/i18n.js"></script>
+<script src="i18n/ui.js"></script>
+<script src="i18n/educadores.js"></script>
+<script src="js/acessibilidade.js"></script>
+<link rel="icon" href="img/ic_symbol.svg">
+<link rel="stylesheet" href="css/faisca.css">
+<link rel="stylesheet" href="css/ic.css">
+<style>
+  body { overflow: auto; display: block; }
+  .edu { max-width: 980px; margin: 0 auto; padding: 28px 20px 56px; }
+  .edu h1 { font-size: 38px; margin: 8px 0 10px; }
+  .edu h2 { font-size: 25px; margin: 38px 0 10px; padding-top: 10px; border-top: 2px solid var(--linha); }
+  .edu p, .edu li { font-size: 17px; line-height: 1.55; }
+  .edu li + li { margin-top: 6px; }
+  .edu .lead { font-size: 19px; color: var(--cinza); max-width: 760px; }
+  .edu a.voltar { font-weight: 700; color: var(--azul); }
+  .edu table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 15px; background: #fff; }
+  .edu th { text-align: left; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--cinza); border-bottom: 2px solid var(--ic-tinta); padding: 8px; }
+  .edu td { vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--linha); line-height: 1.4; }
+  .edu code { background: #eef1f4; padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+  .vozes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 14px 0; }
+  .voz { background: #fff; border: 2px solid var(--ic-areia); border-radius: 10px; padding: 14px 16px; }
+  .voz header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .voz header i { width: 40px; height: 40px; display: block; }
+  .voz header i svg { width: 100%; height: 100%; display: block; }
+  .voz strong { font-family: 'Roboto Slab', serif; font-size: 18px; }
+  .voz p { margin: 0 0 8px; font-size: 15px; font-style: italic; }
+  .voz .perg { font-style: normal; font-weight: 700; color: var(--ic-verde); font-size: 14px; }
+  .edu-topo { position: sticky; top: 0; z-index: 10; }
+  @media print { .edu-topo, .a11y { display: none; } .edu h2 { break-after: avoid; } }
+  @media (max-width: 700px) { .edu table, .edu thead, .edu tbody, .edu tr, .edu td, .edu th { display: block; } .edu thead { display: none; } .edu tr { border-bottom: 2px solid var(--linha); padding: 8px 0; } .edu td { border: 0; padding: 2px 0; } }
+</style>
+</head>
+<body>
+<header class="inicio-topo edu-topo">
+  <a class="ic-marca" href="index.html">
+    <img src="img/ic_symbol_white.svg" alt="" class="ic-simbolo">
+    <span class="ic-marca-texto"><span class="ic-nome" data-i18n="ic_nome">Invisible Cartographies</span><span class="ic-lab" data-i18n="lab_nome">Sensing Lab</span></span>
+  </a>
+  <span class="espaco"></span>
+  <div data-linguas></div>
+  <div data-a11y></div>
+</header>
+<main class="edu">
+  <a class="voltar" href="index.html" data-i18n="edu_voltar">← Back to the missions</a>
+  <h1 data-i18n="edu_titulo">For educators</h1>
+  <p class="lead" data-i18n="edu_lead"></p>
+
+  <h2 data-i18n="edu_h_porque"></h2>
+  <div data-i18n-html="edu_porque"></div>
+
+  <h2 data-i18n="edu_h_missoes"></h2>
+  <p data-i18n="edu_missoes_lead"></p>
+  <table>
+    <thead><tr><th data-i18n="edu_th_missao"></th><th data-i18n="edu_th_guia"></th><th data-i18n="edu_th_aprende"></th><th data-i18n="edu_th_voz"></th><th data-i18n="edu_th_mat"></th></tr></thead>
+    <tbody><tr data-i18n-html="edu_m1"></tr><tr data-i18n-html="edu_m2"></tr><tr data-i18n-html="edu_m3"></tr><tr data-i18n-html="edu_m4"></tr><tr data-i18n-html="edu_m5"></tr></tbody>
+  </table>
+  <div data-i18n-html="edu_livre"></div>
+
+  <h2 data-i18n="edu_h_formatos"></h2>
+  <div data-i18n-html="edu_formatos"></div>
+
+  <h2 data-i18n="edu_h_persp"></h2>
+  <div data-i18n-html="edu_persp"></div>
+  <div class="vozes" id="vozes"></div>
+
+  <h2 data-i18n="edu_h_a11y"></h2>
+  <div data-i18n-html="edu_a11y"></div>
+
+  <h2 data-i18n="edu_h_pratico"></h2>
+  <div data-i18n-html="edu_pratico"></div>
+
+  <h2 data-i18n="edu_h_estado"></h2>
+  <div data-i18n-html="edu_estado"></div>
+  <p><img src="img/eu-cofunded-mono.svg" alt="Co-funded by the European Union" style="height:42px"></p>
+</main>
+<script>window.Faisca.verif = { valorDe: v => Number(String(v).split(':').pop()) };</script>
+<script src="missoes/_base.js"></script>
+<script src="missoes/perspetivas.js"></script>
+<script>
+  (function () {
+    const F = window.Faisca;
+    document.title = F.s('edu_titulo') + ' · ' + F.s('lab_titulo');
+    const caixa = document.getElementById('vozes');
+    for (const p of Object.values(F.PERSPETIVAS)) {
+      const d = document.createElement('article');
+      d.className = 'voz';
+      d.innerHTML = '<header><i aria-hidden="true"></i><strong></strong></header><p></p><p class="perg"></p>';
+      d.querySelector('i').innerHTML = p.retrato;
+      d.querySelector('strong').textContent = p.nome + ', ' + p.idade;
+      d.querySelector('p').textContent = p.texto;
+      d.querySelector('.perg').textContent = p.pergunta;
+      caixa.appendChild(d);
+    }
+  })();
+</script>
+</body>
+</html>

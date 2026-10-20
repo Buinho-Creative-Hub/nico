@@ -1,0 +1,27 @@
+Invisible Cartographies · Sensing Lab
+Copyright (c) 2026 Invisible Cartographies consortium — Veljko Ramadanović School (Belgrade), Buinho Associação
+(Messejana, Portugal) and FabLab Cuenca. Engine (Nico / Faísca) by Buinho FabLab.
+
+Code and content in this repository — except as noted below — are licensed under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+
+  Full legal code: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+  Summary:         https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+You may copy, redistribute and adapt it, provided that:
+  - Attribution: you credit "Invisible Cartographies (Creative Europe) — Buinho FabLab" and say if you changed it;
+  - NonCommercial: you do not use it for commercial purposes;
+  - ShareAlike: you distribute your contributions under the same licence.
+
+Not covered by this licence:
+  - Third-party libraries in vendor/ and fonts/, under their own licences:
+      Blockly (Google) — Apache License 2.0
+      MicroPython for micro:bit (Micro:bit Educational Foundation) — MIT License
+      @microbit/microbit-fs (Micro:bit Educational Foundation) — MIT License
+      Roboto and Roboto Slab (Google Fonts) — SIL Open Font License 1.1
+  - The Invisible Cartographies logo and the "Co-funded by the European Union" emblem in img/ follow the project's
+    and the European Commission's visual identity rules.
+
+Co-funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not
+necessarily reflect those of the European Union or the European Education and Culture Executive Agency (EACEA).
+Neither the European Union nor the granting authority can be held responsible for them.

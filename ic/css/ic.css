@@ -1,0 +1,169 @@
+/* IC Sensing Lab — identidade do Invisible Cartographies por cima do motor do Nico (faisca.css).
+ * Paleta do site do projeto: tinta #13233A · azul IC #3BA6DC · verde #1B6E63 · laranja #E8624A · papel #FAF8F3 · areia #E7DCC6.
+ * Letras: Roboto (texto) e Roboto Slab (títulos), com cirílico para o sérvio.
+ * Os blocos mantêm as cores do MakeCode (princípio do motor). Acessibilidade: classes a11y-* no <html> (js/acessibilidade.js).
+ */
+@font-face { font-family: 'Roboto'; font-weight: 400; font-display: swap; src: url('../fonts/roboto-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Roboto'; font-weight: 400; font-display: swap; src: url('../fonts/roboto-latin-ext-400-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Roboto'; font-weight: 400; font-display: swap; src: url('../fonts/roboto-cyrillic-400-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Roboto'; font-weight: 400; font-display: swap; src: url('../fonts/roboto-cyrillic-ext-400-normal.woff2') format('woff2'); unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+@font-face { font-family: 'Roboto'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Roboto'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-latin-ext-700-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Roboto'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-cyrillic-700-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Roboto'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-cyrillic-ext-700-normal.woff2') format('woff2'); unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-slab-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-slab-latin-ext-700-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-slab-cyrillic-700-normal.woff2') format('woff2'); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 700; font-display: swap; src: url('../fonts/roboto-slab-cyrillic-ext-700-normal.woff2') format('woff2'); unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F; }
+
+:root {
+  --ic-tinta: #13233A; --ic-azul: #3BA6DC; --ic-verde: #1B6E63; --ic-laranja: #E8624A; --ic-papel: #FAF8F3; --ic-areia: #E7DCC6;
+  --azul: #1f7fb8;          /* azul IC um pouco mais escuro para texto em fundo claro (contraste AA) */
+  --azul-escuro: #13233A;
+  --sol: #ffd25a;
+  --tinta: #13233A;
+  --parede: #FAF8F3;
+  --cinza: #4d5b6b;
+  --linha: #e1ddd3;
+}
+body { font-family: 'Roboto', system-ui, sans-serif; }
+h1, h2, .missao h1, .festa h2, .persp-nome { font-family: 'Roboto Slab', Georgia, serif; }
+
+/* ---------------------------------------------------------------- topo com a marca IC */
+.topo, .inicio-topo { background: var(--ic-tinta) url('../img/texture_ink_dark.svg') center / cover; }
+.ic-simbolo { width: 34px; height: 34px; flex: 0 0 auto; }
+.ic-marca { display: flex; align-items: center; gap: 12px; color: var(--ic-papel); text-decoration: none; }
+.ic-marca-texto { display: flex; flex-direction: column; line-height: 1.05; }
+.ic-nome { font-weight: 700; font-size: 18px; letter-spacing: -0.2px; }
+.ic-lab { font-family: 'Roboto Slab', serif; font-size: 15px; color: var(--ic-azul); }
+.topo .marca .marca-sub { color: var(--ic-azul); font-weight: 700; font-size: 15px; }
+.btn-educadores { color: var(--ic-papel); text-decoration: none; font-weight: 700; font-size: 14px; padding: 8px 12px;
+  border: 2px solid rgba(255,255,255,0.35); border-radius: 4px; }
+.btn-educadores:hover, .btn-educadores:focus-visible { border-color: #fff; outline: none; }
+.sel-lingua { font: 700 14px 'Roboto', sans-serif; color: var(--ic-papel); background: transparent; border: 2px solid rgba(255,255,255,0.35);
+  border-radius: 4px; padding: 6px 8px; cursor: pointer; }
+.sel-lingua option { color: var(--ic-tinta); background: #fff; }
+.sel-lingua:focus-visible { outline: 3px solid var(--sol); outline-offset: 2px; }
+.passo.feito { background: var(--ic-azul); border-color: var(--ic-azul); }
+.passo.feito + .passo::before { background: var(--ic-azul); }
+.passo.atual { background: var(--sol); border-color: var(--sol); box-shadow: 0 0 0 4px rgba(255, 210, 90, 0.25); }
+.btn-enviar { background: var(--ic-azul); color: var(--ic-tinta); }
+.btn-enviar:hover { background: #fff; }
+
+/* ---------------------------------------------------------------- acessibilidade: botão e painel com interruptores */
+.a11y { position: relative; }
+.btn-a11y { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px; cursor: pointer;
+  color: var(--ic-papel); background: transparent; border: 2px solid rgba(255,255,255,0.35); border-radius: 19px; font: 700 14px 'Roboto', sans-serif; }
+.btn-a11y svg { width: 20px; height: 20px; }
+.btn-a11y:hover, .btn-a11y:focus-visible, .btn-a11y[aria-expanded="true"] { border-color: #fff; outline: none; }
+.a11y-painel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 300; width: min(360px, calc(100vw - 24px));
+  background: #fff; color: var(--ic-tinta); border-radius: 10px; box-shadow: 0 12px 32px rgba(19,35,58,0.28); padding: 14px 16px; }
+.a11y-painel[hidden] { display: none; }
+.a11y-intro { margin: 0 0 8px; font-size: 14px; color: var(--cinza); }
+.a11y-nota { margin: 8px 0 0; font-size: 13px; color: var(--ic-laranja); }
+.a11y-linha { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid var(--linha); }
+.a11y-linha label { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+.a11y-linha label strong { font-size: 16px; }
+.a11y-linha label span { font-size: 13px; color: var(--cinza); line-height: 1.3; }
+.interruptor { flex: 0 0 auto; position: relative; width: 52px; height: 30px; border-radius: 15px; border: 2px solid var(--ic-tinta);
+  background: #d9dde3; cursor: pointer; padding: 0; transition: background 150ms; }
+.interruptor::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  border: 2px solid var(--ic-tinta); transition: transform 150ms; }
+.interruptor[aria-checked="true"] { background: var(--ic-verde); }
+.interruptor[aria-checked="true"]::after { transform: translateX(22px); }
+.interruptor:focus-visible { outline: 3px solid var(--ic-azul); outline-offset: 2px; }
+
+/* ---------------------------------------------------------------- perspetiva */
+.perspetiva { margin: 12px 14px 0; border-radius: 10px; background: var(--ic-papel); border: 2px solid var(--ic-areia); overflow: hidden; }
+.perspetiva[hidden] { display: none; }
+.lado > * { flex-shrink: 0; }
+.sim-oled[hidden] { display: none !important; }
+.persp-cabeca { display: flex; align-items: center; gap: 10px; padding: 10px 12px 6px; }
+.persp-retrato { width: 42px; height: 42px; flex: 0 0 auto; }
+.persp-retrato svg { width: 100%; height: 100%; display: block; }
+.persp-cabeca > div { flex: 1; min-width: 0; }
+.persp-rotulo { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ic-verde); }
+.persp-nome { margin: 0; font-size: 18px; }
+.persp-fechar { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ic-areia); background: #fff; color: var(--ic-tinta);
+  font: 700 18px/1 'Roboto', sans-serif; cursor: pointer; }
+.persp-fechar:focus-visible { outline: 3px solid var(--ic-azul); outline-offset: 2px; }
+.persp-corpo { padding: 0 14px 12px; }
+.persp-texto { margin: 0 0 8px; font-size: 15px; line-height: 1.45; font-style: italic; }
+.persp-pergunta { margin: 0; font-size: 14px; font-weight: 700; color: var(--ic-verde); line-height: 1.35; }
+.perspetiva.recolhida .persp-corpo { display: none; }
+.btn-ouvir { width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; border: 2px solid var(--ic-tinta); background: #fff; color: var(--ic-tinta);
+  display: grid; place-items: center; cursor: pointer; padding: 0; }
+.btn-ouvir[hidden] { display: none; }
+.btn-ouvir svg { width: 18px; height: 18px; }
+.btn-ouvir:focus-visible { outline: 3px solid var(--ic-azul); outline-offset: 2px; }
+.btn-ouvir-tutor { width: 28px; height: 28px; }
+.missao-titulo-linha { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.missao-frase { background: #e3f2fb; border-left: 5px solid var(--ic-azul); }
+.missao-num { color: var(--azul); }
+
+/* ---------------------------------------------------------------- festa: «para pensar» */
+.festa-pensar { margin: -6px 0 20px; padding: 12px 14px; text-align: left; background: var(--ic-papel); border-left: 5px solid var(--ic-verde);
+  border-radius: 4px; font-size: 16px; line-height: 1.4; }
+.festa-pensar[hidden] { display: none; }
+.festa-pensar strong { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ic-verde); margin-bottom: 2px; }
+.festa-cartao { width: min(520px, calc(100vw - 32px)); }
+
+/* ---------------------------------------------------------------- ecrã inicial */
+.inicio { background: var(--ic-papel); }
+.inicio-intro { padding: 8px 0 4px; max-width: 760px; }
+.inicio-intro h1 { font-size: 38px; margin: 0 0 8px; color: var(--ic-tinta); }
+.inicio-intro p { margin: 0; font-size: 18px; line-height: 1.45; color: var(--cinza); }
+.cartao-mascote[aria-checked="true"] { border-color: var(--ic-azul); box-shadow: 0 0 0 4px rgba(59,166,220,0.2); }
+.cm-texto em { color: var(--ic-verde); }
+.cartao-livre { background: var(--ic-tinta); border-color: var(--ic-tinta); border-top-color: #0b1626; }
+.cartao-livre .cx-tema { color: var(--sol); }
+.cartao-livre .cx-feito { background: var(--sol); color: var(--ic-tinta); }
+.cx-voz { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--cinza); }
+.cx-voz i { width: 26px; height: 26px; flex: 0 0 auto; display: block; }
+.cx-voz i svg { width: 100%; height: 100%; display: block; }
+.inicio-rodape { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; padding: 18px 20px; background: #fff; border-top: 1px solid var(--linha); font-size: 13px; color: var(--cinza); }
+.inicio-rodape .rodape-ic { height: 34px; }
+.inicio-rodape .rodape-ue { height: 34px; }
+.inicio-rodape .rodape-texto { flex: 1 1 320px; line-height: 1.4; }
+.inicio-rodape .rodape-prof { font-weight: 700; color: var(--ic-verde); }
+
+/* =============================================================== MODO CALMO */
+.a11y-calmo *, .a11y-calmo *::before, .a11y-calmo *::after { animation: none !important; transition: none !important; }
+.a11y-calmo { --sol: #f3e2ae; }
+.a11y-calmo .topo, .a11y-calmo .inicio-topo { background: var(--ic-tinta); }
+.a11y-calmo .missao-frase { background: #eef4f7; }
+.a11y-calmo .passo.atual { box-shadow: none; }
+.a11y-calmo .sons { display: none; }
+.a11y-calmo .tutor-avatar[data-novo]::after { background: var(--ic-azul); }
+.a11y-calmo .cartao-missao:hover, .a11y-calmo .cartao-mascote:hover { transform: none; box-shadow: none; }
+
+/* =============================================================== ALTO CONTRASTE */
+.a11y-contraste { --tinta: #000; --parede: #fff; --cinza: #1a1a1a; --linha: #000; --azul: #003f73; --sol: #ffe600; }
+.a11y-contraste body { background: #fff; color: #000; }
+.a11y-contraste .topo, .a11y-contraste .inicio-topo { background: #000; }
+.a11y-contraste .missao-frase { background: #fff; border: 3px solid #000; border-left-width: 8px; }
+.a11y-contraste .btn, .a11y-contraste .cartao-missao, .a11y-contraste .cartao-mascote, .a11y-contraste .perspetiva, .a11y-contraste .tutor-balao { border-width: 3px !important; border-color: #000 !important; }
+.a11y-contraste :focus-visible { outline: 4px solid #ffe600 !important; outline-offset: 2px !important; box-shadow: 0 0 0 7px #000 !important; }
+.a11y-contraste .blocklyMainBackground { fill: #fff !important; }
+.a11y-contraste .blocklyPath { stroke: #000 !important; stroke-width: 2px !important; }
+.a11y-contraste .blocklyText { fill: #fff !important; }
+.a11y-contraste .valor.blocklyShadow > .blocklyField .blocklyText { fill: #000 !important; }
+.a11y-contraste .persp-texto, .a11y-contraste .cm-perfil, .a11y-contraste .cx-desc { color: #000; }
+.a11y-contraste .persp-pergunta, .a11y-contraste .persp-rotulo { color: #003f2f; }
+
+/* =============================================================== LETRA E BLOCOS GRANDES */
+.a11y-grande body { font-size: 19px; }
+.a11y-grande .missao h1 { font-size: 34px; }
+.a11y-grande .missao-frase { font-size: 22px; }
+.a11y-grande .missao-passos { font-size: 19px; }
+.a11y-grande .tutor-texto { font-size: 21px; }
+.a11y-grande .persp-texto { font-size: 18px; }
+.a11y-grande .persp-pergunta { font-size: 17px; }
+.a11y-grande .btn { min-height: 52px; font-size: 18px; }
+.a11y-grande .lado { flex-basis: 420px; }
+.a11y-grande .cx-desc, .a11y-grande .cm-perfil { font-size: 17px; }
+.a11y-grande .blocklyToolboxCategoryLabel { font-size: 19px !important; }
+.a11y-grande .blocklyToolboxCategory { height: 48px !important; line-height: 48px; }
+
+@media (max-width: 1100px) { .btn-a11y span { display: none; } }
+@media (max-width: 900px) { .lado .perspetiva { margin: 10px 12px 0; } .inicio-intro h1 { font-size: 30px; } }

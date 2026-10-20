@@ -1,0 +1,41 @@
+// Casos de teste da missão «Botões do sentir».
+const { xml, E, seq, b, v, icone, numero, definir, mudar, registar, digital } = require('../lib');
+const ok = {
+  caras: () => xml(E.botao('A', seq(icone('Happy'))), E.botao('B', seq(icone('Sad')))),
+  diario: () => xml(E.botao('A', seq(icone('Happy'), registar('feeling', 1))), E.botao('B', seq(icone('Sad'), registar('feeling', 2)))),
+  conta: () => xml(E.botao('B', seq(icone('Sad'), mudar('contador', 1))), E.botao('AB', seq(numero(v('contador'))))),
+  medir: () => xml(E.botao('B', seq(icone('Sad'), registar('feeling', 2), registar('sound', b('mk_som_nivel'))))),
+  pausa: () => xml(E.logo(seq(icone('Asleep'), digital('P2', 1)))),
+  tres: () => xml(E.botao('A', seq(icone('Happy'), registar('feeling', 1))), E.logo(seq(icone('Surprised'), registar('feeling', 2))), E.botao('B', seq(icone('Sad'), registar('feeling', 3)))),
+};
+module.exports = {
+  missao: 'sentir',
+  casos: [
+    { ok: ok.caras(), errado: [xml(E.botao('A', seq(icone('Happy'))), E.botao('B', seq(icone('Happy'))))], fazer: ['botao:A', { esperar: 200 }, 'botao:B'],
+      regras: [[xml(E.botao('B', seq(icone('Sad')))), 'sem_botao_A'], [xml(E.botao('A', '')), 'sem_mk_icone_botao_A'], [xml(E.botao('A', seq(icone('Happy')))), 'sem_botao_B'],
+        [xml(E.botao('A', seq(icone('Happy'))), E.botao('B', '')), 'sem_mk_icone_botao_B'], [xml(E.botao('A', seq(icone('Happy'))), E.botao('B', seq(icone('Happy')))), 'mesma_cara'], [ok.caras(), null]] },
+    { ok: ok.diario(),
+      errado: [xml(E.botao('A', seq(icone('Happy'), registar('feeling', 1))), E.botao('B', seq(icone('Sad'), registar('feeling', 1)))),
+        xml(E.botao('A', seq(icone('Happy'), registar('good', 1))), E.botao('B', seq(icone('Sad'), registar('bad', 2))))],
+      fazer: ['botao:A', 'botao:B'],
+      regras: [[xml(E.botao('A', seq(icone('Happy'))), E.botao('B', seq(icone('Sad'), registar('feeling', 2)))), 'sem_mk_registar_botao_A'],
+        [xml(E.botao('A', seq(icone('Happy'), registar('feeling', 1))), E.botao('B', seq(icone('Sad')))), 'sem_mk_registar_botao_B'],
+        [xml(E.botao('A', seq(icone('Happy'), registar('good', 1))), E.botao('B', seq(icone('Sad'), registar('bad', 2)))), 'colunas_diferentes'], [ok.diario(), null]] },
+    { ok: ok.conta(), errado: [xml(E.botao('B', seq(icone('Sad'), definir('contador', 1))), E.botao('AB', seq(numero(v('contador')))))],
+      fazer: ['botao:B', 'botao:B', 'botao:B', { esperar: 200 }, 'botao:AB'],
+      regras: [[xml(E.botao('AB', seq(numero(v('contador'))))), 'sem_botao_B'], [xml(E.botao('B', seq(icone('Sad')))), 'sem_mk_var_mudar_botao_B'],
+        [xml(E.botao('B', seq(mudar('contador', 1)))), 'sem_botao_AB'], [xml(E.botao('B', seq(mudar('contador', 1))), E.botao('AB', seq(numero(5)))), 'sem_mk_var_em_mk_mostrar_numero'], [ok.conta(), null]] },
+    { ok: ok.medir(), errado: [xml(E.botao('B', seq(icone('Sad'), registar('feeling', 2), registar('sound', 2))))], fazer: [{ som: 180 }, 'botao:B'],
+      regras: [[xml(E.botao('A', seq(icone('Sad')))), 'sem_botao_B'], [xml(E.botao('B', seq(icone('Sad')))), 'sem_mk_registar_botao_B'],
+        [xml(E.botao('B', seq(registar('feeling', 2)))), 'sem_som'], [ok.medir(), null]] },
+    { ok: ok.pausa(), errado: [xml(E.logo(seq(icone('Asleep'), digital('P2', 0))))], fazer: ['logo'],
+      regras: [[xml(E.botao('A', seq(icone('Asleep')))), 'sem_logo'], [xml(E.logo(seq(digital('P2', 1)))), 'sem_mk_icone_logo'],
+        [xml(E.logo(seq(icone('Asleep')))), 'sem_mk_digital_logo'], [xml(E.logo(seq(icone('Asleep'), digital('P2', 0)))), 'led_apagado'], [ok.pausa(), null]] },
+    { ok: ok.tres(),
+      errado: [xml(E.botao('A', seq(icone('Happy'), registar('feeling', 1))), E.logo(seq(icone('Surprised'), registar('feeling', 3))), E.botao('B', seq(icone('Sad'), registar('feeling', 3))))],
+      fazer: ['botao:A', 'logo', 'botao:B'],
+      regras: [[xml(E.logo(seq(icone('Surprised'))), E.botao('B', seq(icone('Sad')))), 'sem_botao_A'], [xml(E.botao('A', seq(icone('Happy')))), 'sem_logo'],
+        [xml(E.botao('A', seq(icone('Happy'))), E.logo(seq(icone('Surprised')))), 'sem_botao_B'],
+        [xml(E.botao('A', seq(icone('Happy'), registar('feeling', 1))), E.logo(seq(icone('Surprised'))), E.botao('B', seq(icone('Sad'), registar('feeling', 3)))), 'falta_registo'], [ok.tres(), null]] },
+  ],
+};

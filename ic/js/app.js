@@ -1,0 +1,549 @@
+/* IC Sensing Lab (motor do Nico / Faísca Desafios) — cola tudo: mascote + missão escolhidas, editor, micro:bit do ecrã e o verdadeiro. */
+(function () {
+  'use strict';
+  const F = window.Faisca;
+  const $ = id => document.getElementById(id);
+
+  // Sem missão escolhida: ecrã inicial (inicio.js) e mais nada
+  if (!F.MISSAO_ID || !F.MISSOES[F.MISSAO_ID]) { F.mostrarInicio(); return; }
+  // missões com página própria (ex.: o palco da Missão 0, sem micro:bit)
+  if (F.MISSOES[F.MISSAO_ID].pagina) { location.replace(F.MISSOES[F.MISSAO_ID].pagina + location.search); return; }
+  F.ativar(F.MASCOTE_ID, F.MISSAO_ID);
+  F.aplicarI18n();
+  const M = F.MASCOTE, X = F.MISSAO;
+  F.lembrarMascote(M.id);
+  document.documentElement.setAttribute('data-mascote', M.id);
+  const CHAVE = F.chaveMissao(X);
+  const params = new URLSearchParams(location.search);
+  const N = F.DESAFIOS.length;
+  // Modo livre: caixa com categorias (como no MakeCode), sem caminho de desafios nem validação
+  const LIVRE = !!X.modoLivre;
+  const caixaDe = n => LIVRE ? F.caixaCategorias() : F.caixa(n);
+  if (LIVRE) document.body.classList.add('modo-livre');
+
+  // ------------------------------------------------------------ marca e mascote
+  document.title = X.titulo + ' · ' + F.s('lab_titulo');
+  $('marcaSub').textContent = X.titulo;
+  $('btnMissoes').href = 'index.html?a=' + encodeURIComponent(M.id);
+  $('tutor').setAttribute('aria-label', M.descricao);
+  $('tutorNome').textContent = M.nome;
+  $('tutorGambiarra').textContent = F.s('ajudar_mascote', { nome: M.nome });
+  if (LIVRE) { $('editorDica').dataset.i18n = 'dica_livre'; $('editorDica').textContent = F.s('dica_livre'); }
+
+  // ------------------------------------------------------------ estado guardado
+  function ler() { try { return JSON.parse(localStorage.getItem(CHAVE)) || {}; } catch (e) { return {}; } }
+  function gravar() { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) { /* sem armazenamento: segue */ } if (F.Turma) F.Turma.mudou(CHAVE); }
+  const estado = Object.assign({ feitos: 0, atual: 0, xml: '' }, ler());
+  if (params.has('todos')) estado.feitos = Math.max(estado.feitos, N - 1);   // modo professor
+  const desbloqueado = i => i <= Math.min(estado.feitos, N - 1);
+  if (estado.atual >= N) estado.atual = N - 1;
+  if (!desbloqueado(estado.atual)) estado.atual = estado.feitos;
+
+  // ------------------------------------------------------------ editor
+  const ws = Blockly.inject('blocos', {
+    renderer: 'makecode',
+    theme: 'makecode',
+    media: 'vendor/media/',
+    toolbox: caixaDe(estado.atual),
+    trashcan: true,
+    sounds: false,
+    zoom: { controls: true, wheel: false, startScale: F.A11Y && F.A11Y.grande ? 1.4 : 1, maxScale: 2, minScale: 0.6 },
+    move: { scrollbars: true, drag: true, wheel: true },
+  });
+  let silencio = true;      // carregar programas não faz barulho; só os gestos da criança
+  if (estado.xml) {
+    try { Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(estado.xml), ws); } catch (e) { console.warn(e); }
+  }
+  setTimeout(() => { silencio = false; }, 0);
+
+  // ------------------------------------------------------------ sons do editor (como no MakeCode/Scratch)
+  let ultimoSom = 0;
+  const somEditor = nome => { const t = performance.now(); if (t - ultimoSom > 80) { ultimoSom = t; F.Som.tocar(nome); } };
+  ws.addChangeListener(ev => {
+    if (silencio || ev.isUiEvent) return;
+    const E = Blockly.Events;
+    if (ev.type === E.BLOCK_MOVE && ev.newParentId && ev.newParentId !== ev.oldParentId) somEditor('encaixe');
+    else if (ev.type === E.BLOCK_CREATE) somEditor('apanhar');
+    else if (ev.type === E.BLOCK_DELETE) somEditor('apagar');
+  });
+
+  // ------------------------------------------------------------ micro:bit do ecrã
+  const sim = new F.Sim($('sim'), k => entrada(k, 'ecra'));
+  let escuro = false;
+  const noEcra = {
+    principal: true,
+    icone: n => sim.icone(n),
+    limpar: () => sim.limpar(),
+    tocarSom: n => { F.Som.abafar(900); return sim.tocarSom(n); },
+    tom: (f, ms) => { F.Som.abafar(ms); sim.tom(f, ms); },
+    digital: (p, v) => sim.digital(p, v),
+    estaEscuro: () => sim.sensor('luz') < 40,
+    botoes: sim.botoes,
+    tocados: sim.tocados,
+    sensor: k => sim.sensor(k),
+    pixel: (x, y, on) => sim.pixel(x, y, on),
+    grafico: (v, m) => sim.grafico(v, m),
+    mostrarTexto: (t, n) => sim.mostrarTexto(t, n),
+    servo: (p, a) => sim.servo(p, a),
+    registar: (n, v) => sim.registar(n, v),
+    oled: (op, a) => sim.oled(op, a),
+    soled: (nome, args) => sim.soled(nome, args),
+    get sensory() { return sim.sensory; },
+  };
+
+  // ------------------------------------------------------------ controlos dos sensores e variáveis no ecrã
+  // Só aparecem os controlos de que o desafio precisa (pelos blocos da caixa e do programa).
+  const CONTROLOS = {
+    mk_luz: ['luz'], mk_escuro: ['luz'], mk_som_nivel: ['som', 'palmas'], mk_som_alto: ['palmas', 'som'],
+    mk_temperatura: ['temperatura'], mk_ler_analogico: ['analogico:P1'], mk_ler_digital: ['digital:P0'],
+    mk_kit_ruido: ['kit_ruido'], mk_kit_luz: ['kit_luz'], mk_kit_pir: ['kit_pir'], so_pir: ['kit_pir'], so_db: ['som'],
+    so_movimentos: ['kit_pir'], so_nivel: ['kit_pir'], so_atividade: ['kit_pir'],
+  };
+  function atualizarControlos() {
+    const d = F.DESAFIOS[estado.atual];
+    const lista = new Set(d.sim || []);
+    const tipos = new Set();
+    // blocos que estão na caixa (no modo livre a caixa tem tudo: contam só os blocos do programa)
+    if (!LIVRE) for (const m of F.caixa(estado.atual).matchAll(/<block type="([a-z_]+)"/g)) tipos.add(m[1]);
+    ws.getAllBlocks(false).forEach(b => {
+      if (b.type === 'mk_kit_bme') lista.add('bme_' + b.getFieldValue('Q'));
+      tipos.add(b.type);
+      if (b.type === 'mk_gesto') lista.add('gesto:' + b.getFieldValue('G'));
+      if (b.type === 'mk_ler_analogico') lista.add('analogico:' + b.getFieldValue('P'));
+      if (b.type === 'mk_ler_digital') lista.add('digital:' + b.getFieldValue('P'));
+    });
+    for (const t of tipos) (CONTROLOS[t] || []).forEach(c => lista.add(c));
+    if (tipos.has('mk_gesto') && ![...lista].some(c => c.startsWith('gesto:'))) ['gesto:left', 'gesto:right'].forEach(c => lista.add(c));
+    sim.controlos([...lista]);
+    const DESENHA = ['so_barra', 'so_grande', 'so_grafico', 'so_atividade', 'so_texto', 'so_limpar', 'so_escrever', 'so_animacao'];
+    sim.mostrarOled([...tipos].some(t => t.startsWith('mk_oled_') || DESENHA.includes(t)), [...tipos].some(t => t.startsWith('mk_oled_')));
+  }
+  const caixaVars = document.createElement('div');
+  caixaVars.className = 'sim-vars'; caixaVars.setAttribute('aria-live', 'polite');
+  $('sim').appendChild(caixaVars);
+
+  // ------------------------------------------------------------ micro:bit verdadeiro
+  const ble = new F.MicrobitBLE(k => entrada(k, 'microbit'), (e, nome) => {
+    const el = $('estado');
+    el.classList.toggle('ok', e === 'ligado'); el.classList.remove('aviso');
+    el.textContent = e === 'ligado' ? F.s('microbit_ligado') : e === 'a ligar' ? F.s('a_ligar') : F.s('microbit_ecra');
+    $('btnLigar').textContent = e === 'ligado' ? F.s('desligar') : 'Bluetooth';
+    if (e === 'ligado') { ble.enviar('W' + (F.DESAFIOS[estado.atual].livre ? 1 : 0)); reiniciar(); }
+  });
+
+  // ------------------------------------------------------------ motor e registo
+  let registo = [];
+  const motor = new F.Motor(ws, [noEcra, ble], (dir, v) => {
+    const t = performance.now();
+    registo.push({ t, dir, v });
+  motor.mudouVars = vars => {
+    const k = Object.keys(vars);
+    caixaVars.hidden = k.length === 0;
+    caixaVars.innerHTML = k.map(n => `<span><b>${n}</b> ${Math.round(vars[n] * 100) / 100}</span>`).join('');
+  };
+    registo = registo.filter(e => t - e.t < 30000);
+    verificar();
+  });
+
+  // ------------------------------------------------------------ mascote (tutor)
+  const tutorUI = new F.TutorUI(M);
+  const tutor = new F.TutorMotor(m => { tutorUI.mostrar(m); F.Som.tocar(m.tipo === 'pista' ? 'ajuda' : 'voz'); F.falar(m.texto); });
+  $('festaMascote').src = tutorUI.sprite('celebrar');
+  $('festaMascote').alt = F.s('mascote_celebra', { nome: M.nome });
+  $('tutorOuvir').addEventListener('click', () => F.falar($('tutorTexto').textContent, true));
+  let gambiarra = null;      // { xml } do programa da criança enquanto ajuda a mascote
+  let sucessoEm = -Infinity;
+  let falha = null;
+  const analisar = () => tutor.programaMudou(F.analisar(ws));
+  setInterval(() => tutor.tick(), 1000);
+  setInterval(() => verificar(), 400);   // algumas validações dependem do tempo que um desenho fica visível
+
+  function entrada(k, origem) {
+    if (k === 'agitar' && origem === 'microbit') { sim.svg.classList.remove('a-agitar'); void sim.svg.getBBox(); sim.svg.classList.add('a-agitar'); }
+    motor.acontecimento(k);
+    if (F.DESAFIOS[estado.atual].livre) return;   // projeto livre / modo livre: não há teste que possa falhar
+    // A mascote espera que o programa corra antes de concluir que o teste falhou
+    tutor.testou();
+    const t0 = performance.now();
+    clearTimeout(falha);
+    falha = setTimeout(() => { if (sucessoEm < t0) tutor.testeFalhou(); }, 4000);
+  }
+
+  function reiniciar() {
+    sim.reset();
+    ble.limpar && ble.ligado && ble.limpar();
+    if (ble.ligado) ble.digital('P2', 0);
+    registo = [];
+    motor.arrancar();
+  }
+
+  let espera = null;
+  ws.addChangeListener(ev => {
+    if (ev.isUiEvent || ev.type === Blockly.Events.FINISHED_LOADING) return;
+    clearTimeout(espera);
+    espera = setTimeout(() => {
+      if (!gambiarra) { estado.xml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(ws)); gravar(); }
+      reiniciar();
+      analisar();
+      atualizarControlos();
+    }, 250);
+  });
+
+  // ------------------------------------------------------------ desafios
+  let festejado = -1;
+  function verificar() {
+    const d = F.DESAFIOS[estado.atual];
+    if (d.livre || festejado === estado.atual) return;
+    if (d.ok(registo)) {
+      festejado = estado.atual;
+      sucessoEm = performance.now();
+      if (gambiarra) {
+        const [e, t] = F.TUTOR.GERAIS.gambiarraObrigada;
+        F.Som.tocar('sucesso');
+        tutorUI.mostrar({ estado: e, texto: F.voz(t), tipo: 'sucesso', pedida: true });
+        F.falar(F.voz(t));
+        return;
+      }
+      const s = tutor.sucesso();
+      if (estado.feitos <= estado.atual) {
+        estado.feitos = estado.atual + 1;
+        // o seguinte é o projeto livre? abre também o primeiro desafio do nível seguinte
+        if (F.DESAFIOS[estado.feitos] && F.DESAFIOS[estado.feitos].livre) estado.feitos++;
+        gravar();
+      }
+      desenharCaminho();
+      atualizarBotoesTutor();
+      F.Som.tocar('sucesso');
+      setTimeout(() => festa(s), 900);
+    }
+  }
+
+  function festa(s) {
+    const n = estado.atual;
+    const atual = F.DESAFIOS[n];
+    const seguinte = F.DESAFIOS[n + 1];
+    // depois do 11.º desafio de um nível vem o projeto livre; o nível seguinte (se houver) abre ao mesmo tempo
+    const fimDeNivel = !!(seguinte && seguinte.livre);
+    const proximoNivel = fimDeNivel ? F.DESAFIOS[n + 2] : null;
+    const fimDeMissao = fimDeNivel && !proximoNivel;
+    $('festaTitulo').textContent = fimDeMissao ? F.s('missao_cumprida') : fimDeNivel ? F.s('nivel_desbloqueado') : F.s('conseguiste');
+    let texto = (s && s.texto) ? s.texto : F.s('desafio_feito', { titulo: atual.titulo });
+    if (fimDeNivel && proximoNivel) texto += ' ' + F.s('fim_nivel', { nivel: atual.nivelNome, proximo: proximoNivel.nivelNome });
+    if (fimDeMissao) texto += ' ' + F.voz(F.TUTOR.GERAIS.fimMissao[1]) + ' ' + F.s('fim_missao_livre');
+    $('festaTexto').textContent = texto;
+    const pensar = F.voz(atual.pensar || '');
+    $('festaPensar').hidden = !pensar;
+    $('festaPensarTexto').textContent = pensar;
+    $('festaExtra').hidden = !(s && s.extensao);
+    $('festaExtra').textContent = s && s.extensao ? F.s('desafio_extra') + ' ' + s.extensao : '';
+    $('btnSeguinte').textContent = !seguinte ? F.s('outra_missao') : seguinte.livre ? F.s('projeto_livre') + ' ★' : F.s('desafio_seguinte', { titulo: seguinte.titulo });
+    $('btnFicar').textContent = proximoNivel ? F.s('ir_para', { nivel: proximoNivel.nivelNome.split(' · ')[0] }) : F.s('ficar_aqui');
+    $('btnFicar').dataset.ir = proximoNivel ? String(n + 2) : '';
+    $('festa').hidden = false;
+    F.falar($('festaTitulo').textContent + '. ' + texto + (pensar ? ' ' + F.s('para_pensar') + ': ' + pensar : ''));
+    if (fimDeNivel) setTimeout(() => F.Som.tocar('nivel'), 700);
+    $('btnSeguinte').focus();
+  }
+
+
+  function mudarDesafio(n) {
+    if (!desbloqueado(n)) return;
+    if (gambiarra) sairGambiarra(false);
+    estado.atual = n;
+    festejado = -1;
+    gravar();
+    const d = F.DESAFIOS[n];
+    const doNivel = F.DESAFIOS.filter(x => x.nivel === d.nivel && !x.livre);
+    $('missaoNum').textContent = LIVRE ? F.s('todos_blocos') : d.livre ? `${d.nivelNome} · ${F.s('projeto_livre').toLowerCase()}` : `${d.nivelNome} · ${F.s('desafio_n_de', { n: doNivel.indexOf(d) + 1, total: doNivel.length })}`;
+    $('missaoTitulo').textContent = d.titulo;
+    $('missaoFrase').textContent = d.missao;
+    $('missaoPassos').innerHTML = '';
+    for (const p of d.passos) { const li = document.createElement('li'); li.textContent = p; $('missaoPassos').appendChild(li); }
+    $('missaoMaterial').textContent = d.material;
+    $('btnLuz').hidden = !d.livre;
+    mostrarPerspetiva(d);
+    atualizarControlos();
+    if (ble.ligado) ble.enviar('W' + (d.livre ? 1 : 0));
+    ws.updateToolbox(caixaDe(n));
+    desenharCaminho();
+    reiniciar();
+    tutor.entrarDesafio(n, n < estado.feitos);
+    analisar();
+    atualizarBotoesTutor();
+  }
+
+  // ------------------------------------------------------------ a mascote também erra (gambiarra)
+  function carregar(xml) {
+    silencio = true;
+    ws.clear();
+    try { Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xml), ws); } catch (e) { console.warn(e); }
+    setTimeout(() => { silencio = false; }, 0);
+  }
+  function atualizarBotoesTutor() {
+    const g = F.TUTOR.DESAFIOS[estado.atual] && F.TUTOR.DESAFIOS[estado.atual].gambiarra;
+    $('tutorGambiarra').hidden = !(g && estado.atual < estado.feitos && !gambiarra);
+    $('tutorVoltar').hidden = !gambiarra;
+  }
+  function entrarGambiarra() {
+    const g = F.TUTOR.DESAFIOS[estado.atual].gambiarra;
+    gambiarra = { xml: estado.xml };
+    festejado = -1;
+    carregar(g.xml);
+    tutor.reset(); tutor.n = estado.atual;
+    tutorUI.mostrar({ estado: 'surpreendida', texto: F.voz(g.pedido), tipo: 'gambiarra' });
+    F.falar(F.voz(g.pedido));
+    F.Som.tocar('voz');
+    atualizarBotoesTutor();
+  }
+  function sairGambiarra(avisar = true) {
+    const xml = gambiarra.xml;
+    gambiarra = null;
+    carregar(xml || '<xml></xml>');
+    festejado = estado.atual;
+    if (avisar) { const [e, t] = F.TUTOR.GERAIS.voltarPrograma; tutorUI.mostrar({ estado: e, texto: F.voz(t), tipo: 'info' }); }
+    atualizarBotoesTutor();
+  }
+
+  const CADEADO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  // Caminho do topo: separadores dos níveis + os 12 desafios do nível em que estás (11 guiados + ★ projeto livre)
+  function desenharCaminho() {
+    const nav = $('caminho');
+    nav.innerHTML = '';
+    if (LIVRE) return;
+    const nivelAtual = F.DESAFIOS[estado.atual].nivel;
+    const nNiveis = X.niveis.length;
+    if (nNiveis > 1) X.niveis.forEach((nv, k) => {
+      const t = document.createElement('button');
+      t.type = 'button'; t.className = 'nivel-tab';
+      t.textContent = F.s('nivel_n', { n: k + 1 });
+      t.title = nv.nome;
+      const primeiro = F.DESAFIOS.findIndex(d => d.nivel === k);
+      t.disabled = !desbloqueado(primeiro);
+      if (k === nivelAtual) t.setAttribute('aria-current', 'true');
+      t.addEventListener('click', () => {
+        // vai para o primeiro desafio por fazer desse nível (ou o primeiro)
+        const doNivel = F.DESAFIOS.map((d, i) => i).filter(i => F.DESAFIOS[i].nivel === k);
+        const alvo = doNivel.find(i => i >= estado.feitos && desbloqueado(i)) ?? doNivel.filter(desbloqueado).pop() ?? primeiro;
+        mudarDesafio(alvo);
+      });
+      nav.appendChild(t);
+    });
+    let k = 0;
+    F.DESAFIOS.forEach((d, i) => {
+      if (d.nivel !== nivelAtual) return;
+      k++;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'passo';
+      const aberto = desbloqueado(i);
+      if (i === estado.atual) b.classList.add('atual');
+      else if (i < estado.feitos) b.classList.add('feito');
+      if (!aberto) { b.classList.add('fechado'); b.innerHTML = CADEADO; b.setAttribute('aria-disabled', 'true'); }
+      else b.textContent = d.livre ? '★' : String(k);
+      b.setAttribute('aria-label', (d.livre ? F.s('projeto_livre') : F.s('desafio_n', { n: k })) + `: ${d.titulo}` + (aberto ? '' : ' ' + F.s('fechado')));
+      b.title = d.nivelNome + ' — ' + d.titulo;
+      b.addEventListener('click', () => mudarDesafio(i));
+      nav.appendChild(b);
+    });
+  }
+
+  // ------------------------------------------------------------ botões
+  $('btnAgitar').addEventListener('click', () => { F.audio(); sim.agitar(); });
+  $('btnAB').addEventListener('click', () => { F.audio(); entrada('botao:AB', 'ecra'); });
+  $('btnLuz').addEventListener('click', e => {
+    escuro = !escuro;
+    sim.definirSensor('luz', escuro ? 10 : 150);
+    entrada('luz:' + (escuro ? 10 : 150), 'ecra');
+    e.currentTarget.setAttribute('aria-pressed', String(escuro));
+    e.currentTarget.dataset.i18n = escuro ? 'acender_luz' : 'apagar_luz';
+    e.currentTarget.textContent = F.s(e.currentTarget.dataset.i18n);
+    document.querySelector('.sim-placa').style.filter = escuro ? 'brightness(0.55)' : '';
+  });
+  $('btnRecomecar').addEventListener('click', reiniciar);
+  $('tutorAjuda').addEventListener('click', () => { tutorUI.recolher(false, false); tutor.pedirAjuda(); });
+  $('tutorGambiarra').addEventListener('click', entrarGambiarra);
+  $('tutorVoltar').addEventListener('click', () => sairGambiarra(true));
+  $('btnFicar').addEventListener('click', e => {
+    $('festa').hidden = true;
+    const ir = e.currentTarget.dataset.ir;
+    if (ir) mudarDesafio(Number(ir));
+  });
+  $('btnSeguinte').addEventListener('click', () => {
+    $('festa').hidden = true;
+    if (estado.atual + 1 >= N) { location.href = $('btnMissoes').href; return; }
+    mudarDesafio(estado.atual + 1);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('festa').hidden = true; });
+
+  let confirmar = null;
+  $('btnLimparTudo').addEventListener('click', e => {
+    const b = e.currentTarget;
+    if (!confirmar) {
+      b.textContent = F.s('confirmar_apagar');
+      confirmar = setTimeout(() => { b.textContent = F.s('comecar_de_novo'); confirmar = null; }, 3000);
+      return;
+    }
+    clearTimeout(confirmar); confirmar = null;
+    b.textContent = F.s('comecar_de_novo');
+    ws.clear();
+  });
+
+  $('btnLigar').addEventListener('click', async () => {
+    if (ble.ligado) { ble.desligar(); return; }
+    if (!F.MicrobitBLE.disponivel()) {
+      $('estado').classList.add('aviso');
+      $('estado').textContent = F.s('bt_chrome');
+      return;
+    }
+    try { await ble.ligar(); }
+    catch (err) {
+      $('estado').classList.remove('ok');
+      $('estado').classList.toggle('aviso', !(err && err.name === 'NotFoundError'));
+      $('estado').textContent = err && err.name === 'NotFoundError' ? F.s('microbit_ecra') : F.s('nao_ligou') + ' ' + (err.message || err);
+    }
+  });
+
+  // ------------------------------------------------ Enviar para o micro:bit (.hex por USB)
+  let hexPronto = null;
+  const nomeHex = () => LIVRE ? (nomeAberto || 'iclab-free') + '.hex' : 'iclab-' + X.id + '-' + (estado.atual + 1) + '.hex';
+  const podeGravar = typeof window.showSaveFilePicker === 'function';
+  function estadoEnviar(txt, tipo = '') { const e = $('enviarEstado'); e.textContent = txt; e.className = 'enviar-estado ' + tipo; }
+  async function prepararHex() {
+    hexPronto = null;
+    estadoEnviar(F.s('a_preparar'));
+    $('btnGravar').disabled = $('btnDescarregar').disabled = true;
+    try {
+      hexPronto = await F.gerarHex(ws);
+      estadoEnviar('');
+    } catch (err) {
+      console.error(err);
+      estadoEnviar(F.s('erro_preparar') + ' ' + (err.message || err), 'erro');
+    }
+    $('btnGravar').disabled = $('btnDescarregar').disabled = !hexPronto;
+  }
+  function descarregar() {
+    if (!hexPronto) return;
+    const url = URL.createObjectURL(new Blob([hexPronto], { type: 'application/octet-stream' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = nomeHex();
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    estadoEnviar(F.s('descarregado', { ficheiro: nomeHex() }), 'ok');
+  }
+  $('btnGravar').hidden = !podeGravar;
+  if (!podeGravar) {
+    // Firefox/Safari: o browser não deixa gravar diretamente na pasta MICROBIT → descarregar e arrastar, passo a passo
+    $('enviarPasso2').dataset.i18nHtml = 'enviar_p2_descarregar';
+    $('enviarPasso2').innerHTML = F.s('enviar_p2_descarregar');
+    $('enviarPasso3').hidden = false;
+    $('enviarNota').hidden = false;
+    $('btnDescarregar').classList.replace('btn-claro', 'btn-escuro');
+  }
+  $('btnEnviar').addEventListener('click', () => { $('enviar').hidden = false; prepararHex(); });
+  $('btnEnviarFechar').addEventListener('click', () => { $('enviar').hidden = true; });
+  $('btnDescarregar').addEventListener('click', descarregar);
+  $('btnGravar').addEventListener('click', async () => {
+    if (!hexPronto) return;
+    try {
+      const f = await window.showSaveFilePicker({ suggestedName: nomeHex(), types: [{ description: F.s('programa_microbit'), accept: { 'application/octet-stream': ['.hex'] } }] });
+      estadoEnviar(F.s('a_gravar'));
+      const w = await f.createWritable();
+      await w.write(hexPronto);
+      await w.close();
+      estadoEnviar(F.s('gravado'), 'ok');
+    } catch (err) {
+      if (err && err.name === 'AbortError') { estadoEnviar(''); return; }
+      console.error(err);
+      estadoEnviar(F.s('erro_gravar'), 'erro');
+    }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('enviar').hidden = true; });
+
+  // ------------------------------------------------ Modo livre: abrir um projeto guardado (.hex) para continuar
+  // O .hex que o Nico gera leva os blocos lá dentro (F.gerarHex); aqui fazemos o caminho inverso.
+  let nomeAberto = '';
+  function avisoAbrir(txt, tipo, desfazer) {
+    const a = $('abrirAviso');
+    a.hidden = !txt; a.className = 'abrir-aviso ' + (tipo || '');
+    $('abrirTexto').textContent = txt || '';
+    $('btnDesfazerAbrir').hidden = !desfazer;
+  }
+  async function abrirHex(ficheiro) {
+    if (!ficheiro) return;
+    if (!/\.hex$/i.test(ficheiro.name)) { avisoAbrir(F.s('hex_escolhe'), 'erro'); return; }
+    avisoAbrir(F.s('hex_a_abrir', { ficheiro: ficheiro.name }));
+    try {
+      const { xml } = await F.lerHex(await ficheiro.text());
+      const dom = Blockly.utils.xml.textToDom(xml);
+      const tinhaBlocos = ws.getAllBlocks(false).length > 0;
+      // num só grupo de eventos: «Desfazer» (ou Ctrl+Z) volta ao programa que lá estava
+      silencio = true;
+      Blockly.Events.setGroup(true);
+      try { ws.clear(); Blockly.Xml.domToWorkspace(dom, ws); } finally { Blockly.Events.setGroup(false); setTimeout(() => { silencio = false; }, 0); }
+      ws.scrollCenter();
+      nomeAberto = ficheiro.name.replace(/\.hex$/i, '').replace(/[^\w\-À-ÿ ]/g, '').trim();
+      avisoAbrir(F.s('hex_aberto', { ficheiro: ficheiro.name }), 'ok', tinhaBlocos);
+      F.Som.tocar('encaixe');
+    } catch (err) {
+      console.warn(err);
+      avisoAbrir(err && err.message ? err.message : F.s('hex_erro'), 'erro');
+    }
+  }
+  if (LIVRE) {
+    $('btnAbrirHex').hidden = false;
+    $('btnAbrirHex').addEventListener('click', () => { $('ficheiroHex').value = ''; $('ficheiroHex').click(); });
+    $('ficheiroHex').addEventListener('change', e => abrirHex(e.target.files[0]));
+    $('btnDesfazerAbrir').addEventListener('click', () => { ws.undo(false); nomeAberto = ''; avisoAbrir(''); });
+    // também dá para arrastar o .hex para cima da área dos blocos
+    const area = $('blocos');
+    const temFicheiro = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+    area.addEventListener('dragover', e => { if (!temFicheiro(e)) return; e.preventDefault(); area.classList.add('a-largar'); });
+    area.addEventListener('dragleave', () => area.classList.remove('a-largar'));
+    area.addEventListener('drop', e => {
+      if (!temFicheiro(e)) return;
+      e.preventDefault(); area.classList.remove('a-largar');
+      abrirHex(e.dataTransfer.files[0]);
+    });
+  }
+
+  // ------------------------------------------------ Perspetiva: a voz de uma criança que sente o lugar de outra maneira
+  // Cada desafio pode trazer «perspetiva: 'ana'» (missoes/perspetivas.js) ou a missão uma por defeito.
+  let perspAtual = null;
+  function mostrarPerspetiva(d) {
+    const id = d.perspetiva || X.perspetiva;
+    const p = id && F.PERSPETIVAS && F.PERSPETIVAS[id];
+    const caixa = $('perspetiva');
+    caixa.hidden = !p;
+    if (!p) { perspAtual = null; return; }
+    if (perspAtual === id + ':' + d.titulo) return;
+    // aberta quando a voz muda (nova pessoa); recolhida quando é a mesma do desafio anterior (a criança pode abrir)
+    const mesma = perspAtual && perspAtual.split(':')[0] === id && !d.perspetivaTexto && !d.perspetivaPergunta;
+    perspAtual = id + ':' + d.titulo;
+    caixa.classList.toggle('recolhida', !!mesma);
+    $('perspFechar').setAttribute('aria-expanded', String(!mesma));
+    $('perspFechar').querySelector('span').textContent = mesma ? '+' : '−';
+    $('perspNome').textContent = p.nome + ', ' + p.idade;
+    $('perspRetrato').innerHTML = p.retrato || '';
+    $('perspRetrato').style.setProperty('--cor', p.cor || '#3BA6DC');
+    const Q = { en: ['“', '”'], sr: ['„', '“'], es: ['«', '»'], pt: ['«', '»'] }[F.LANG] || ['“', '”'];
+    $('perspTexto').textContent = Q[0] + F.voz(d.perspetivaTexto || p.texto) + Q[1];
+    const perg = F.voz(d.perspetivaPergunta || p.pergunta || '');
+    $('perspPergunta').textContent = perg;
+    $('perspPergunta').hidden = !perg;
+  }
+  $('perspFechar').addEventListener('click', () => {
+    const fechado = $('perspetiva').classList.toggle('recolhida');
+    $('perspFechar').setAttribute('aria-expanded', String(!fechado));
+    $('perspFechar').querySelector('span').textContent = fechado ? '+' : '−';
+  });
+  $('perspOuvir').addEventListener('click', () => F.falar($('perspNome').textContent + '. ' + $('perspTexto').textContent + ' ' + $('perspPergunta').textContent, true));
+  $('missaoOuvir').addEventListener('click', () => {
+    const passos = [...$('missaoPassos').children].map((li, i) => (i + 1) + '. ' + li.textContent).join(' ');
+    F.falar($('missaoTitulo').textContent + '. ' + $('missaoFrase').textContent + ' ' + passos, true);
+  });
+
+  mudarDesafio(estado.atual);
+  F.aplicarA11y && F.aplicarA11y();
+  window.addEventListener('resize', () => Blockly.svgResize(ws));
+  F.app = { ws, motor, sim, ble, estado, mudarDesafio, registo: () => registo, tutor, tutorUI, entrada, entrarGambiarra, sairGambiarra };
+})();

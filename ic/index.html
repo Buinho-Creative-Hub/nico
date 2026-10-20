@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invisible Cartographies · Sensing Lab</title>
+<script src="js/escolha.js"></script>
+<script src="js/i18n.js"></script>
+<script src="i18n/ui.js"></script>
+<script src="js/acessibilidade.js"></script>
+<link rel="icon" href="img/ic_symbol.svg">
+<link rel="stylesheet" href="css/faisca.css">
+<link rel="stylesheet" href="css/ic.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#13233A">
+<script src="js/offline.js"></script>
+</head>
+<body>
+<!-- ============================================================ ecrã inicial -->
+<div class="inicio" id="inicio" hidden>
+  <header class="inicio-topo">
+    <a class="ic-marca" href="index.html" data-i18n-title="inicio">
+      <img src="img/ic_symbol_white.svg" alt="" class="ic-simbolo">
+      <span class="ic-marca-texto"><span class="ic-nome" data-i18n="ic_nome">Invisible Cartographies</span><span class="ic-lab" data-i18n="lab_nome">Sensing Lab</span></span>
+    </a>
+    <span class="espaco"></span>
+    <a class="btn-educadores" href="educadores.html" data-i18n="para_educadores">For educators</a>
+    <div data-linguas></div>
+    <div data-a11y></div>
+    <div class="sons" data-sons></div>
+  </header>
+  <main class="inicio-corpo">
+    <section class="inicio-intro" aria-labelledby="tIntro">
+      <h1 id="tIntro" data-i18n="intro_titulo">Map what usually goes unnoticed.</h1>
+      <p data-i18n="intro_texto">Program a micro:bit to listen, see and feel a place — and discover how the same room can feel calm to one person and too much for another.</p>
+    </section>
+    <section aria-labelledby="tMascote">
+      <h2 id="tMascote" data-i18n="quem_vai">Who comes with you?</h2>
+      <div class="mascotes" id="listaMascotes" role="radiogroup" aria-labelledby="tMascote"></div>
+    </section>
+    <section aria-labelledby="tMissoes">
+      <h2 id="tMissoes" data-i18n="escolhe_missao">Choose a mission</h2>
+      <div class="missoes" id="listaMissoes"></div>
+    </section>
+  </main>
+  <footer class="inicio-rodape">
+    <img src="img/ic_lockup_horizontal.svg" alt="Invisible Cartographies" class="rodape-ic">
+    <img src="img/eu-cofunded-mono.svg" alt="Co-funded by the European Union" class="rodape-ue">
+    <span class="rodape-texto" data-i18n-html="rodape">Invisible Cartographies · Creative Europe. Made by Buinho FabLab (Messejana) with Veljko Ramadanović School (Belgrade) and FabLab Cuenca. CC BY-NC-SA 4.0.</span>
+    <a class="rodape-prof" href="educadores.html" data-i18n="para_educadores">For educators</a>
+  </footer>
+</div>
+
+<!-- ============================================================ desafios -->
+<header class="topo">
+  <a class="btn-missoes" id="btnMissoes" href="index.html" data-i18n-title="escolher_missao">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <span data-i18n="missoes">Missions</span>
+  </a>
+  <div class="marca">
+    <img src="img/ic_symbol_white.svg" alt="" class="ic-simbolo">
+    <span class="marca-sub" id="marcaSub"></span>
+  </div>
+  <nav class="caminho" id="caminho" data-i18n-aria="desafios"></nav>
+  <div class="ligacao">
+    <div data-linguas></div>
+    <div data-a11y></div>
+    <div class="sons" data-sons></div>
+    <span class="estado" id="estado" aria-live="polite" data-i18n="microbit_ecra">on-screen micro:bit</span>
+    <button type="button" class="btn btn-claro btn-bt" id="btnLigar" hidden>Bluetooth</button>
+    <button type="button" class="btn btn-enviar" id="btnEnviar" data-i18n="enviar_microbit">Send to micro:bit</button>
+  </div>
+</header>
+
+<main class="palco">
+  <aside class="lado">
+    <section class="perspetiva" id="perspetiva" hidden aria-labelledby="perspNome">
+      <div class="persp-cabeca">
+        <span class="persp-retrato" id="perspRetrato" aria-hidden="true"></span>
+        <div>
+          <div class="persp-rotulo" data-i18n="perspetiva">Perspective</div>
+          <h2 class="persp-nome" id="perspNome"></h2>
+        </div>
+        <button type="button" class="btn-ouvir" id="perspOuvir" hidden data-i18n-aria="ouvir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button type="button" class="persp-fechar" id="perspFechar" aria-expanded="true" data-i18n-aria="recolher"><span aria-hidden="true">−</span></button>
+      </div>
+      <div class="persp-corpo" id="perspCorpo">
+        <p class="persp-texto" id="perspTexto"></p>
+        <p class="persp-pergunta" id="perspPergunta"></p>
+      </div>
+    </section>
+
+    <section class="missao" aria-labelledby="missaoTitulo">
+      <div class="missao-num" id="missaoNum"></div>
+      <div class="missao-titulo-linha">
+        <h1 id="missaoTitulo"></h1>
+        <button type="button" class="btn-ouvir" id="missaoOuvir" hidden data-i18n-aria="ouvir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      </div>
+      <p class="missao-frase" id="missaoFrase"></p>
+      <ol class="missao-passos" id="missaoPassos"></ol>
+      <div class="missao-material"><span data-i18n="precisas_de">You need</span> <strong id="missaoMaterial"></strong></div>
+    </section>
+
+    <section class="sim" data-i18n-aria="microbit_ecra">
+      <div class="sim-placa" id="sim"></div>
+      <div class="sim-comandos">
+        <button type="button" class="btn btn-sim" id="btnAgitar" data-i18n="agitar">Shake</button>
+        <button type="button" class="btn btn-sim" id="btnAB">A+B</button>
+        <button type="button" class="btn btn-sim" id="btnLuz" hidden data-i18n="apagar_luz">Turn off the light</button>
+        <button type="button" class="btn btn-sim btn-recomecar" id="btnRecomecar" data-i18n="recomecar" data-i18n-title="recomecar_titulo">Restart</button>
+      </div>
+    </section>
+  </aside>
+
+  <section class="editor" data-i18n-aria="blocos">
+    <div class="editor-barra">
+      <span class="editor-dica" id="editorDica" data-i18n="dica_arrastar">Drag blocks from the white column into the grey area.</span>
+      <button type="button" class="btn btn-texto" id="btnAbrirHex" hidden data-i18n="abrir_projeto" data-i18n-title="abrir_projeto_titulo">Open project</button>
+      <input type="file" id="ficheiroHex" accept=".hex" hidden>
+      <button type="button" class="btn btn-texto" id="btnLimparTudo" data-i18n="comecar_de_novo">Start again</button>
+    </div>
+    <div class="abrir-aviso" id="abrirAviso" role="status" aria-live="polite" hidden>
+      <span id="abrirTexto"></span>
+      <button type="button" class="btn btn-texto" id="btnDesfazerAbrir" hidden data-i18n="desfazer">Undo</button>
+    </div>
+    <div id="blocos" class="blocos"></div>
+    <section class="tutor" id="tutor">
+      <button type="button" class="tutor-avatar" id="tutorAvatar" aria-expanded="true">
+        <img id="tutorImg" src="" alt="">
+      </button>
+      <div class="tutor-balao" id="tutorBalao">
+        <div class="tutor-cabeca"><span class="tutor-nome" id="tutorNome"></span><span class="tutor-nivel" id="tutorNivel" hidden></span>
+          <button type="button" class="btn-ouvir btn-ouvir-tutor" id="tutorOuvir" hidden data-i18n-aria="ouvir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+        <p class="tutor-texto" id="tutorTexto" role="status" aria-live="polite"></p>
+      </div>
+      <div class="tutor-acoes">
+        <button type="button" class="btn btn-escuro" id="tutorAjuda" data-i18n="ajuda">Help</button>
+        <button type="button" class="btn btn-texto" id="tutorGambiarra" hidden></button>
+        <button type="button" class="btn btn-texto" id="tutorVoltar" hidden data-i18n="voltar_programa">Back to my program</button>
+        <button type="button" class="tutor-fechar" id="tutorFechar" data-i18n="esconder">Hide</button>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div class="festa" id="festa" hidden>
+  <div class="festa-cartao" role="dialog" aria-modal="true" aria-labelledby="festaTitulo">
+    <img class="festa-mascote" id="festaMascote" src="" alt="">
+    <h2 id="festaTitulo"></h2>
+    <p id="festaTexto"></p>
+    <div class="festa-pensar" id="festaPensar" hidden><strong data-i18n="para_pensar">To think about</strong> <span id="festaPensarTexto"></span></div>
+    <p class="festa-extra" id="festaExtra" hidden></p>
+    <div class="festa-botoes">
+      <button type="button" class="btn btn-texto" id="btnFicar" data-i18n="ficar_aqui">Stay here</button>
+      <button type="button" class="btn btn-escuro" id="btnSeguinte"></button>
+    </div>
+  </div>
+</div>
+
+<div class="festa" id="enviar" hidden>
+  <div class="festa-cartao enviar-cartao" role="dialog" aria-modal="true" aria-labelledby="enviarTitulo">
+    <h2 id="enviarTitulo" data-i18n="enviar_microbit">Send to micro:bit</h2>
+    <ol class="enviar-passos">
+      <li data-i18n-html="enviar_p1"></li>
+      <li id="enviarPasso2" data-i18n-html="enviar_p2"></li>
+      <li id="enviarPasso3" hidden data-i18n-html="enviar_p3"></li>
+      <li data-i18n-html="enviar_p4"></li>
+    </ol>
+    <p class="enviar-estado" id="enviarEstado" aria-live="polite"></p>
+    <p class="enviar-nota" id="enviarNota" hidden data-i18n-html="enviar_nota"></p>
+    <div class="festa-botoes">
+      <button type="button" class="btn btn-texto" id="btnEnviarFechar" data-i18n="fechar">Close</button>
+      <button type="button" class="btn btn-claro" id="btnDescarregar" data-i18n="descarregar">Download file</button>
+      <button type="button" class="btn btn-escuro" id="btnGravar" data-i18n="gravar">Save to micro:bit</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/blockly_compressed.js"></script>
+<script>document.write('<script src="vendor/blockly-msg-' + window.Faisca.LANG + '.js"><\/script>');</script>
+<script src="i18n/blocos.js"></script>
+<script src="js/blocks.js"></script>
+<script src="js/fonte.js"></script>
+<script src="js/sensory-oled.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/som.js"></script>
+<script src="js/motor.js"></script>
+<script src="js/ble.js"></script>
+<script src="js/desafios.js"></script>
+<script src="js/tutor-analise.js"></script>
+<script src="js/pistas.js"></script>
+<!-- mascotes e missões: para acrescentar uma, juntar aqui o script -->
+<script src="mascotes/lio.js"></script>
+<script src="mascotes/mo.js"></script>
+<script src="missoes/_base.js"></script>
+<script src="missoes/perspetivas.js"></script>
+<script src="missoes/ouvir.js"></script>
+<script src="missoes/detetives.js"></script>
+<script src="missoes/sentir.js"></script>
+<script src="missoes/estacao.js"></script>
+<script src="missoes/calma.js"></script>
+<script src="missoes/livre.js"></script>
+<script src="js/tutor-motor.js"></script>
+<script src="js/tutor-ui.js"></script>
+<script src="js/hex.js"></script>
+<script src="js/inicio.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

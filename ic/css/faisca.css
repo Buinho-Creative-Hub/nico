@@ -1,0 +1,511 @@
+
+:root {
+  --azul: #2364ff;
+  --azul-escuro: #1a4fd1;
+  --sol: #ffc850;
+  --vermelho: #ff5050;
+  --tinta: #010101;
+  --parede: #fafafa;
+  --cinza: #5a5a5a;
+  --linha: #e3e3e3;
+  --area: #ecf0f1;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--parede);
+  color: var(--tinta);
+  font-family: 'Roboto', system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- topo */
+.topo {
+  flex: 0 0 auto;
+  height: 68px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--tinta);
+  color: var(--parede);
+}
+.marca { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.marca-icone { width: 32px; height: 32px; }
+.marca-icone-caixa { display: flex; }
+.marca-icone-caixa img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #fff; }
+.marca-nome { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.marca-sub { font-size: 14px; color: var(--sol); }
+
+.caminho { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 0; }
+.passo {
+  position: relative;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid #555;
+  background: transparent;
+  color: #9a9a9a;
+  font: 700 17px 'Roboto', sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.passo + .passo { margin-left: 22px; }
+.passo + .passo::before {
+  content: ''; position: absolute; right: 100%; top: 50%;
+  width: 24px; height: 2px; background: #555; margin-right: 0;
+}
+.passo.feito { background: var(--azul); border-color: var(--azul); color: #fff; }
+.passo.feito + .passo::before, .passo.feito + .passo.feito::before { background: var(--azul); }
+.passo.atual { background: var(--sol); border-color: var(--sol); color: var(--tinta); box-shadow: 0 0 0 4px rgba(255, 200, 80, 0.25); }
+.passo.fechado { cursor: not-allowed; }
+.passo.fechado svg { width: 16px; height: 16px; }
+.passo:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+.ligacao { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+.estado { font-size: 14px; color: #cfcfcf; }
+.estado.ok { color: var(--sol); font-weight: 700; }
+
+/* ---------------------------------------------------------------- botões */
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 4px;
+  border: 0;
+  font: 700 16px 'Roboto', sans-serif;
+  cursor: pointer;
+}
+.btn:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.btn-claro { background: var(--parede); color: var(--tinta); }
+.btn-claro:hover { background: #fff; }
+.btn-escuro { background: var(--tinta); color: var(--parede); }
+.btn-escuro:hover { background: #222; }
+.btn-texto { background: transparent; color: var(--tinta); border: 2px solid var(--tinta); }
+.btn-sim { background: #fff; color: var(--tinta); border: 2px solid var(--tinta); flex: 1 1 0; padding: 0 8px; }
+.btn-sim:hover { background: var(--sol); }
+.btn-sim[aria-pressed="true"] { background: var(--tinta); color: var(--parede); }
+.btn-recomecar { border-color: #9a9a9a; color: var(--cinza); }
+
+/* ---------------------------------------------------------------- palco */
+.palco { flex: 1 1 auto; display: flex; min-height: 0; }
+.lado {
+  flex: 0 0 360px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--linha);
+  background: #fff;
+  overflow-y: auto;
+}
+.missao { padding: 16px 22px 14px; border-bottom: 1px solid var(--linha); }
+.missao-num { font-size: 14px; font-weight: 700; color: var(--azul); }
+.missao h1 { margin: 2px 0 8px; font-size: 30px; line-height: 1.1; }
+.missao-frase {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: var(--sol);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.missao-passos { margin: 0 0 12px; padding-left: 22px; font-size: 16px; line-height: 1.45; }
+.missao-passos li + li { margin-top: 4px; }
+.missao-material { font-size: 14px; color: var(--cinza); }
+.missao-material strong { color: var(--tinta); }
+
+.sim { padding: 14px 22px 20px; display: flex; flex-direction: column; gap: 12px; }
+.sim-placa svg { width: 100%; height: auto; max-height: 34vh; display: block; margin: 0 auto; }
+.sim-comandos { display: flex; gap: 8px; flex-wrap: wrap; }
+.sim-toque { cursor: pointer; outline: none; }
+.sim-toque:hover > *:first-child, .sim-toque:focus-visible > *:first-child { filter: brightness(1.35); }
+.sim-led { transition: opacity 60ms linear; }
+@keyframes agitar { 0%,100% { transform: rotate(0) } 20% { transform: rotate(-4deg) } 40% { transform: rotate(4deg) } 60% { transform: rotate(-3deg) } 80% { transform: rotate(2deg) } }
+.a-agitar { animation: agitar 420ms ease-in-out; transform-origin: 50% 50%; }
+
+/* ---------------------------------------------------------------- editor */
+.editor { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+.editor-barra {
+  flex: 0 0 auto;
+  height: 56px;
+  padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  border-bottom: 1px solid var(--linha);
+  background: #fff;
+}
+.editor-dica { font-size: 15px; color: var(--cinza); }
+.blocos { flex: 1 1 auto; position: relative; min-height: 0; }
+
+/* Blockly: como o MakeCode */
+.blocklyFlyoutLabelText { fill: #5a5a5a !important; font: 700 14px 'Roboto', sans-serif !important; }
+.valor.blocklyShadow > .blocklyField .blocklyText { fill: #575e75 !important; }
+.valor.blocklyShadow > .blocklyField image { filter: brightness(0.34); }
+.valor.blocklyShadow > path.blocklyPath { stroke: #bfbfbf; }
+.blocklyMainBackground { stroke: none !important; }
+.blocklyFlyoutBackground { fill: #fff !important; }
+.blocklyDropDownDiv { font-family: 'Roboto', sans-serif; }
+.blocklyMenuItem { font-family: 'Roboto', sans-serif !important; font-size: 16px !important; }
+
+/* ---------------------------------------------------------------- festa */
+.festa {
+  position: fixed; inset: 0;
+  background: rgba(1, 1, 1, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.festa[hidden] { display: none; }
+.festa-cartao {
+  width: min(460px, calc(100vw - 32px));
+  padding: 32px 32px 28px;
+  background: #fff;
+  border-radius: 4px;
+  text-align: center;
+}
+.festa-estrela { width: 96px; height: 96px; animation: salto 600ms ease-out; }
+@keyframes salto { 0% { transform: scale(0.3) rotate(-20deg); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.festa h2 { margin: 8px 0 6px; font-size: 34px; }
+.festa p { margin: 0 0 22px; font-size: 18px; }
+.festa-botoes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .topo { height: auto; flex-wrap: wrap; padding: 10px 16px; gap: 10px; }
+  .caminho { order: 3; flex-basis: 100%; }
+  .palco { flex-direction: column; }
+  .lado { flex-basis: auto; border-right: 0; }
+  .editor { min-height: 560px; height: 94vh; }
+}
+
+/* ---------------------------------------------------------------- Mascote (tutor) */
+.tutor {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 8px 16px 0;
+  border-top: 1px solid var(--linha);
+  background: #fff;
+  min-height: 148px;
+}
+.tutor-avatar {
+  flex: 0 0 auto;
+  width: 150px; height: 140px;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  position: relative;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.tutor-avatar img { max-width: 100%; max-height: 100%; object-fit: contain; object-position: bottom; display: block; }
+.tutor-avatar:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.tutor-avatar[data-novo]::after {
+  content: ''; position: absolute; top: 4px; right: 4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--vermelho); border: 2px solid #fff;
+}
+@keyframes tutorSalto { 0% { transform: translateY(0) } 35% { transform: translateY(-8px) } 70% { transform: translateY(0) } 85% { transform: translateY(-3px) } 100% { transform: translateY(0) } }
+.tutor-avatar.salto img { animation: tutorSalto 520ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .tutor-avatar.salto img { animation: none; } }
+
+.tutor-balao {
+  flex: 1 1 auto;
+  align-self: center;
+  position: relative;
+  margin: 8px 0 14px;
+  padding: 10px 16px 12px;
+  background: #fff;
+  border: 2.5px solid var(--tinta);
+  border-radius: 12px;
+  min-width: 0;
+}
+.tutor-balao::before {
+  content: ''; position: absolute; left: -13px; bottom: 22px;
+  border: 12px solid transparent; border-right-color: var(--tinta); border-left: 0;
+}
+.tutor-balao::after {
+  content: ''; position: absolute; left: -9px; bottom: 24px;
+  border: 10px solid transparent; border-right-color: #fff; border-left: 0;
+}
+.tutor-balao.tipo-convite { border-style: dashed; }
+.tutor-balao.tipo-convite .tutor-texto { color: var(--cinza); font-weight: 400; }
+.tutor-balao.tipo-correcao, .tutor-balao.tipo-sucesso { background: #fff8e3; }
+.tutor-balao.tipo-correcao::after, .tutor-balao.tipo-sucesso::after { border-right-color: #fff8e3; }
+.tutor-cabeca { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.tutor-nome { font-size: 13px; font-weight: 700; color: var(--azul); }
+.tutor-nivel { display: inline-flex; gap: 4px; }
+.tutor-nivel span { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--tinta); }
+.tutor-nivel span.on { background: var(--sol); }
+.tutor-texto { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.35; }
+
+.tutor-acoes { flex: 0 0 auto; align-self: center; display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px; }
+.tutor-fechar {
+  min-height: 36px; border: 0; background: none; color: var(--cinza);
+  font: 700 14px 'Roboto', sans-serif; text-decoration: underline; cursor: pointer;
+}
+
+/* recolhida: só a cabeça e o botão de ajuda */
+.tutor.recolhida { min-height: 0; padding: 4px 16px; align-items: center; }
+.tutor.recolhida .tutor-avatar { width: 60px; height: 56px; }
+.tutor.recolhida .tutor-balao, .tutor.recolhida .tutor-fechar, .tutor.recolhida #tutorGambiarra { display: none; }
+.tutor.recolhida .tutor-acoes { flex-direction: row; padding: 0; }
+
+.festa-mascote { width: 150px; height: auto; animation: salto 600ms ease-out; }
+.festa-extra { margin: -8px 0 22px !important; font-size: 16px !important; color: var(--cinza); }
+
+@media (max-width: 900px) {
+  .tutor-avatar { width: 96px; height: 92px; }
+  .tutor-texto { font-size: 16px; }
+  .tutor { min-height: 108px; }
+}
+
+/* Enviar para o micro:bit (.hex) */
+.enviar-cartao { width: min(580px, calc(100vw - 32px)); text-align: left; }
+.enviar-cartao h2 { text-align: center; }
+.enviar-passos { margin: 0 0 16px; padding-left: 28px; font-size: 18px; line-height: 1.45; }
+.enviar-passos li { margin-bottom: 8px; }
+.enviar .festa-botoes, .enviar-cartao .festa-botoes { justify-content: flex-end; }
+.enviar-cartao .enviar-estado { min-height: 24px; margin: 0 0 16px; font-size: 16px; color: var(--cinza); }
+.enviar-cartao .enviar-estado.ok { color: #1a7f37; font-weight: 700; }
+.enviar-cartao .enviar-estado.erro { color: #b42318; }
+.btn-enviar { background: var(--sol); color: var(--tinta); }
+.btn-enviar:hover { background: #fff; }
+
+/* ---------------------------------------------------------------- tema Nico (Buinho Educativo)
+   Creme, azul e laranja do Buinho Educativo. Os blocos mantêm as cores do MakeCode. */
+html[data-mascote="nico"] {
+  --azul: #2038a6;
+  --azul-escuro: #172a80;
+  --sol: #fa6415;
+  --parede: #faf0e1;
+}
+html[data-mascote="nico"] .topo { background: var(--azul); }
+html[data-mascote="nico"] .tutor-balao.tipo-correcao,
+html[data-mascote="nico"] .tutor-balao.tipo-sucesso { background: #fff3e6; }
+html[data-mascote="nico"] .tutor-balao.tipo-correcao::after,
+html[data-mascote="nico"] .tutor-balao.tipo-sucesso::after { border-right-color: #fff3e6; }
+html[data-mascote="nico"] .passo.feito { background: #fff; border-color: #fff; color: var(--azul); }
+html[data-mascote="nico"] .passo.feito + .passo::before { background: #fff; }
+html[data-mascote="nico"] .passo.atual { box-shadow: 0 0 0 4px rgba(250, 100, 21, 0.3); }
+
+/* ---------------------------------------------------------------- missões, níveis e som */
+.btn-missoes {
+  display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  color: var(--parede); text-decoration: none; font-weight: 700; font-size: 14px;
+  padding: 8px 10px; border: 2px solid rgba(255,255,255,0.35); border-radius: 4px;
+}
+.btn-missoes svg { width: 18px; height: 18px; }
+.btn-missoes:hover, .btn-missoes:focus-visible { border-color: #fff; outline: none; }
+.passo.novo-nivel { margin-left: 46px; }
+.passo.novo-nivel::before { background: repeating-linear-gradient(90deg, rgba(255,255,255,0.6) 0 4px, transparent 4px 8px) !important; }
+.sons { display: flex; gap: 6px; }
+.btn-som {
+  width: 38px; height: 38px; display: grid; place-items: center; cursor: pointer;
+  background: transparent; color: var(--parede); border: 2px solid rgba(255,255,255,0.35); border-radius: 50%;
+}
+.btn-som svg { width: 20px; height: 20px; }
+.btn-som[aria-pressed="false"] { opacity: 0.45; }
+.btn-som[aria-pressed="false"]::after { content: ''; position: absolute; width: 26px; height: 2px; background: currentColor; transform: rotate(-45deg); }
+.btn-som { position: relative; }
+.btn-som:hover, .btn-som:focus-visible { border-color: #fff; outline: none; }
+.enviar-nota { margin: 0 0 12px; font-size: 14px; color: var(--cinza); }
+
+/* ---------------------------------------------------------------- ecrã inicial */
+body.modo-inicio > .topo, body.modo-inicio > .palco { display: none; }
+.inicio { position: fixed; inset: 0; overflow: auto; background: var(--parede); display: flex; flex-direction: column; }
+.inicio[hidden] { display: none; }
+.inicio-topo { flex: 0 0 auto; height: 68px; padding: 0 20px; display: flex; align-items: center; gap: 10px; background: var(--tinta); color: var(--parede); }
+html[data-mascote="nico"] .inicio-topo { background: var(--azul); }
+.inicio-topo .espaco { flex: 1; }
+.inicio-corpo { width: 100%; max-width: 1180px; margin: 0 auto; padding: 28px 20px 48px; }
+.inicio h1 { font-size: 34px; margin: 0 0 14px; }
+.inicio h2 { font-size: 26px; margin: 34px 0 14px; }
+.mascotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.cartao-mascote {
+  display: flex; align-items: center; gap: 16px; text-align: left; cursor: pointer;
+  background: #fff; border: 3px solid var(--linha); border-radius: 10px; padding: 14px 18px; font: inherit; color: inherit;
+  transition: border-color 120ms, transform 120ms;
+}
+.cartao-mascote img { width: 120px; height: 110px; object-fit: contain; flex: 0 0 auto; }
+.cartao-mascote:hover { transform: translateY(-2px); }
+.cartao-mascote[aria-checked="true"] { border-color: var(--azul); box-shadow: 0 0 0 4px rgba(35, 100, 255, 0.15); }
+.cartao-mascote:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.cm-texto { display: flex; flex-direction: column; gap: 4px; }
+.cm-texto strong { font-size: 24px; }
+.cm-texto em { font-style: normal; color: var(--azul); font-weight: 700; font-size: 15px; }
+.cm-perfil { font-size: 15px; color: var(--cinza); line-height: 1.35; }
+.missoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.cartao-missao {
+  position: relative; display: flex; flex-direction: column; gap: 6px; text-align: left; cursor: pointer;
+  background: #fff; border: 2px solid var(--linha); border-top: 8px solid var(--cor); border-radius: 10px;
+  padding: 16px 18px 18px; font: inherit; color: inherit; min-height: 210px;
+  transition: transform 120ms, box-shadow 120ms;
+}
+.cartao-missao:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+.cartao-missao:focus-visible { outline: 3px solid var(--cor); outline-offset: 2px; }
+.cartao-missao strong { font-size: 24px; }
+.cx-tema { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--cor); }
+.cx-desc { font-size: 15px; line-height: 1.35; color: var(--tinta); flex: 1; }
+.cx-niveis { font-size: 13px; color: var(--cinza); }
+.cx-barra { height: 8px; background: var(--linha); border-radius: 4px; overflow: hidden; }
+.cx-barra span { display: block; height: 100%; background: var(--cor); }
+.cx-feito { align-self: flex-start; margin-top: 4px; font-weight: 700; font-size: 15px; padding: 6px 12px; border-radius: 4px; background: var(--cor); color: #fff; }
+.cartao-missao.em-preparacao { cursor: default; opacity: 0.55; border-top-style: dashed; }
+.cartao-missao.em-preparacao:hover { transform: none; box-shadow: none; }
+.cartao-missao.em-preparacao .cx-feito { background: transparent; color: var(--cinza); border: 2px dashed var(--linha); }
+@media (max-width: 700px) { .cartao-mascote img { width: 84px; height: 80px; } .inicio h1 { font-size: 28px; } }
+/* barra do topo: o estado só aparece quando há micro:bit verdadeiro ligado (ganha espaço para missões e som) */
+.topo .estado:not(.ok):not(.aviso) { display: none; }
+.passo.novo-nivel { margin-left: 34px; }
+@media (max-width: 1400px) { .topo .marca-sub { display: none; } .topo { gap: 16px; } }
+
+/* ---------------------------------------------------------------- sensores, variáveis e dados no micro:bit do ecrã */
+.sim-sensores { display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 6px 0 4px; }
+.sim-sensores[hidden] { display: none; }
+.sim-slider { display: grid; grid-template-columns: auto 1fr 3.4em; align-items: center; gap: 8px; width: 100%; font-size: 14px; font-weight: 700; }
+.sim-slider[hidden] { display: none; }
+.sim-slider input { width: 100%; accent-color: var(--azul); }
+.sim-slider output { font-variant-numeric: tabular-nums; text-align: right; color: var(--cinza); }
+.btn-sensor { font-size: 13px; padding: 6px 10px; min-height: 0; }
+.btn-sensor[aria-pressed="true"] { background: var(--sol); }
+.sim-vars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.sim-vars[hidden] { display: none; }
+.sim-vars span { font-size: 14px; background: #fff; border: 2px solid #dc143c; border-radius: 14px; padding: 2px 10px; font-variant-numeric: tabular-nums; }
+.sim-vars b { color: #dc143c; margin-right: 4px; }
+.sim-dados { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; background: #fff; }
+.sim-dados caption { text-align: left; font-weight: 700; color: #378273; padding-bottom: 2px; }
+.sim-dados td { border: 1px solid var(--linha); padding: 2px 6px; }
+.sim-dados td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.sim-dados[hidden] { display: none; }
+.lado { overflow-y: auto; }
+/* secções da caixa de blocos grande (cor da gaveta do MakeCode) */
+.blocklyFlyoutLabelText { font-family: 'Roboto', sans-serif !important; font-weight: 700; }
+.gaveta .blocklyFlyoutLabelText { fill: #5a5a5a; font-size: 15px; }
+.gaveta-novos .blocklyFlyoutLabelText { fill: #c27c00; }
+.gaveta-basico .blocklyFlyoutLabelText { fill: #1e90ff; } .gaveta-entrada .blocklyFlyoutLabelText { fill: #d400d4; }
+.gaveta-musica .blocklyFlyoutLabelText { fill: #e63022; } .gaveta-led .blocklyFlyoutLabelText { fill: #5c2d91; }
+.gaveta-ciclos .blocklyFlyoutLabelText { fill: #00aa00; } .gaveta-logica .blocklyFlyoutLabelText { fill: #00a4a6; }
+.gaveta-variaveis .blocklyFlyoutLabelText { fill: #dc143c; } .gaveta-matematica .blocklyFlyoutLabelText { fill: #9400d3; }
+.gaveta-pinos .blocklyFlyoutLabelText { fill: #b22222; } .gaveta-registodedados .blocklyFlyoutLabelText { fill: #378273; }
+/* caminho por nível: separador com o nome do nível */
+.nivel-tab { flex: 0 0 auto; margin-right: 10px; font: 700 13px 'Roboto', sans-serif; color: var(--parede); background: transparent;
+  border: 2px solid rgba(255,255,255,0.35); border-radius: 14px; padding: 4px 10px; cursor: pointer; }
+.nivel-tab[aria-current="true"] { background: var(--parede); color: var(--tinta); border-color: var(--parede); }
+.nivel-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+.caminho .passo { width: 34px; height: 34px; font-size: 15px; }
+.caminho .passo + .passo { margin-left: 12px; }
+.caminho .passo + .passo::before { width: 12px; }
+
+/* ============================================================ modo livre (17 Out 2026, noite) */
+/* cartão do modo livre no ecrã inicial: fundo escuro, com as cores das categorias */
+.cartao-livre { background: #2b2b2b; color: #fff; border-color: #2b2b2b; border-top-color: #111; }
+.cartao-livre .cx-tema { color: #ffd34d; }
+.cartao-livre .cx-desc { color: #e8e8e8; }
+.cartao-livre .cx-feito { background: #ffd34d; color: #222; }
+.cx-gavetas { display: flex; flex-wrap: wrap; gap: 4px; }
+.cx-gavetas i { width: 14px; height: 14px; border-radius: 4px; background: var(--g); }
+/* topo sem caminho de desafios */
+.modo-livre .caminho { visibility: hidden; }
+/* caixa de blocos com categorias, como no MakeCode */
+.blocklyToolbox { background: #fff !important; border-right: 1px solid var(--linha); padding: 6px 0 !important; min-width: 168px; }
+.blocklyToolboxCategory { --cor: #888; display: flex; align-items: center; gap: 10px; height: 40px !important; line-height: 40px;
+  margin: 0 !important; padding: 0 14px 0 12px !important; border: 0 !important; cursor: pointer; }
+.blocklyToolboxCategory:hover { background: #f2f2f2; }
+.blocklyToolboxCategory .blocklyToolboxCategoryIcon { visibility: visible; width: 18px; height: 18px; border-radius: 5px;
+  background: var(--cor) !important; flex: none; }
+.blocklyToolboxCategoryLabel { font: 600 16px 'Roboto', 'Segoe UI', sans-serif !important; color: #333; }
+.blocklyToolboxSelected .blocklyToolboxCategoryLabel { color: #fff; }
+.blocklyToolboxSelected .blocklyToolboxCategoryIcon { background: #fff !important; opacity: 0.9; }
+/* ecrã OLED do kit no micro:bit do ecrã */
+.sim-oled { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 8px auto 4px; padding: 10px 12px 8px;
+  background: #1a5fb4; border-radius: 8px; width: fit-content; max-width: 100%; }
+.sim-oled canvas { width: 256px; max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 3px; }
+.sim-oled-rotulo { font: 700 12px 'Roboto', sans-serif; color: #dbe8ff; letter-spacing: 0.08em; }
+.sim-oled-aviso { display: none; font: 600 13px 'Roboto', sans-serif; color: #ffd34d; }
+.sim-oled.desligado .sim-oled-aviso { display: block; }
+
+/* menus de valores brancos (pausa, notas…): o Blockly pinta o texto de branco sobre fundo branco → texto escuro */
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItem,
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemContent,
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemCheckbox { color: #222 !important; }
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemHighlight { background-color: #dfe7ff !important; }
+.blocklyDropDownDiv[style*="background-color: rgb(255, 255, 255)"] .blocklyMenuItemSelected .blocklyMenuItemContent { font-weight: 700; }
+
+/* ---------------------------------------------------------------- palco (Missão 0, sem micro:bit) */
+body.modo-palco .lado { flex-basis: 500px; }
+.cena { padding: 14px 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.cena-caixa { border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 2px var(--linha); background: #cfe6f5; }
+.cena-svg { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; user-select: none; }
+.cena-svg.cena-troca { animation: cena-troca 380ms ease-out; }
+@keyframes cena-troca { from { opacity: .35; } to { opacity: 1; } }
+.cena-balao { animation: cena-balao 160ms ease-out; transform-box: fill-box; }
+@keyframes cena-balao { from { opacity: 0; } to { opacity: 1; } }
+.cena-comandos { display: flex; gap: 10px; flex-wrap: wrap; }
+.cena-comandos .btn { display: inline-flex; align-items: center; gap: 8px; }
+.cena-comandos svg { width: 20px; height: 20px; }
+.btn-comecar { background: #20bf6b; border-color: #1a9e58; color: #fff; font-size: 18px; padding-inline: 22px; }
+.btn-comecar:hover { background: #1aa95e; }
+.btn-comecar.a-correr { box-shadow: 0 0 0 4px rgba(32, 191, 107, .3); }
+.btn-parar:disabled { opacity: .45; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .cena-svg.cena-troca, .cena-balao { animation: none; } }
+@media (max-width: 900px) { body.modo-palco .lado { flex-basis: auto; } }
+
+/* ---------------------------------------------------------------- modo livre: abrir projeto (.hex) */
+.editor-dica { margin-right: auto; }
+.abrir-aviso {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--linha);
+  background: #eef7ee; color: var(--tinta);
+}
+.abrir-aviso.erro { background: #fdeeee; }
+.abrir-aviso .btn { padding-top: 4px; padding-bottom: 4px; }
+.blocos.a-largar { outline: 4px dashed var(--tinta); outline-offset: -8px; }
+
+/* ---------------------------------------------------------------- logotipo do Buinho */
+.logo-buinho { display: inline-flex; align-items: center; flex: 0 0 auto; opacity: .95; }
+.logo-buinho:hover { opacity: 1; }
+.logo-buinho img { height: 26px; width: auto; display: block; }
+.inicio-topo .logo-buinho { margin: 0 10px 0 6px; }
+.topo .logo-topo { padding-left: 14px; margin-left: 4px; border-left: 1px solid rgba(255,255,255,.35); }
+.topo .logo-topo img { height: 20px; }
+@media (max-width: 1250px) { .topo .logo-topo { display: none; } }
+.inicio-rodape { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 8px 20px 36px; display: flex; align-items: center; gap: 16px;
+  flex-wrap: wrap; color: var(--cinza); font-size: 14px; }
+.inicio-rodape img { height: 30px; width: auto; display: block; }
+.inicio-rodape .rodape-prof { margin-left: auto; color: var(--tinta); font-weight: 700; }
+
+.abrir-aviso[hidden] { display: none; }
+
+/* ---------------------------------------------------------------- turmas (entrada do aluno) */
+.turma-barra { display: inline-flex; align-items: center; gap: 8px; }
+.turma-barra:empty { display: none; }
+.turma-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 999px;
+  background: rgba(255,255,255,.14); color: #fff; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.turma-chip .turma-avatar { font-size: 22px; line-height: 1; }
+.turma-pend { color: var(--sol); font-size: 12px; }
+.turma-sair, .turma-entrar { padding: 6px 12px; font-size: 15px; }
+.turma-fundo { position: fixed; inset: 0; z-index: 1000; background: rgba(10,15,40,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.turma-caixa { position: relative; width: min(720px, 100%); max-height: 92vh; overflow: auto; background: #fff; border-radius: 18px; padding: 28px 30px 24px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.turma-caixa h2 { margin: 0 0 6px; font-size: 28px; display: flex; align-items: center; gap: 10px; }
+.turma-dica { margin: 0 0 18px; color: var(--cinza); font-size: 17px; }
+.turma-fechar { position: absolute; top: 10px; right: 14px; border: 0; background: none; font-size: 30px; cursor: pointer; color: var(--cinza); }
+.turma-form { display: flex; gap: 12px; flex-wrap: wrap; }
+.turma-codigo { font: 700 40px/1 'Roboto', system-ui, sans-serif; letter-spacing: .25em; text-transform: uppercase; width: 230px;
+  padding: 10px 14px; border: 3px solid var(--tinta); border-radius: 12px; }
+.turma-msg { min-height: 1.4em; color: #b3261e; font-weight: 700; margin: 12px 0 0; }
+.turma-nomes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.turma-nome { display: flex; align-items: center; gap: 10px; padding: 12px; border: 2px solid var(--linha); border-radius: 12px;
+  background: #fff; font: 700 18px 'Roboto', system-ui, sans-serif; cursor: pointer; text-align: left; }
+.turma-nome:hover, .turma-nome:focus-visible { border-color: var(--tinta); }
+.turma-nome .turma-avatar { font-size: 30px; }
+.turma-slots { display: flex; gap: 12px; margin-bottom: 16px; }
+.turma-slot { width: 64px; height: 64px; border: 3px dashed var(--linha); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 38px; }
+.turma-slot.cheio { border-style: solid; border-color: var(--tinta); }
+.turma-imagens { display: grid; grid-template-columns: repeat(3, 96px); gap: 12px; }
+.turma-imagem { width: 96px; height: 96px; font-size: 54px; border: 2px solid var(--linha); border-radius: 18px; background: #fff; cursor: pointer; }
+.turma-imagem:hover, .turma-imagem:focus-visible { border-color: var(--tinta); transform: translateY(-2px); }
+.turma-linha { display: flex; gap: 10px; margin-top: 14px; }
+.abanar { animation: abanar 360ms ease-in-out; }
+@keyframes abanar { 0%,100% { transform: translateX(0) } 25% { transform: translateX(-10px) } 75% { transform: translateX(10px) } }
+@media (max-width: 1250px) { .topo .turma-chip-nome { display: none; } }

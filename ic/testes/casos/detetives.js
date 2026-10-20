@@ -1,0 +1,42 @@
+// Casos de teste da missão «Detetives de salas».
+const { xml, E, seq, solto, b, v, num, cmp, icone, pausa, numero, definir, registar, se, ruido, luzKit, media, barra, grande, soTexto } = require('../lib');
+const ok = {
+  luz: () => xml(E.botao('A', seq(numero(b('mk_luz'))))),
+  dois: () => xml(E.botao('A', seq(grande(ruido()))), E.botao('B', seq(grande(luzKit(), 'LIGHT', '%')))),
+  media: () => xml(E.sempre(seq(grande(media(ruido()))))),
+  brilho: () => xml(E.sempre(seq(se(cmp(luzKit(), '>', 70), [soTexto('BRIGHT LIGHT')], [soTexto('OK')])))),
+  modo: () => xml(E.botao('A', seq(definir('modo', 1))), E.botao('B', seq(definir('modo', 2))),
+    E.sempre(seq(se(cmp(v('modo'), '=', 1), [barra(ruido(), 40, 85)], [barra(luzKit(), 0, 100, 'LIGHT', '%')])))),
+  relatorio: () => xml(E.botao('AB', seq(registar('noise', ruido()), registar('light', luzKit()), icone('Yes')))),
+};
+module.exports = {
+  missao: 'detetives',
+  casos: [
+    { ok: ok.luz(), errado: [xml(E.botao('A', seq(numero(b('mk_som_nivel')))))], fazer: [{ luz: 200 }, 'botao:A'],
+      regras: [[xml(E.agitar(seq(numero(b('mk_luz'))))), 'sem_botao_A'], [xml(E.botao('A', ''), solto(numero(b('mk_luz')))), 'fora_botao_A'],
+        [xml(E.botao('A', seq(icone('Happy')))), 'sem_mk_mostrar_numero_botao_A'], [xml(E.botao('A', seq(numero(5)))), 'sem_mk_luz_em_mk_mostrar_numero'], [ok.luz(), null]] },
+    { ok: ok.dois(), errado: [xml(E.botao('A', seq(grande(luzKit()))), E.botao('B', seq(grande(ruido())))), xml(E.botao('A', seq(grande(ruido()))))],
+      fazer: [{ kit_ruido: 62 }, { kit_luz: 33 }, 'botao:A', { esperar: 300 }, 'botao:B', { esperar: 300 }],
+      regras: [[xml(E.botao('B', seq(grande(luzKit())))), 'sem_botao_A'], [xml(E.botao('A', seq(grande(ruido())))), 'sem_botao_B'],
+        [xml(E.botao('A', seq(grande(50))), E.botao('B', seq(grande(luzKit())))), 'sem_mk_kit_ruido_em_so_grande'],
+        [xml(E.botao('A', seq(grande(ruido()))), E.botao('B', seq(grande(50)))), 'sem_mk_kit_luz_em_so_grande'], [ok.dois(), null]] },
+    { ok: ok.media(), errado: [xml(E.sempre(seq(grande(ruido()), pausa(100))))], fazer: [{ kit_ruido: 40 }, { esperar: 2500 }, { kit_ruido: 80 }], espera: 2600,
+      regras: [[xml(E.botao('A', seq(grande(ruido())))), 'sem_sempre'], [xml(E.sempre(seq(numero(5)))), 'sem_so_grande_sempre'],
+        [xml(E.sempre(seq(grande(ruido())))), 'sem_media'], [xml(E.sempre(seq(grande(media(50))))), 'media_sem_ruido'], [ok.media(), null]] },
+    { ok: ok.brilho(), errado: [xml(E.sempre(seq(se(cmp(luzKit(), '>', 70), [soTexto('BRIGHT')], [soTexto('BRIGHT')]))))],
+      fazer: [{ kit_luz: 90 }, { esperar: 300 }, { kit_luz: 30 }, { esperar: 300 }],
+      regras: [[xml(E.botao('A', seq(soTexto('X')))), 'sem_sempre'], [xml(E.sempre(seq(soTexto('X')))), 'sem_mk_se_sempre'],
+        [xml(E.sempre(seq(se(cmp(luzKit(), '>', 70), [soTexto('X')], [])))), 'mensagem_igual'], [ok.brilho(), null]] },
+    { ok: ok.modo(),
+      errado: [xml(E.botao('A', seq(definir('modo', 1))), E.botao('B', seq(definir('modo', 1))), E.sempre(seq(se(cmp(v('modo'), '=', 1), [barra(ruido(), 40, 85)], [barra(luzKit(), 0, 100)]))))],
+      fazer: ['botao:A', { kit_ruido: 55 }, { esperar: 300 }, 'botao:B', { kit_luz: 42 }, { esperar: 300 }],
+      regras: [[xml(E.botao('B', seq(definir('modo', 2)))), 'sem_botao_A'], [xml(E.botao('A', seq(icone('Happy')))), 'sem_mk_var_definir_botao_A'],
+        [xml(E.botao('A', seq(definir('modo', 1)))), 'sem_botao_B'], [xml(E.botao('A', seq(definir('modo', 1))), E.botao('B', seq(icone('Happy')))), 'sem_mk_var_definir_botao_B'],
+        [xml(E.botao('A', seq(definir('modo', 1))), E.botao('B', seq(definir('modo', 2)))), 'sem_sempre'],
+        [xml(E.botao('A', seq(definir('modo', 1))), E.botao('B', seq(definir('modo', 2))), E.sempre(seq(barra(ruido(), 40, 85)))), 'sem_mk_se_sempre'], [ok.modo(), null]] },
+    { ok: ok.relatorio(), errado: [xml(E.botao('AB', seq(registar('noise', ruido()), registar('light', ruido()), icone('Yes'))))],
+      fazer: [{ kit_ruido: 58 }, { kit_luz: 27 }, 'botao:AB'],
+      regras: [[xml(E.botao('A', seq(registar('noise', ruido())))), 'sem_botao_AB'], [xml(E.botao('AB', seq(icone('Yes')))), 'sem_mk_registar_botao_AB'],
+        [xml(E.botao('AB', seq(registar('noise', ruido())))), 'uma_coluna'], [ok.relatorio(), null]] },
+  ],
+};
