@@ -1,11 +1,12 @@
 /* IC Sensing Lab — service worker (gerado por ferramentas/gerar-sw.py; não editar à mão).
  * Depois de abrir a plataforma uma vez com internet, fica todo guardado no browser e funciona sem rede.
  * Com internet vai sempre buscar a versão mais recente (rede primeiro); sem internet usa a cópia guardada. */
-const VERSAO = 'iclab-ed760d4230';
+const VERSAO = 'iclab-e78674fe9f';
 const FICHEIROS = [
  "./",
  "css/faisca.css",
  "css/ic.css",
+ "css/professor.css",
  "educadores.html",
  "fonts/roboto-cyrillic-400-normal.woff2",
  "fonts/roboto-cyrillic-700-normal.woff2",
@@ -21,6 +22,7 @@ const FICHEIROS = [
  "fonts/roboto-slab-latin-ext-700-normal.woff2",
  "i18n/blocos.js",
  "i18n/educadores.js",
+ "i18n/turmas.js",
  "i18n/ui.js",
  "img/eu-cofunded-mono.svg",
  "img/eu-cofunded-white.svg",
@@ -53,6 +55,7 @@ const FICHEIROS = [
  "js/app.js",
  "js/ble.js",
  "js/blocks.js",
+ "js/conforto.js",
  "js/desafios.js",
  "js/escolha.js",
  "js/fonte.js",
@@ -62,9 +65,11 @@ const FICHEIROS = [
  "js/motor.js",
  "js/offline.js",
  "js/pistas.js",
+ "js/professor.js",
  "js/sensory-oled.js",
  "js/sim.js",
  "js/som.js",
+ "js/turma.js",
  "js/tutor-analise.js",
  "js/tutor-motor.js",
  "js/tutor-ui.js",
@@ -76,9 +81,11 @@ const FICHEIROS = [
  "missoes/detetives.js",
  "missoes/estacao.js",
  "missoes/livre.js",
+ "missoes/mapa.js",
  "missoes/ouvir.js",
  "missoes/perspetivas.js",
  "missoes/sentir.js",
+ "professor.html",
  "vendor/blockly-msg-en.js",
  "vendor/blockly-msg-es.js",
  "vendor/blockly-msg-pt.js",

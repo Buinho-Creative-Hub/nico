@@ -38,6 +38,7 @@
         if (v.type === 'mk_conta' || v.type === 'mk_comparar') d.op = v.getFieldValue('OP');
         if (v.type === 'mk_num') d.n = Number(v.getFieldValue('NUM'));
         if (v.type === 'mk_ler_digital' || v.type === 'mk_ler_analogico') d.pino = v.getFieldValue('P');
+        if (v.type.startsWith('cf_') && v.getField('S')) d.sentido = v.getFieldValue('S');   // IC: extensão Conforto
         acc.push(d);
       }
       valores(v, acc);
@@ -69,6 +70,11 @@
       case 'so_texto': d.texto = valor(b, 'T'); d.n = valor(b, 'L'); break;
       case 'so_escrever': d.texto = valor(b, 'T'); break;
       case 'so_atividade': d.s = valor(b, 'S'); break;
+      // extensão Conforto (IC)
+      case 'cf_sonificar': d.min = valor(b, 'MIN'); d.max = valor(b, 'MAX'); break;
+      case 'cf_limite_definir': d.sentido = b.getFieldValue('S'); d.n = valor(b, 'V'); break;
+      case 'cf_sinal': d.sinal = b.getFieldValue('X'); break;
+      case 'cf_perfil': d.perfil = b.getFieldValue('P'); break;
     }
     // blocos do palco (Missão 0): ator, sítio, imagem, cenário… e o texto/número que levam
     if (b.type.startsWith('pk_')) {

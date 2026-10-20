@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teacher area · Invisible Cartographies Sensing Lab</title>
+<script src="js/i18n.js"></script>
+<script src="i18n/ui.js"></script>
+<script src="i18n/turmas.js"></script>
+<script src="js/acessibilidade.js"></script>
+<link rel="icon" href="img/ic_symbol.svg">
+<link rel="stylesheet" href="css/faisca.css">
+<link rel="stylesheet" href="css/ic.css">
+<link rel="stylesheet" href="css/professor.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#13233A">
+<script src="js/offline.js"></script>
+</head>
+<body class="prof">
+<header class="inicio-topo prof-topo">
+  <a class="ic-marca" href="index.html" data-i18n-title="p_voltar">
+    <img src="img/ic_symbol_white.svg" alt="" class="ic-simbolo">
+    <span class="ic-marca-texto"><span class="ic-nome" data-i18n="ic_nome">Invisible Cartographies</span><span class="ic-lab" data-i18n="p_area">Teacher area</span></span>
+  </a>
+  <span class="espaco"></span>
+  <span class="prof-quem" id="quem"></span>
+  <div data-linguas></div>
+  <div data-a11y></div>
+</header>
+<main class="prof-corpo" id="corpo"><p class="prof-carregar" data-i18n="p_carregar">Loading…</p></main>
+<div class="prof-cartoes" id="cartoes" aria-hidden="true"></div>
+<script src="js/turma.js"></script>
+<script src="js/professor.js"></script>
+</body>
+</html>

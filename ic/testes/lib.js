@@ -80,5 +80,19 @@ const E = {
 // bloco solto (ex.: para testar «blocos fora»)
 const solto = ins => { y += 160; return ins[0].replace('<block ', `<block x="420" y="${y}" `) + ins[1]; };
 function xml(...bs) { y = 0; return '<xml>' + bs.join('') + '</xml>'; }
-module.exports = { ruido, luzKit, pir, soPir, media, mov, barra, grande, soTexto, atividade, tomV, campos, val, num, txt, b, v, conta, cmp, aleatorio, resto, lerD, lerA, icone, limpar, pausa, tom, som, digital, numero, texto,
+// extensão Conforto (js/conforto.js)
+const cf = {
+  perfil: p => I('cf_perfil', campos('P', p)),
+  limite: (sn, x) => I('cf_limite_definir', campos('S', sn) + val('V', x)),
+  lim: sn => blk('cf_limite', campos('S', sn)),
+  demais: (x, sn) => blk('cf_demais', val('V', x) + campos('S', sn)),
+  zona: (x, sn) => blk('cf_zona', val('V', x) + campos('S', sn)),
+  subito: (x, d) => blk('cf_subito', val('V', x) + val('D', d)),
+  sinal: k => I('cf_sinal', campos('X', k)),
+  sonificar: (x, mn, mx) => I('cf_sonificar', val('V', x) + val('MIN', mn) + val('MAX', mx)),
+  seguinte: () => I('cf_paragem_seguinte'),
+  paragem: () => b('cf_paragem'),
+  ponto: (p, r, l, sn) => I('cf_registar_ponto', val('P', p) + val('R', r) + val('L', l) + val('S', sn)),
+};
+module.exports = { cf, ruido, luzKit, pir, soPir, media, mov, barra, grande, soTexto, atividade, tomV, campos, val, num, txt, b, v, conta, cmp, aleatorio, resto, lerD, lerA, icone, limpar, pausa, tom, som, digital, numero, texto,
   acender, apagar, grafico, definir, mudar, servo, registar, repetir, se, seEntao, seq, ev, E, solto, xml };

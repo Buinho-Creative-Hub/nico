@@ -197,7 +197,7 @@
       this.dados.push([nome, v]);
       if (this.dados.length > 6) this.dados.shift();
       this.tabela.hidden = false;
-      this.tabela.innerHTML = '<caption>Dados registados</caption>' +
+      this.tabela.innerHTML = '<caption>' + F.s('dados_registados') + '</caption>' +
         this.dados.map(([n, x]) => `<tr><td>${String(n).replace(/[<&]/g, '')}</td><td>${Math.round(x * 100) / 100}</td></tr>`).join('');
     }
     // ---- ecrã OLED do Smart Science IoT Kit (128×64, 21 letras × 8 linhas, como a extensão SSD1306 do MakeCode)

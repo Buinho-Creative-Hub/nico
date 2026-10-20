@@ -23,13 +23,13 @@
   // cor da gaveta, por língua (o Sérvio concorda com «блок», masculino)
   const CORES = {
     pt: { entrada: 'cor-de-rosa', basico: 'azul', ciclos: 'verde', logica: 'verde-azulado', musica: 'laranja', pinos: 'vermelho-escuro', led: 'roxo',
-      variaveis: 'vermelho', matematica: 'violeta', registo: 'verde-escuro', octopus: 'cor de laranja (Octopus)', oled: 'turquesa (OLED)', sensory: 'roxo (Sensory OLED)' },
+      variaveis: 'vermelho', matematica: 'violeta', registo: 'verde-escuro', octopus: 'cor de laranja (Octopus)', oled: 'turquesa (OLED)', sensory: 'roxo (Sensory OLED)', conforto: 'verde (Conforto)' },
     en: { entrada: 'pink', basico: 'blue', ciclos: 'green', logica: 'teal', musica: 'orange-red', pinos: 'dark red', led: 'purple',
-      variaveis: 'red', matematica: 'violet', registo: 'dark green', octopus: 'orange (Octopus)', oled: 'turquoise (OLED)', sensory: 'purple (Sensory OLED)' },
+      variaveis: 'red', matematica: 'violet', registo: 'dark green', octopus: 'orange (Octopus)', oled: 'turquoise (OLED)', sensory: 'purple (Sensory OLED)', conforto: 'green (Comfort)' },
     es: { entrada: 'rosa', basico: 'azul', ciclos: 'verde', logica: 'verde azulado', musica: 'naranja', pinos: 'rojo oscuro', led: 'morado',
-      variaveis: 'rojo', matematica: 'violeta', registo: 'verde oscuro', octopus: 'naranja (Octopus)', oled: 'turquesa (OLED)', sensory: 'morado (Sensory OLED)' },
+      variaveis: 'rojo', matematica: 'violeta', registo: 'verde oscuro', octopus: 'naranja (Octopus)', oled: 'turquesa (OLED)', sensory: 'morado (Sensory OLED)', conforto: 'verde (Confort)' },
     sr: { entrada: 'розе', basico: 'плави', ciclos: 'зелени', logica: 'тиркизни', musica: 'наранџасти', pinos: 'тамноцрвени', led: 'љубичасти',
-      variaveis: 'црвени', matematica: 'љубичасти', registo: 'тамнозелени', octopus: 'наранџасти (Octopus)', oled: 'тиркизни (OLED)', sensory: 'љубичасти (Sensory OLED)' },
+      variaveis: 'црвени', matematica: 'љубичасти', registo: 'тамнозелени', octopus: 'наранџасти (Octopus)', oled: 'тиркизни (OLED)', sensory: 'љубичасти (Sensory OLED)', conforto: 'зелени (Удобност)' },
   };
   // nome do bloco em PT + gaveta (as outras línguas saem de i18n/blocos.js)
   const B = {
@@ -53,6 +53,10 @@
     so_escrever: ['escrever … em x y', 'sensory'], so_animacao: ['mostrar animação', 'sensory'], so_media: ['média de … em … s', 'sensory'],
     so_db: ['dB a partir do nível de som', 'sensory'], so_pir: ['PIR deteta movimento', 'sensory'], so_nivel: ['nível de atividade', 'sensory'],
     so_movimentos: ['movimentos por minuto', 'sensory'],
+    cf_perfil: ['usar o perfil sensorial de', 'conforto'], cf_limite_definir: ['definir o meu limite de … para', 'conforto'], cf_limite: ['o meu limite de', 'conforto'],
+    cf_demais: ['… é demais para o meu limite', 'conforto'], cf_zona: ['zona de conforto de', 'conforto'], cf_subito: ['salto súbito de … maior do que', 'conforto'],
+    cf_sinal: ['sinal suave', 'conforto'], cf_sonificar: ['tocar … como som', 'conforto'], cf_paragem_seguinte: ['paragem seguinte do percurso', 'conforto'],
+    cf_paragem: ['número da paragem', 'conforto'], cf_registar_ponto: ['registar paragem', 'conforto'],
   };
   const MANUAIS = {   // nomes que não saem bem do texto do bloco
     mk_var: { en: 'the variable', es: 'la variable', sr: 'променљива' },

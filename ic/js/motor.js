@@ -38,6 +38,7 @@
       this.mudouVars && this.mudouVars(this.vars);
       this.destacar(null);
       this.soViva = null;
+      this.cf = F.Conforto ? F.Conforto.estado() : null;
       // Sensory OLED: refresca o ecrã «vivo» e conta os movimentos do PIR (para «movimentos por minuto»/«nível de atividade»)
       const contaPir = this.ws.getAllBlocks(false).some(x => x.type === 'so_movimentos' || x.type === 'so_nivel');
       (async () => {
@@ -182,7 +183,9 @@
           switch (v.getFieldValue('OP')) { case '<': return a < b; case '>': return a > b; case '==': return a === b; case '<=': return a <= b; case '>=': return a >= b; case '!=': return a !== b; }
           return false;
         }
-        default: return v.getFieldValue('V') ?? undefined;
+        default:
+          if (v.type.startsWith('cf_') && F.Conforto) return F.Conforto.valor(this, v);
+          return v.getFieldValue('V') ?? undefined;
       }
     }
     so() { return this.saidas[0].sensory; }
@@ -394,6 +397,9 @@
           (this._dig = this._dig || {})[p] = v;
           break;
         }
+        default:
+          // IC: extensão «Conforto» (js/conforto.js)
+          if (b.type.startsWith('cf_') && F.Conforto) await F.Conforto.executar(this, b, g);
       }
     }
   }

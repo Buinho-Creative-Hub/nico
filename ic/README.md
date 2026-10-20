@@ -9,8 +9,14 @@ person and too much for another.
 
 - **Four languages:** English, Serbian (Cyrillic), Spanish, Portuguese (`?l=en|sr|es|pt`). SR and ES are automatic
   translations to be reviewed by the partners.
-- **Five missions + free mode**, following the activity guide *Sensory Mapping in Museums* and the field protocol:
-  Listen to the place · Room detectives · Feeling buttons · Sensing station · Designing calm (32 challenges + 5 free projects).
+- **Six missions + free mode**, following the activity guide *Sensory Mapping in Museums* and the field protocol:
+  Listen to the place · Room detectives · Feeling buttons · Sensing station · Designing calm · My comfort map
+  (37 challenges + 6 free projects).
+- **Comfort extension** (green drawer, only in this platform): personal limits and example sensory profiles, sudden
+  jumps vs. steady noise, gentle sound signals and a sound gauge (outputs that do not need the eyes), route stops and
+  one data row per stop with the columns of the paper record sheet (`js/conforto.js`, MicroPython included).
+- **Teacher area** (`professor.html`): classes, students with picture passwords, printable cards and progress per
+  mission. Same accounts and API as Nico (`nico-api.buinho.pt`), offline-first; IC progress is kept apart from Nico’s.
 - **Perspectives:** first-person voices of fictional children who sense the world differently (autism, ADHD, dyslexia,
   blindness) accompany each mission, for neurotypical children and educators to understand other experiences.
 - **Accessibility switches** (off by default): calm mode, high contrast, large text and blocks, read aloud.
@@ -25,7 +31,7 @@ Engine: **Nico / Faísca** by Buinho FabLab (same blocks, simulator, tutor and `
 **Lio the bat** (maps by sound) and **Mo the mole** (maps by touch) — artwork reserved, not under the CC licence.
 
 ### Use
-- Online: open `index.html` (`?l=sr` language, `&a=lio|mo` guide, `&m=ouvir|detetives|sentir|estacao|calma|livre` mission,
+- Online: open `index.html` (`?l=sr` language, `&a=lio|mo` guide, `&m=ouvir|detetives|sentir|estacao|calma|mapa|livre` mission,
   `&a11y=calmo,contraste,grande,voz` accessibility).
 - Offline: open the site once in Chrome/Edge and choose “Install”; or download the folder and double-click
   `Open IC Sensing Lab.bat` (Windows) / open `index.html` in Chrome/Edge.
@@ -34,7 +40,8 @@ Engine: **Nico / Faísca** by Buinho FabLab (same blocks, simulator, tutor and `
 - Missions: `missoes/*.js` (texts as `T(en, sr, es, pt)`), perspectives: `missoes/perspetivas.js`,
   interface texts: `i18n/ui.js`, block texts: `i18n/blocos.js`, educators page: `i18n/educadores.js`.
 - Tests (playwright-core + Chromium): `LINGUA=en node testes/testar.js` (all missions, both guides, rules, `.hex`,
-  Python) and `testes/modo-livre.js`, `testes/abrir-hex.js`, `testes/blocos-novos.js`, `testes/offline.js`.
+  Python) and `testes/modo-livre.js`, `testes/abrir-hex.js`, `testes/blocos-novos.js`, `testes/offline.js`,
+  `testes/turmas.js` (needs php CLI and the Nico API, `API_PHP=…/servidor/api/index.php`).
 - Before publishing: `python3 ferramentas/gerar-sw.py` (offline list).
 - Documentation: `docs/IC-SENSING-LAB.md` (this edition) and `docs/PLATAFORMA.md` (the engine).
 

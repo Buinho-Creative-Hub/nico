@@ -51,6 +51,8 @@
     oled:     '#27b0ba',
     // extensão Sensory OLED do Buinho (IC-Oled, Invisible Cartographies)
     sensory:  '#534ab7',
+    // IC: extensão «Conforto» (limites pessoais, sinais suaves, paragens do percurso) — verde do IC
+    conforto: '#1B6E63',
   };
   const blockStyles = {};
   for (const [nome, cor] of Object.entries(GAVETAS)) {

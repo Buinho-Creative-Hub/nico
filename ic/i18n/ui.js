@@ -188,5 +188,8 @@
     col_som: T('sound', 'zvuk', 'sonido', 'som'),
     col_sentir: T('feeling', 'osecaj', 'sentir', 'sentir'),
     col_movimento: T('movement', 'pokret', 'movimiento', 'movimento'),
+    col_paragem: T('stop', 'stajaliste', 'parada', 'paragem'),
+    cat_conforto: T('IC Comfort extension: personal limits, sudden changes, gentle signals and route stops', 'IC проширење Удобност: личне границе, нагле промене, благи сигнали и стајалишта', 'Extensión IC Confort: límites personales, cambios repentinos, señales suaves y paradas', 'Extensão IC Conforto: limites pessoais, mudanças súbitas, sinais suaves e paragens'),
+    dados_registados: T('Logged data', 'Забележени подаци', 'Datos registrados', 'Dados registados'),
   });
 })();

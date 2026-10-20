@@ -82,6 +82,7 @@
         }
         case 'mk_comparar': return `(${e('A')} ${CMP[v.getFieldValue('OP')] || '=='} ${e('B')})`;
       }
+      if (v.type.startsWith('cf_') && F.Conforto) { const r = F.Conforto.pyValor(this, v); if (r != null) return r; }
       const x = v.getFieldValue('V');
       return x == null ? defeito : (isNaN(Number(x)) ? py(x) : String(x));
     }
@@ -149,6 +150,7 @@
         }
         case 'mk_registar': this.usa.add('log'); return [p + `log.add({str(${this.expr(b, 'NOME', '"valor"')}): ${this.expr(b, 'V')}})`];
       }
+      if (b.type.startsWith('cf_') && F.Conforto) { const r = F.Conforto.pyBloco(this, b, p); if (r) return r; }
       return [];
     }
     corpo(b, ind) {
@@ -745,6 +747,7 @@
           '    _sshow()',
           '');
       }
+      if (this.usa.has('conforto')) L.push(...F.Conforto.PY);
       if (this.usa.has('soanim')) L.push(
         '# Animações do Nico para o Sensory OLED (as mesmas contas de js/sensory-oled.js)',
         'def _scirc(cx, cy, r):',

@@ -6,6 +6,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 const { chromium } = require('playwright-core');
 const L = require('./lib');
+const { cf, ruido, luzKit } = L;
 const { xml, E, seq, b, v, conta, cmp, aleatorio, resto, lerD, lerA, icone, numero, texto, acender, grafico, definir, mudar, servo, registar, se, seEntao, tom, pausa } = L;
 
 const PROGRAMAS = [
@@ -28,6 +29,19 @@ const PROGRAMAS = [
   ['tom com sensor', xml(E.botao('A', seq(tom(conta(b('mk_luz'), '+', 200))))), [{ luz: 100 }, 'botao:A'], r => r.includes('out tom:300')],
   ['tempo de execução', xml(E.botao('A', seq(definir('medida', b('mk_tempo')))), E.botao('B', seq(numero(v('medida'))))), [{ esperar: 300 }, 'botao:A', 'botao:B'], r => /out numero:\d{3,}/.test(r)],
   ['no arranque antes do para sempre', xml(E.inicio(seq(definir('pontos', 5))), E.sempre(seq(numero(v('pontos')), pausa(100)))), [{ esperar: 900 }], r => r.includes('out numero:5')],
+  // ---- extensão Conforto
+  ['conforto: limite pessoal de ruído', xml(E.inicio(seq(cf.limite('ruido', 60))), E.sempre(seq(se(cf.demais(ruido(), 'ruido'), [icone('Sad')], [icone('Happy')])))),
+    [{ kit_ruido: 65 }, { esperar: 300 }, { kit_ruido: 50 }], r => r.includes('out limite:ruido:60') && r.includes('out icone:Sad') && /icone:Sad[\s\S]*icone:Happy/.test(r)],
+  ['conforto: perfil da Ana muda o limite', xml(E.botao('A', seq(cf.perfil('ana'), numero(cf.lim('ruido')))), E.botao('B', seq(cf.perfil('eu'), numero(cf.lim('ruido'))))),
+    ['botao:A', { esperar: 900 }, 'botao:B'], r => r.includes('out perfil:ana') && r.includes('out numero:55') && r.includes('out numero:70')],
+  ['conforto: zona 1 / 2 / 3', xml(E.botao('A', seq(numero(cf.zona(ruido(), 'ruido'))))),
+    [{ kit_ruido: 40 }, 'botao:A', { esperar: 700 }, { kit_ruido: 62 }, 'botao:A', { esperar: 700 }, { kit_ruido: 80 }, 'botao:A'], r => /numero:1[\s\S]*numero:2[\s\S]*numero:3/.test(r)],
+  ['conforto: salto súbito (não um som contínuo)', xml(E.sempre(seq(seEntao(cf.subito(ruido(), 15), cf.sinal('atencao'))))),
+    [{ kit_ruido: 45 }, { esperar: 4000 }, { kit_ruido: 80 }], r => r.includes('out sinal:atencao')],
+  ['conforto: medidor de som (nota sobe com o ruído)', xml(E.botao('A', seq(cf.sonificar(ruido(), 40, 90)))),
+    [{ kit_ruido: 40 }, 'botao:A', { esperar: 300 }, { kit_ruido: 90 }, 'botao:A'], r => r.includes('out sonificar:220') && r.includes('out sonificar:880')],
+  ['conforto: paragens e linha de registo', xml(E.botao('A', seq(cf.seguinte())), E.botao('B', seq(cf.ponto(cf.paragem(), ruido(), luzKit(), 2)))),
+    [{ kit_ruido: 61 }, { kit_luz: 33 }, 'botao:A', 'botao:B'], r => r.includes('out paragem:2') && r.includes('out ponto:2:61:33:2')],
 ];
 
 (async () => {

@@ -11,7 +11,7 @@
   const EM_PREPARACAO = [];
 
   // com um aluno da turma com sessão, as chaves levam o prefixo dele (js/turma.js)
-  F.chaveMissao = m => m.chave || ('iclab.missao.' + m.id + '.v1');
+  F.chaveMissao = m => (F.Turma ? F.Turma.prefixo() : '') + (m.chave || ('iclab.missao.' + m.id + '.v1'));
   F.progressoMissao = m => {
     try { return (JSON.parse(localStorage.getItem(F.chaveMissao(m))) || {}).feitos || 0; } catch (e) { return 0; }
   };
@@ -41,6 +41,11 @@
     document.body.classList.add('modo-inicio');
     $('inicio').hidden = false;
     F.aplicarI18n();
+    // aluno da turma: traz o que fez noutros computadores (uma vez por visita; sem rede segue com o que há)
+    if (F.Turma && F.Turma.sessao() && !sessionStorage.getItem('iclab.turma.puxado')) {
+      sessionStorage.setItem('iclab.turma.puxado', '1');
+      F.Turma.puxar().then(mudou => { if (mudou) location.reload(); }).catch(() => {});
+    }
     let escolhida = F.MASCOTES[F.MASCOTE_ID] ? F.MASCOTE_ID : F.ORDEM_MASCOTES[0];
 
     function marca() {

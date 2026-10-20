@@ -80,7 +80,8 @@
     mk_digital_0: '<block type="mk_digital"><value name="P"><shadow type="mk_pino_menu"><field name="V">P2</field></shadow></value><value name="V"><shadow type="mk_num"><field name="NUM">0</field></shadow></value></block>',
   };
 
-  Object.assign(XML, F.XML_SENSORY || {});   // extensão Sensory OLED (js/sensory-oled.js)
+  Object.assign(XML, F.XML_SENSORY || {});
+  Object.assign(XML, F.XML_CONFORTO || {});   // extensão Conforto do IC (js/conforto.js)   // extensão Sensory OLED (js/sensory-oled.js)
 
   // ---------------------------------------------------- verificação
   // registo: [{t, dir:'in'|'out', v}]. «depois(in, saída)» procura uma saída
@@ -165,16 +166,18 @@
     mk_kit_ruido: 'Octopus', mk_kit_luz: 'Octopus', mk_kit_pir: 'Octopus', mk_kit_bme: 'Octopus',
     so_barra: 'Sensory OLED', so_grande: 'Sensory OLED', so_grafico: 'Sensory OLED', so_grafico_reset: 'Sensory OLED', so_atividade: 'Sensory OLED',
     so_texto: 'Sensory OLED', so_limpar: 'Sensory OLED', so_escrever: 'Sensory OLED', so_animacao: 'Sensory OLED', so_media: 'Sensory OLED', so_db: 'Sensory OLED', so_pir: 'Sensory OLED', so_nivel: 'Sensory OLED', so_movimentos: 'Sensory OLED',
+    cf_perfil: 'Conforto', cf_limite_definir: 'Conforto', cf_limite: 'Conforto', cf_demais: 'Conforto', cf_zona: 'Conforto', cf_subito: 'Conforto',
+    cf_sinal: 'Conforto', cf_sonificar: 'Conforto', cf_paragem_seguinte: 'Conforto', cf_paragem: 'Conforto', cf_registar_ponto: 'Conforto',
     mk_oled_iniciar: 'OLED', mk_oled_texto: 'OLED', mk_oled_numero: 'OLED', mk_oled_limpar: 'OLED', mk_oled_barra: 'OLED',
   };
   const CORES_GAVETA = { 'Básico': '#1e90ff', 'Entrada': '#d400d4', 'Música': '#e63022', 'LED': '#5c2d91', 'Ciclos': '#00aa00', 'Lógica': '#00a4a6',
-    'Variáveis': '#dc143c', 'Matemática': '#9400d3', 'Pinos': '#b22222', 'Registo de dados': '#378273', 'Octopus': '#ff7a4b', 'OLED': '#27b0ba', 'Sensory OLED': '#534ab7', 'Novos': '#ffb000' };
+    'Variáveis': '#dc143c', 'Matemática': '#9400d3', 'Pinos': '#b22222', 'Registo de dados': '#378273', 'Octopus': '#ff7a4b', 'OLED': '#27b0ba', 'Sensory OLED': '#534ab7', 'Conforto': '#1B6E63', 'Novos': '#ffb000' };
   function gavetas(chaves, novos) {
     const tipo = k => (XML[k].match(/type="([a-z_]+)"/) || [])[1];
     const grupos = {};
     if (novos.size) grupos['Novos'] = [...novos].filter(k => XML[k]);
     for (const k of chaves) { if (novos.has(k)) continue; const g = GAVETA_DE[tipo(k)] || 'Básico'; (grupos[g] = grupos[g] || []).push(k); }
-    const ordem = ['Novos', 'Básico', 'Entrada', 'Música', 'LED', 'Ciclos', 'Lógica', 'Variáveis', 'Matemática', 'Pinos', 'Registo de dados'];
+    const ordem = ['Novos', 'Básico', 'Entrada', 'Música', 'LED', 'Ciclos', 'Lógica', 'Variáveis', 'Matemática', 'Pinos', 'Registo de dados', 'Octopus', 'Sensory OLED', 'Conforto'];
     // uma só coluna (o Blockly não deixa trocar de caixa simples para caixa com categorias a meio), com secções por gaveta
     let xml = '<xml>';
     for (const g of ordem) if (grupos[g] && grupos[g].length) {
@@ -190,6 +193,7 @@
     'Variáveis': { en: 'Variables', es: 'Variables', sr: 'Променљиве' }, 'Matemática': { en: 'Math', es: 'Matemáticas', sr: 'Математика' },
     'Pinos': { en: 'Pins', es: 'Pines', sr: 'Пинови' }, 'Registo de dados': { en: 'Data logger', es: 'Registro de datos', sr: 'Бележење података' },
     'Blocos novos': { en: 'New blocks', es: 'Bloques nuevos', sr: 'Нови блокови' },
+    'Conforto': { en: 'Comfort', es: 'Confort', sr: 'Удобност' },
   };
   F.nomeGaveta = g => (F.LANG === 'pt' || !GAV_I18N[g]) ? g : (GAV_I18N[g][F.LANG] || GAV_I18N[g].en);
 
@@ -216,6 +220,8 @@
     ['Sensory OLED', ['so_barra', 'so_barra_luz', 'so_grande', 'so_grafico', 'so_grafico_reset', 'so_atividade', 'so_pir', 'so_nivel', 'so_movimentos', 'so_media', 'so_db',
       'so_animacao', 'so_limpar', 'so_escrever', 'so_texto'],
       'cat_sensory'],
+    ['Conforto', ['cf_perfil', 'cf_limite_definir', 'cf_limite', 'cf_demais', 'cf_zona', 'cf_subito', 'cf_sinal', 'cf_sonificar',
+      'cf_paragem_seguinte', 'cf_paragem', 'cf_registar_ponto'], 'cat_conforto'],
   ];
   F.corGaveta = nome => CORES_GAVETA[nome] || '#888';
   F.caixaCategorias = function () {
