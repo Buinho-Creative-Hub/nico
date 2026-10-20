@@ -387,3 +387,17 @@ Messejana · 9 Onde está a bola? · 10 Teatro de três falas · 11 Boa noite, M
 **A seguir (proposto, por fazer):** Nível 2 · Repetir e reagir (repetir, para sempre, ao clicar no ator, ao carregar numa
 tecla, tocar som) · Nível 3 · Decidir (se/senão, se tocar em…, pontos, enviar/receber mensagem), a acabar com o Nico a
 encontrar um micro:bit no chão — a ponte para «Primeiros passos».
+
+## 12. Sem internet — app instalável e pasta offline (desde 20 Out 2026 — pedido do Carlos)
+
+**Porquê.** Escolas e edifícios sem rede (o Carlos não conseguiu mostrar o Nico a professoras por falta de internet).
+
+- **Site como app (PWA):** `sw.js` (service worker) + `manifest.webmanifest` + `js/offline.js` (regista o SW só em http/https).
+  Ao abrir o nico.buinho.pt **uma vez com internet**, o browser guarda os 85 ficheiros (~6 MB, incluindo o MicroPython) e
+  o Nico passa a abrir **sem rede** nesse computador/tablet. No Chrome/Edge aparece «Instalar Nico» na barra de endereço →
+  fica com ícone próprio no ambiente de trabalho. Com rede vai sempre buscar a versão mais recente (rede primeiro,
+  com limite de 4 s para não pendurar em ligações lentas); sem rede usa a cópia guardada.
+- **Ao publicar:** correr `python3 ferramentas/gerar-sw.py` (regera a lista de ficheiros e a versão por resumo do
+  conteúdo — sem isto, ficheiros novos não ficam disponíveis offline).
+- **Pasta offline (já existia):** Code → Download ZIP, descompactar, `Abrir Nico.bat` (abre em `file://`, não precisa do SW).
+- **Teste:** `node testes/offline.js` (abre com rede, corta a rede: ecrã inicial, modo livre + .hex, palco e Reparar).

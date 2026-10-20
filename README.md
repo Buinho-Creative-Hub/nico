@@ -26,6 +26,7 @@ vivia na rua do Buinho.
 
 ### Usar
 - Online: https://nico.buinho.pt (`?a=nico` ou `?a=gabi` escolhe a mascote; `&m=reparar` abre uma missão).
+- Sem internet (app): abrir o nico.buinho.pt uma vez com internet no Chrome/Edge e carregar em «Instalar Nico»; depois funciona sem rede nesse computador
 - Sem internet: descarregar o repositório (Code → Download ZIP), descompactar e abrir `Abrir Nico.bat`
   (Windows) ou `index.html` no Chrome/Edge.
 - Gravar no micro:bit: botão **Enviar** → **Gravar** (Chrome/Edge) ou **Descarregar** e arrastar para a pasta MICROBIT.

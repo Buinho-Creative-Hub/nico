@@ -1,0 +1,25 @@
+{
+  "name": "Nico · Desafios micro:bit do Buinho",
+  "short_name": "Nico",
+  "description": "Missões e desafios de programação para micro:bit, do Buinho Educativo. Funciona sem internet.",
+  "lang": "pt-PT",
+  "start_url": "./index.html?a=nico",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6efe3",
+  "theme_color": "#2b3a8f",
+  "icons": [
+    {
+      "src": "img/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
