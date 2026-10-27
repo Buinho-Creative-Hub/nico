@@ -36,7 +36,7 @@ não leva esse progresso para o site. Isto é de propósito: os testes não suja
    ```
    ferramentas/publicar-site-ic.sh <pasta>     →  ic-lab-<versão>-<commit>.zip  (uma pasta lab/ lá dentro)
    ```
-   Marca no repo nico a tag `ic-lab-<versão>`, para se saber sempre o que está em produção.
+   Regista a publicação em `docs/PUBLICACOES.md` (versão, commit, data), para se saber sempre o que está em produção.
 2. O Carlos, no cPanel (`preciou1`), na **raiz da app**:
    - apagar a pasta `lab/` antiga;
    - subir o zip;
