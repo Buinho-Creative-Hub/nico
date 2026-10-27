@@ -151,7 +151,7 @@
       };
     }
     function passoNome() {
-      corpo.innerHTML = '';
+      corpo.innerHTML = ''; msg.textContent = '';
       corpo.append(el('h2', null, turma.nome), el('p', 'turma-dica', S('t_nome_dica')));
       const g = el('div', 'turma-nomes');
       alunos.forEach(a => {
@@ -165,7 +165,7 @@
       corpo.append(g, voltar);
     }
     function passoSenha() {
-      corpo.innerHTML = '';
+      corpo.innerHTML = ''; msg.textContent = '';
       const t = el('h2'); t.append(el('span', 'turma-avatar', AVATARES[aluno.avatar % AVATARES.length]), document.createTextNode(' ' + S('t_ola', { nome: aluno.nome })));
       corpo.append(t, el('p', 'turma-dica', S('t_senha_dica')));
       const slots = el('div', 'turma-slots'); const escolha = [];
