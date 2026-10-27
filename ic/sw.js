@@ -1,7 +1,7 @@
 /* IC Sensing Lab — service worker (gerado por ferramentas/gerar-sw.py; não editar à mão).
  * Depois de abrir a plataforma uma vez com internet, fica todo guardado no browser e funciona sem rede.
  * Com internet vai sempre buscar a versão mais recente (rede primeiro); sem internet usa a cópia guardada. */
-const VERSAO = 'iclab-e78674fe9f';
+const VERSAO = 'iclab-94a7ba9391';
 const FICHEIROS = [
  "./",
  "css/faisca.css",
@@ -24,6 +24,7 @@ const FICHEIROS = [
  "i18n/educadores.js",
  "i18n/turmas.js",
  "i18n/ui.js",
+ "img/capa-recurso.jpg",
  "img/eu-cofunded-mono.svg",
  "img/eu-cofunded-white.svg",
  "img/ic_lockup_horizontal.svg",

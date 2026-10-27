@@ -7,7 +7,7 @@
  * Configuração: config_local.php (NUNCA no repositório) — ver config_local.exemplo.php.
  */
 declare(strict_types=1);
-const NICO_API_VERSAO = '1.0.0';
+const NICO_API_VERSAO = '1.1.0';   // 1.1: plataforma IC Sensing Lab (site do Invisible Cartographies) — origens e emails próprios
 
 $CFG = [
     'db_path'        => __DIR__ . '/data/nico.sqlite',
@@ -17,8 +17,14 @@ $CFG = [
     'admin_password' => '',                 // password inicial (troca obrigatória no 1.º login)
     'mail_from'      => 'Nico · Buinho <info@buinho.pt>',
     'url_professor'  => 'https://nico.buinho.pt/professor.html',
+    // IC Sensing Lab: mesmas contas e turmas; produção no site do projeto, testes em nico.buinho.pt/ic
+    'origens_ic'     => ['https://invisiblecartographies.eu', 'https://www.invisiblecartographies.eu'],
+    'mail_from_ic'   => 'Invisible Cartographies · Sensing Lab <info@buinho.pt>',
+    'url_professor_ic' => 'https://invisiblecartographies.eu/lab/professor.html',
 ];
 if (is_file(__DIR__ . '/config_local.php')) { $CFG = array_merge($CFG, (array) require __DIR__ . '/config_local.php'); }
+// as origens do IC juntam-se sempre (mesmo que o config_local.php defina as suas 'origens')
+$CFG['origens'] = array_values(array_unique(array_merge((array) $CFG['origens'], (array) $CFG['origens_ic'])));
 
 // ------------------------------------------------------------------ CORS + respostas
 $origem = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -138,11 +144,38 @@ function codigo_turma(): string {
 }
 function senha_imagens(): string { $s = []; while (count($s) < 3) { $i = random_int(0, IMAGENS_SENHA - 1); if (!in_array($i, $s, true)) $s[] = $i; } return implode('-', $s); }   // 3 imagens diferentes
 function password_temporaria(): string { $abc = 'abcdefghjkmnpqrstuvwxyz23456789'; $p = ''; for ($i = 0; $i < 10; $i++) $p .= $abc[random_int(0, strlen($abc) - 1)]; return $p; }
-function enviar_email(string $para, string $assunto, string $corpo): bool {
+function enviar_email(string $para, string $assunto, string $corpo, string $de = ''): bool {
     global $CFG;
-    $cab = "From: {$CFG['mail_from']}\r\nContent-Type: text/plain; charset=UTF-8\r\nMIME-Version: 1.0";
+    $de = $de ?: $CFG['mail_from'];
+    $cab = "From: $de\r\nContent-Type: text/plain; charset=UTF-8\r\nMIME-Version: 1.0";
     return @mail($para, '=?UTF-8?B?' . base64_encode($assunto) . '?=', $corpo, $cab);
 }
+// Emails da plataforma IC Sensing Lab (pedido com plataforma = 'ic'), na língua do professor (en, sr, es, pt).
+// O endereço vem SEMPRE da configuração, nunca do pedido (a rota «esqueci» é pública).
+function email_ic(string $tipo, string $lingua, array $v): array {
+    global $CFG;
+    $l = in_array($lingua, ['en', 'sr', 'es', 'pt'], true) ? $lingua : 'en';
+    $v['url'] = $CFG['url_professor_ic'];
+    $T = [
+        'conta' => [
+            'en' => ['Invisible Cartographies Sensing Lab · your teacher account', "Hello {nome},\n\nWe created a teacher account for you in the Invisible Cartographies Sensing Lab.\n\nAddress: {url}\nEmail: {email}\nTemporary password: {tmp}\n\nOn your first sign-in you will be asked for a new password.\n\nInvisible Cartographies · Buinho FabLab"],
+            'sr' => ['Невидљиве картографије · Сензорна лабораторија · ваш наставнички налог', "Здраво {nome},\n\nНаправили смо вам наставнички налог у Сензорној лабораторији пројекта Невидљиве картографије.\n\nАдреса: {url}\nИмејл: {email}\nПривремена лозинка: {tmp}\n\nПри првој пријави биће затражена нова лозинка.\n\nInvisible Cartographies · Buinho FabLab"],
+            'es' => ['Cartografías Invisibles · Laboratorio sensorial · tu cuenta de profesor/a', "Hola {nome}:\n\nTe hemos creado una cuenta de profesor/a en el Laboratorio sensorial de Cartografías Invisibles.\n\nDirección: {url}\nCorreo: {email}\nContraseña temporal: {tmp}\n\nEn el primer acceso te pedirá una contraseña nueva.\n\nInvisible Cartographies · Buinho FabLab"],
+            'pt' => ['Cartografias Invisíveis · Laboratório sensorial · a tua conta de professor', "Olá {nome},\n\nCriámos-te uma conta de professor no Laboratório sensorial do Cartografias Invisíveis.\n\nEndereço: {url}\nEmail: {email}\nPassword temporária: {tmp}\n\nNo primeiro acesso vai pedir-te uma password nova.\n\nInvisible Cartographies · Buinho FabLab"],
+        ],
+        'esqueci' => [
+            'en' => ['Invisible Cartographies Sensing Lab · temporary password', "Hello {nome},\n\nYour temporary password for the teacher area is: {tmp}\n\nSign in at {url} — you will be asked for a new password.\n\nIf you did not ask for this, please ignore this email.\n\nInvisible Cartographies · Buinho FabLab"],
+            'sr' => ['Невидљиве картографије · привремена лозинка', "Здраво {nome},\n\nВаша привремена лозинка за простор за наставнике је: {tmp}\n\nПријавите се на {url} — биће затражена нова лозинка.\n\nАко ово нисте тражили, занемарите овај имејл.\n\nInvisible Cartographies · Buinho FabLab"],
+            'es' => ['Cartografías Invisibles · contraseña temporal', "Hola {nome}:\n\nTu contraseña temporal para el área del profesorado es: {tmp}\n\nEntra en {url}: te pedirá una contraseña nueva.\n\nSi no lo has pedido tú, ignora este correo.\n\nInvisible Cartographies · Buinho FabLab"],
+            'pt' => ['Cartografias Invisíveis · password temporária', "Olá {nome},\n\nA tua password temporária da área do professor é: {tmp}\n\nEntra em {url} — vai pedir-te uma password nova.\n\nSe não foste tu a pedir, ignora este email.\n\nInvisible Cartographies · Buinho FabLab"],
+        ],
+    ];
+    [$assunto, $corpo] = $T[$tipo][$l];
+    foreach ($v as $k => $x) $corpo = str_replace('{' . $k . '}', (string) $x, $corpo);
+    return [$assunto, $corpo];
+}
+function e_ic(): bool { return campo('plataforma') === 'ic'; }
+
 function resumo_aluno(int $alunoId): array {
     $r = [];
     foreach (todos('SELECT chave, resumo, atualizado FROM progresso WHERE aluno_id = ?', [$alunoId]) as $p) {
@@ -236,8 +269,13 @@ case 'prof/esqueci': {      // resposta sempre igual (não revela se a conta exi
     if ($p) {
         $tmp = password_temporaria();
         exe('UPDATE professores SET password_hash = ?, must_change_password = 1 WHERE id = ?', [password_hash($tmp, PASSWORD_DEFAULT), $p['id']]);
-        enviar_email($p['recovery_email'] ?: $p['email'], 'Nico · password temporária',
-            "Olá {$p['nome']},\n\nA tua password temporária da área do professor do Nico é: $tmp\n\nEntra em {$CFG['url_professor']} — vai pedir-te uma password nova.\n\nSe não foste tu a pedir, ignora este email.\n\nBuinho Educativo");
+        if (e_ic()) {
+            [$a, $c] = email_ic('esqueci', (string) campo('lingua', 'en'), ['nome' => $p['nome'], 'tmp' => $tmp]);
+            enviar_email($p['recovery_email'] ?: $p['email'], $a, $c, $CFG['mail_from_ic']);
+        } else {
+            enviar_email($p['recovery_email'] ?: $p['email'], 'Nico · password temporária',
+                "Olá {$p['nome']},\n\nA tua password temporária da área do professor do Nico é: $tmp\n\nEntra em {$CFG['url_professor']} — vai pedir-te uma password nova.\n\nSe não foste tu a pedir, ignora este email.\n\nBuinho Educativo");
+        }
     }
     responder(['ok' => true, 'mensagem' => 'Se o email estiver registado, vais receber uma password temporária.']);
 }
@@ -326,8 +364,13 @@ case 'admin/prof/criar': {
     $tmp = password_temporaria();
     exe('INSERT INTO professores (email, nome, password_hash, must_change_password, admin, recovery_email) VALUES (?,?,?,1,?,?)',
         [$email, $nome ?: $email, password_hash($tmp, PASSWORD_DEFAULT), campo('admin') ? 1 : 0, $email]);
-    $enviado = enviar_email($email, 'Nico · a tua conta de professor',
-        "Olá $nome,\n\nCriámos-te uma conta na área do professor do Nico (Buinho Educativo).\n\nEndereço: {$CFG['url_professor']}\nEmail: $email\nPassword temporária: $tmp\n\nNo primeiro acesso vai pedir-te uma password nova.\n\nBuinho Educativo");
+    if (e_ic()) {
+        [$a, $c] = email_ic('conta', (string) campo('lingua', 'en'), ['nome' => $nome ?: $email, 'email' => $email, 'tmp' => $tmp]);
+        $enviado = enviar_email($email, $a, $c, $CFG['mail_from_ic']);
+    } else {
+        $enviado = enviar_email($email, 'Nico · a tua conta de professor',
+            "Olá $nome,\n\nCriámos-te uma conta na área do professor do Nico (Buinho Educativo).\n\nEndereço: {$CFG['url_professor']}\nEmail: $email\nPassword temporária: $tmp\n\nNo primeiro acesso vai pedir-te uma password nova.\n\nBuinho Educativo");
+    }
     responder(['ok' => true, 'password_temporaria' => $tmp, 'email_enviado' => $enviado]);
 }
 case 'admin/prof/apagar': {

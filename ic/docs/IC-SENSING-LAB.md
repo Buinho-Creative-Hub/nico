@@ -31,6 +31,9 @@
 | 5 Desenhar a calma | Atividade 5 | passos (+1, duas vezes); contagem 3-2-1 com pausas e símbolo; respiração lenta (≥ 1,5 s por ícone); bandeira servo P8; luz → som (tom sobe com a luz); canto calmo (servo + ícone) |
 | 6 O meu mapa de conforto | Atividades 2–4 + Field protocol | limite próprio (`limite:` + dois lados do limite); mesmo ruído com dois perfis dá zonas diferentes; sinal «demais» acima do limite e silêncio abaixo; nota sobe com o ruído; nenhum sinal com ruído estável (45–55) e sinal depois de um salto ≥ 25; ≥ 2 linhas `ponto:` em paragens diferentes com o ruído e a luz do momento |
 
+## Onde vive
+Testes em `nico.buinho.pt/ic/`; produção em `invisiblecartographies.eu/lab/` (site do projeto, `lab.py` no Flask). Fluxo e montagem: `docs/PUBLICAR-NO-SITE-IC.md`. Ensaio da produção: `testes/site-ic.js`.
+
 ## Testes
 `LINGUA=<en|sr|es|pt> node testes/testar.js` — 6 missões × 2 mascotes (soluções certas passam, erradas não, regras
 caso a caso, «parece pronto», Python válido, `.hex`, gambiarras, ajuda em 3 níveis, textos em falta). Os quatro

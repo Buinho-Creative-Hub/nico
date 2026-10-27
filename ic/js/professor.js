@@ -45,6 +45,8 @@
     const d = new Date(s.replace(' ', 'T') + 'Z');
     return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' });
   };
+  // endereço da plataforma para o cartão do aluno: o sítio onde esta página está (site do IC ou nico.buinho.pt/ic)
+  const enderecoLab = () => /^https?:$/.test(location.protocol) ? (location.host + location.pathname.replace(/\/[^/]*$/, '')).replace(/^www\./, '') : 'invisiblecartographies.eu/lab';
   const semRede = e => e.offline ? S('p_precisa_rede') : e.message;
 
   function topo() {
@@ -70,7 +72,7 @@
       h('button', { class: 'btn btn-escuro', type: 'submit' }, S('p_entrar')), m,
       h('button', { class: 'btn btn-texto', type: 'button', onclick: async () => {
         if (!email.value) { m.textContent = S('p_email_primeiro'); return; }
-        try { const j = await T.pedido('prof/esqueci', { email: email.value }); m.textContent = F.erroTurma(j.mensagem); m.className = 'prof-aviso ok'; }
+        try { const j = await T.pedido('prof/esqueci', { email: email.value, plataforma: 'ic', lingua: F.LANG }); m.textContent = F.erroTurma(j.mensagem); m.className = 'prof-aviso ok'; }
         catch (e) { m.textContent = semRede(e); }
       } }, S('p_esqueci')),
       h('p', { class: 'prof-sub prof-nota' }, S('p_pede_conta')));
@@ -197,7 +199,7 @@
       h('div', { class: 'ca-topo' }, h('span', { class: 'ca-avatar' }, avatar(a.avatar)), h('strong', null, a.nome)),
       h('div', { class: 'ca-linha' }, S('p_cartao_turma') + ' ', h('b', null, t.codigo), h('small', null, ' · ' + t.nome)),
       h('div', { class: 'ca-senha' }, a.senha.map(i => h('span', { title: T.SENHA[i][1] }, T.SENHA[i][0]))),
-      h('div', { class: 'ca-pe' }, h('img', { src: 'img/ic_symbol.svg', alt: '' }), S('p_cartao_pe')))));
+      h('div', { class: 'ca-pe' }, h('img', { src: 'img/ic_symbol.svg', alt: '' }), S('p_cartao_pe', { url: enderecoLab() })))));
     document.body.classList.add('a-imprimir');
     setTimeout(() => { window.print(); document.body.classList.remove('a-imprimir'); }, 300);
   }
@@ -214,7 +216,7 @@
     f.onsubmit = async ev => {
       ev.preventDefault();
       try {
-        const r = await api('admin/prof/criar', { email: email.value, nome: nome.value });
+        const r = await api('admin/prof/criar', { email: email.value, nome: nome.value, plataforma: 'ic', lingua: F.LANG });
         m.className = 'prof-aviso ok';
         m.textContent = S('p_conta_criada', { p: r.password_temporaria }) + S(r.email_enviado ? 'p_email_ok' : 'p_email_nao');
         email.value = nome.value = '';

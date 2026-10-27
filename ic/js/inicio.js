@@ -41,6 +41,7 @@
     document.body.classList.add('modo-inicio');
     $('inicio').hidden = false;
     F.aplicarI18n();
+    const ls = $('linkSiteIC'); if (ls) ls.href = 'https://invisiblecartographies.eu/' + (F.LANG === 'en' ? '' : F.LANG + '/');
     // aluno da turma: traz o que fez noutros computadores (uma vez por visita; sem rede segue com o que há)
     if (F.Turma && F.Turma.sessao() && !sessionStorage.getItem('iclab.turma.puxado')) {
       sessionStorage.setItem('iclab.turma.puxado', '1');

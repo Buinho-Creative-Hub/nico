@@ -109,7 +109,7 @@
     p_progresso: T('Progress', 'Напредак', 'Progreso', 'Progresso'),
     p_sem_alunos: T('Add the students below. Each one gets an animal and a 3-picture password.', 'Додај ученике испод. Сваки добија животињу и лозинку од 3 слике.', 'Añade a los alumnos abajo. Cada uno recibe un animal y una contraseña de 3 imágenes.', 'Junta os alunos abaixo. Cada um recebe um animal e uma senha de 3 imagens.'),
     p_cartao_turma: T('Class:', 'Одељење:', 'Clase:', 'Turma:'),
-    p_cartao_pe: T('nico.buinho.pt/ic → Join my class', 'nico.buinho.pt/ic → Уђи у одељење', 'nico.buinho.pt/ic → Entrar en mi clase', 'nico.buinho.pt/ic → Entrar na turma'),
+    p_cartao_pe: T('{url} → Join my class', '{url} → Уђи у одељење', '{url} → Entrar en mi clase', '{url} → Entrar na turma'),
     p_privacidade: T('Only first names or nicknames — no surnames, birth dates or photos. Progress is stored on the Buinho server (Portugal, EU) and can be deleted at any time.',
       'Само имена или надимци — без презимена, датума рођења или фотографија. Напредак се чува на серверу Buinho (Португалија, ЕУ) и може се обрисати у сваком тренутку.',
       'Solo nombres o apodos — sin apellidos, fechas de nacimiento ni fotos. El progreso se guarda en el servidor de Buinho (Portugal, UE) y puede borrarse en cualquier momento.',

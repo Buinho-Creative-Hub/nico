@@ -30,6 +30,10 @@ person and too much for another.
 Engine: **Nico / Faísca** by Buinho FabLab (same blocks, simulator, tutor and `.hex` engine). Guide characters:
 **Lio the bat** (maps by sound) and **Mo the mole** (maps by touch) — artwork reserved, not under the CC licence.
 
+### Where it lives
+- **Production:** https://invisiblecartographies.eu/lab/ (inside the project website, only tested versions).
+- **Testing:** https://nico.buinho.pt/ic/ (every change, first). How to publish: `docs/PUBLICAR-NO-SITE-IC.md`.
+
 ### Use
 - Online: open `index.html` (`?l=sr` language, `&a=lio|mo` guide, `&m=ouvir|detetives|sentir|estacao|calma|mapa|livre` mission,
   `&a11y=calmo,contraste,grande,voz` accessibility).
