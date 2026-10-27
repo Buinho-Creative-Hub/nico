@@ -133,20 +133,20 @@
     // ------------------------------------------------------------ 2 · Escrever no diário de dados
     {
       titulo: T('Write it down', 'Запиши то', 'Anótalo', 'Apontar'),
-      missao: T('Each press is saved in the data table: 1 = feels good, 2 = too much, in the same column.', 'Сваки притисак се чува у табели: 1 = пријатно, 2 = превише, у истој колони.', 'Cada pulsación se guarda en la tabla: 1 = me siento bien, 2 = demasiado, en la misma columna.', 'Cada toque fica guardado na tabela: 1 = sabe bem, 2 = demais, na mesma coluna.'),
+      missao: T('Each press is saved in the data table: 1 = feels good, 3 = too much, in the same column.', 'Сваки притисак се чува у табели: 1 = пријатно, 3 = превише, у истој колони.', 'Cada pulsación se guarda en la tabla: 1 = me siento bien, 3 = demasiado, en la misma columna.', 'Cada toque fica guardado na tabela: 1 = sabe bem, 3 = demais, na mesma coluna.'),
       passos: [
         T('A: “log data” with value 1 (keep the face).', 'A: „забележи податке“ са вредношћу 1 (задржи лице).', 'A: «registrar datos» con valor 1 (deja la cara).', 'A: «registar dados» com o valor 1 (mantém a cara).'),
-        T('B: “log data” in the same column, value 2.', 'B: „забележи податке“ у истој колони, вредност 2.', 'B: «registrar datos» en la misma columna, valor 2.', 'B: «registar dados» na mesma coluna, valor 2.'),
+        T('B: “log data” in the same column, value 3.', 'B: „забележи податке“ у истој колони, вредност 3.', 'B: «registrar datos» en la misma columna, valor 3.', 'B: «registar dados» na mesma coluna, valor 3.'),
         T('Test it: press A and B and look at the table.', 'Испробај: притисни A и B и погледај табелу.', 'Pruébalo: pulsa A y B y mira la tabla.', 'Experimenta: carrega no A e no B e olha para a tabela.'),
       ],
       material: MAT,
       novos: ['ic_registar_sentir'],
       teste: 'botao:B',
       ok: mesmaColuna,
-      pensar: T('Turning a feeling into a number (1 or 2) is called coding the data. What do we lose when a feeling becomes a number?',
-        'Претварање осећања у број (1 или 2) зове се кодирање података. Шта губимо кад осећање постане број?',
-        'Convertir un sentimiento en un número (1 o 2) se llama codificar los datos. ¿Qué perdemos cuando un sentimiento se vuelve número?',
-        'Transformar um sentimento num número (1 ou 2) chama-se codificar os dados. O que é que perdemos quando um sentimento vira número?'),
+      pensar: T('Turning a feeling into a number (1 or 3) is called coding the data. What do we lose when a feeling becomes a number?',
+        'Претварање осећања у број (1 или 3) зове се кодирање података. Шта губимо кад осећање постане број?',
+        'Convertir un sentimiento en un número (1 o 3) se llama codificar los datos. ¿Qué perdemos cuando un sentimiento se vuelve número?',
+        'Transformar um sentimento num número (1 ou 3) chama-se codificar os dados. O que é que perdemos quando um sentimento vira número?'),
       tutor: {
         boasVindas: ['boas_vindas', T('A face disappears. A table remembers. The micro:bit V2 can keep a diary of your visit.', 'Лице нестане. Табела памти. micro:bit V2 може да води дневник твоје посете.', 'Una cara desaparece. Una tabla recuerda. El micro:bit V2 puede llevar un diario de tu visita.', 'Uma cara desaparece. Uma tabela lembra. O micro:bit V2 pode fazer um diário da tua visita.')],
         parecePronto: a => evs(a, 'botao:A').some(e => blocos(e, 'mk_registar').length) && evs(a, 'botao:B').some(e => blocos(e, 'mk_registar').length),
@@ -162,7 +162,7 @@
           }, [
             ['a_pensar', T('A and B write in different columns. Will the table be easy to read?', 'A и B пишу у различите колоне. Да ли ће табела бити лака за читање?', 'A y B escriben en columnas distintas. ¿Será fácil leer la tabla?', 'O A e o B escrevem em colunas diferentes. A tabela vai ser fácil de ler?')],
             T('One question, one column: write the same column name in both.', 'Једно питање, једна колона: упиши исти назив колоне у оба.', 'Una pregunta, una columna: escribe el mismo nombre en los dos.', 'Uma pergunta, uma coluna: escreve o mesmo nome de coluna nos dois.'),
-            T('Copy the column name from A to B. Only the value changes: 1 or 2.', 'Копирај назив колоне из A у B. Мења се само вредност: 1 или 2.', 'Copia el nombre de la columna de A en B. Solo cambia el valor: 1 o 2.', 'Copia o nome da coluna do A para o B. Só muda o valor: 1 ou 2.'),
+            T('Copy the column name from A to B. Only the value changes: 1 or 3.', 'Копирај назив колоне из A у B. Мења се само вредност: 1 или 3.', 'Copia el nombre de la columna de A en B. Solo cambia el valor: 1 o 3.', 'Copia o nome da coluna do A para o B. Só muda o valor: 1 ou 3.'),
           ], T('One column, two values. Clean data!', 'Једна колона, две вредности. Уредни подаци!', 'Una columna, dos valores. ¡Datos limpios!', 'Uma coluna, dois valores. Dados arrumados!')),
         ],
         sucesso: T('Every press is saved with the time. Later, the group can compare it with the route.', 'Сваки притисак се чува са временом. Касније група може да га упореди са путањом.', 'Cada pulsación se guarda con la hora. Luego el grupo puede compararla con el recorrido.', 'Cada toque fica guardado com a hora. Depois o grupo pode comparar com o percurso.'),
@@ -216,7 +216,7 @@
       titulo: T('Feeling + measurement', 'Осећај + мерење', 'Sentir + medir', 'Sentir + medir'),
       missao: T('When you press B, save the feeling AND the sound level of that moment.', 'Кад притиснеш B, сачувај осећај И ниво звука у том тренутку.', 'Cuando pulses B, guarda el sentimiento Y el nivel de sonido de ese momento.', 'Quando carregas no B, guarda o sentimento E o nível de som desse momento.'),
       passos: [
-        T('B: keep “log data” for the feeling (value 2).', 'B: задржи „забележи податке“ за осећај (вредност 2).', 'B: deja «registrar datos» del sentimiento (valor 2).', 'B: mantém o «registar dados» do sentimento (valor 2).'),
+        T('B: keep “log data” for the feeling (value 3).', 'B: задржи „забележи податке“ за осећај (вредност 3).', 'B: deja «registrar datos» del sentimiento (valor 3).', 'B: mantém o «registar dados» do sentimento (valor 3).'),
         T('Add a second “log data” in another column with “sound level”.', 'Додај други „забележи податке“ у другој колони са „ниво звука“.', 'Añade un segundo «registrar datos» en otra columna con «nivel de sonido».', 'Junta um segundo «registar dados» noutra coluna com «nível de som».'),
         T('Test it: sound at 180, press B, look at the table.', 'Испробај: звук на 180, притисни B, погледај табелу.', 'Pruébalo: sonido a 180, pulsa B, mira la tabla.', 'Experimenta: som a 180, carrega no B, olha para a tabela.'),
       ],
@@ -245,7 +245,7 @@
         sucesso: T('Two layers in one row. Back in the workshop room you can look for patterns.', 'Два слоја у једном реду. У радионици можете тражити обрасце.', 'Dos capas en una fila. En el aula del taller podéis buscar patrones.', 'Duas camadas numa linha. Na sala da oficina podem procurar padrões.'),
         extensao: T('Also save the light level. Does “too much” happen more in bright rooms?', 'Сачувај и ниво светлости. Да ли се „превише“ чешће дешава у светлим собама?', 'Guarda también el nivel de luz. ¿Pasa más «demasiado» en salas brillantes?', 'Guarda também o nível de luz. O «demais» acontece mais em salas claras?'),
         gambiarra: {
-          xml: xml(E.botao('B', seq(I.icone('Sad'), I.registar(F.s('col_sentir'), 2), I.registar(F.s('col_som'), 2)))),
+          xml: xml(E.botao('B', seq(I.icone('Sad'), I.registar(F.s('col_sentir'), 3), I.registar(F.s('col_som'), 2)))),
           pedido: T('My “sound” column always says 2, even in a loud room. Something is wrong…', 'Моја колона „звук“ увек каже 2, чак и у бучној соби. Нешто не ваља…', 'Mi columna «sonido» siempre dice 2, incluso en una sala ruidosa. Algo va mal…', 'A minha coluna «som» diz sempre 2, mesmo numa sala barulhenta. Há qualquer coisa errada…'),
         },
       },
