@@ -13,6 +13,8 @@
     lab_nome: T('Sensing Lab', 'Сензорна лабораторија', 'Laboratorio sensorial', 'Laboratório sensorial'),
     lab_titulo: T('Invisible Cartographies · Sensing Lab', 'Невидљиве картографије · Сензорна лабораторија', 'Cartografías Invisibles · Laboratorio sensorial', 'Cartografias Invisíveis · Laboratório sensorial'),
     inicio: T('Home', 'Почетна', 'Inicio', 'Início'),
+    site_ic: T('← Website', '← Сајт', '← Web', '← Site'),
+    site_ic_titulo: T('Back to the Invisible Cartographies website', 'Назад на сајт Невидљивих картографија', 'Volver a la web de Cartografías Invisibles', 'Voltar ao site do Cartografias Invisíveis'),
     para_educadores: T('For educators', 'За едукаторе', 'Para educadores', 'Para educadores'),
     intro_titulo: T('Map what usually goes unnoticed.', 'Мапирај оно што обично остаје непримећено.', 'Mapea lo que suele pasar desapercibido.', 'Mapeia o que costuma passar despercebido.'),
     intro_texto: T('Program a micro:bit to listen, see and feel a place — and discover how the same room can feel calm to one person and too much for another.',

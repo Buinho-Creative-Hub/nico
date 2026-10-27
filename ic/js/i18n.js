@@ -62,6 +62,9 @@
     raiz.querySelectorAll('[data-i18n-html]').forEach(e => { e.innerHTML = F.s(e.dataset.i18nHtml); });
     raiz.querySelectorAll('[data-i18n-title]').forEach(e => { e.title = F.s(e.dataset.i18nTitle); });
     raiz.querySelectorAll('[data-i18n-aria]').forEach(e => { e.setAttribute('aria-label', F.s(e.dataset.i18nAria)); });
+    // voltar ao site do projeto, na mesma língua (no site do IC fica no mesmo domínio; nos testes leva ao site a sério)
+    const noSite = /invisiblecartographies\.eu$/.test(location.hostname);
+    raiz.querySelectorAll('[data-site-ic]').forEach(e => { e.href = (noSite ? '/' : 'https://invisiblecartographies.eu/') + (F.LANG === 'en' ? '' : F.LANG + '/'); });
   };
   // seletor de língua: <div data-linguas></div>
   F.desenharLinguas = function () {
