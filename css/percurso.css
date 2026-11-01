@@ -370,24 +370,31 @@ body.percurso { overflow: hidden; }
 .jg-fantasma { stroke: #2364ff; stroke-width: 4; stroke-dasharray: 6 6; pointer-events: none; }
 .jg-revela { opacity: 0; animation: jg-revela 900ms ease-out forwards; stroke: #111; stroke-width: 2; }
 @keyframes jg-revela { to { opacity: .85; } }
+.jg-apanhar, .jg-baloes { background: #EAF4FA center bottom / cover no-repeat; }
 .jg-apanhar { cursor: none; }
-.jg-cesto { position: absolute; bottom: 4px; width: 120px; height: 110px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
-.jg-cesto img { height: 110px; }
-.jg-cai { position: absolute; width: 120px; text-align: center; padding: 10px 6px; background: #fff; border: 3px solid #111; border-radius: 30px; font: 700 18px 'Asap'; box-shadow: 0 4px 0 rgba(0,0,0,.2); pointer-events: none; }
+/* Nico aprovado + cesto separado (arte do Ambrósio); a colisão é do jogo, não da silhueta */
+.jg-cesto { position: absolute; bottom: 4px; width: 120px; height: 150px; pointer-events: none; }
+.jg-cesto-nico { position: absolute; left: 50%; bottom: 34px; height: 112px; transform: translateX(-50%); }
+.jg-cesto-img { position: absolute; left: 0; bottom: 0; width: 120px; }
+.jg-cai { position: absolute; width: 120px; text-align: center; padding: 10px 6px; background: #FFF9EC; color: #17213B; border: 3px solid #66523E; border-radius: 14px; font: 700 18px 'Asap'; box-shadow: 0 4px 0 rgba(0,0,0,.15); pointer-events: none; }
 .jg-memoria { display: grid; gap: 12px; justify-content: center; }
-.jg-carta { position: relative; height: 104px; border: 3px solid #111; border-radius: 10px; background: #2364ff; cursor: pointer; font: 700 20px 'Asap'; padding: 6px; perspective: 600px; }
+.jg-carta { position: relative; height: 128px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; font: 700 20px 'Asap'; color: #17213B; padding: 0; perspective: 600px; }
 .jg-carta .jg-face { display: none; }
-.jg-carta .jg-costas { position: absolute; inset: 6px; border-radius: 6px; background: url('../img/nico/01_boas_vindas.png') center / auto 86% no-repeat, radial-gradient(circle at 50% 60%, #ffd86b 0 34%, #2b3a8f 35%); }
-.jg-carta.virada { background: #fff; animation: jg-vira 220ms; }
-.jg-carta.virada .jg-face { display: block; }
+.jg-carta .jg-costas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.jg-carta.virada { animation: jg-vira 220ms; }
+.jg-carta.virada .jg-face { display: flex; align-items: center; justify-content: center; position: absolute; inset: 0; padding: 8px; border-radius: 10px; background: #FFF9EC; border: 3px solid #2038A6; }
 .jg-carta.virada .jg-costas { display: none; }
-.jg-carta.par { background: #e7f6ef; border-color: var(--certo); cursor: default; }
+.jg-carta.par .jg-face { background: #e7f6ef; border-color: var(--certo); }
+.jg-carta.par { cursor: default; }
+.jg-carta:focus-visible { outline: 4px solid #2038A6; outline-offset: 3px; }
 @keyframes jg-vira { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
-.jg-baloes { background: linear-gradient(#bfe6ff, #eef9ff); }
-.jg-balao { position: absolute; min-width: 110px; padding: 18px 14px 26px; border-radius: 50% 50% 46% 46%; color: #fff; text-align: center; font: 700 22px 'Asap'; text-shadow: 0 1px 2px rgba(0,0,0,.4); box-shadow: inset -8px -10px 0 rgba(0,0,0,.12); transform: translateX(-50%); }
-.jg-balao::after { content: ''; position: absolute; left: 50%; bottom: -34px; width: 2px; height: 34px; background: #555; }
+/* balão vazio do Ambrósio como pele; a palavra é HTML escuro sobre fundo claro */
+.jg-balao { position: absolute; width: 150px; height: 166px; transform: translateX(-50%); pointer-events: none; }
+.jg-balao img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.jg-balao span { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); padding: 4px 10px; border-radius: 10px; background: rgba(255, 249, 236, .92); color: #17213B; font: 700 22px 'Asap'; white-space: nowrap; }
 .jg-balao.pum { animation: jg-pum 300ms forwards; }
 @keyframes jg-pum { to { transform: translateX(-50%) scale(1.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .jg-balao.pum, .jg-carta.virada { animation: none; } }
 .tc-entrada.erro { border-color: var(--errado); background: #fdecec; }
 
 /* ---------------------------------------------------------------- gamificação: bolotas, mapa-trilho, insígnias */
@@ -497,6 +504,13 @@ body.pc-blocos .pc-balao { font-size: 15px; }
 .pc-mapa-arte .ma-no:hover, .pc-mapa-arte .ma-no:focus { outline: 4px solid var(--azul); outline-offset: 2px; }
 .pc-mapa-arte .ma-nico { position: absolute; width: 6%; transform: translate(-50%, -100%); pointer-events: none; }
 .pc-mapa-arte .ma-ins { width: 28px; height: 28px; }
+.pc-mapa-arte .ma-camada { position: absolute; pointer-events: none; }
+.pc-mapa-arte .ma-no { max-width: 24%; transform: translate(-25px, -50%); }   /* o ponto do mapa é o centro do disco */
+.pc-mapa-arte .ma-nome { overflow: hidden; text-overflow: ellipsis; }
+.pc-mapa-arte .ma-marca { position: absolute; transform: translate(-50%, -50%); padding: 3px 9px; border-radius: 12px; background: #FFF9EC; border: 2px solid #66523E; color: #17213B; font: 700 13px 'Asap'; pointer-events: none; white-space: nowrap; }
+@media (max-width: 1100px) { .pc-mapa-arte .ma-nome { display: none; } .pc-mapa-arte .ma-no { padding-right: 4px; } }
+/* abaixo de 900 px o desenho fica só como orientação; os destinos são a lista de cartões (botões grandes) */
+@media (max-width: 900px) { .pc-mapa-arte .ma-no, .pc-mapa-arte .ma-marca { display: none; } }
 .of-pedido { display: flex; gap: 12px; align-items: flex-start; }
 .of-pedido img { width: 64px; flex: 0 0 auto; }
 .of-detetive .pd-perg { background: url('../img/percurso/detetive-bancada.webp') center bottom / 100% auto no-repeat; }
@@ -507,3 +521,115 @@ body.pc-blocos .pc-balao { font-size: 15px; }
 .pc-oficina .of-cena { position: relative; aspect-ratio: 1400 / 933; border: 3px solid #111; border-radius: 10px; overflow: hidden; background: url('../img/percurso/oficina-nico.webp') center / cover; }
 .pc-oficina .of-cena img { position: absolute; }
 .pc-janela img.insignia { height: 150px; }
+.cm-grelha:focus-visible { outline: 4px solid #2038A6; outline-offset: 3px; border-radius: 4px; }
+.cm-prev { margin: 4px 0 0; font-weight: 700; color: #d6336c; min-height: 1.2em; }
+.cm-prev-instr { margin: 6px 0 0; }
+/* Detetive: transformação visível da reparação (avaria → reparado → a funcionar) */
+.of-reparacao { margin: 0 0 12px; padding: 10px 12px; background: #FFF9EC; border: 2px solid #66523E; border-radius: 10px; }
+.of-reparacao svg { width: 100%; max-height: 170px; display: block; font-family: Asap, sans-serif; }
+.of-reparacao figcaption { margin-top: 6px; font: 600 16px 'Asap'; color: #17213B; }
+.of-reparacao .rp-depois, .of-reparacao .rp-fluxo { display: none; }
+.of-reparacao.fase-2 .rp-antes, .of-reparacao.fase-3 .rp-antes { display: none; }
+.of-reparacao.fase-2 .rp-depois, .of-reparacao.fase-3 .rp-depois, .of-reparacao.fase-3 .rp-fluxo { display: inline; }
+.of-reparacao .rp-agua { animation: rp-corre 900ms linear infinite; }
+@keyframes rp-corre { to { stroke-dashoffset: -28; } }
+@media (prefers-reduced-motion: reduce) { .of-reparacao .rp-agua { animation: none; } }
+
+/* ---------------------------------------------------------------- M4 Horta programável · M5 Ateliê de mosaicos */
+.pc-enunciado.at { max-width: 1180px; }
+.at-grelha { display: grid; grid-template-columns: 55fr 45fr; gap: 18px; align-items: start; }
+.at-esq, .at-dir { min-width: 0; }
+.at-rodape { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0 4px; background: linear-gradient(rgba(255,255,255,0), #fff 30%); z-index: 2; }
+.at-vivo { min-height: 1.4em; margin: 8px 0; font-weight: 600; color: #17213B; }
+.at-explica { margin-top: 12px; padding: 12px 14px; background: #FFF9EC; border: 2px solid #66523E; border-radius: 10px; }
+.btn.aviso { background: #fff1c2; border-color: #c88a00; }
+.hp-cena { position: relative; padding: 76px 10px 12px; border: 3px solid #66523E; border-radius: 12px; background: #EAF4FA url('../img/percurso/cenario-horta.webp') center bottom / cover no-repeat; }
+.hp-deposito { display: inline-flex; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 10px; background: rgba(255, 249, 236, .95); border: 2px solid #66523E; font: 600 15px 'Asap'; color: #17213B; }
+.hp-doses { display: inline-flex; gap: 3px; }
+.hp-doses i { width: 14px; height: 18px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; border: 2px solid #2b6fb0; background: #fff; }
+.hp-doses i.cheia { background: #4aa3df; }
+.hp-canteiros { display: flex; gap: 10px; justify-content: center; position: relative; }
+.hp-canteiro { position: relative; flex: 1 1 0; max-width: 150px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; border-radius: 10px; border: 3px solid #66523E; background: rgba(255, 249, 236, .96); font: 600 14px 'Asap'; color: #17213B; cursor: pointer; }
+.hp-canteiro:focus-visible { outline: 4px solid #2038A6; outline-offset: 3px; }
+.hp-canteiro strong { font-size: 15px; }
+.hp-gotas { display: flex; flex-direction: column; gap: 3px; padding: 4px 8px; border-radius: 6px; background: #f3e6cf; }
+.hp-gotas i { width: 24px; height: 12px; border-radius: 6px; border: 2px solid #9a8466; background: #fff; }
+.hp-gotas i.faixa { border-color: #2e8b57; box-shadow: 0 0 0 2px rgba(46, 139, 87, .25); }
+.hp-gotas i.cheia { background: #4aa3df; border-color: #2b6fb0; }
+.hp-gotas i.mais { background: #d6336c; border-color: #a01d4c; }
+.hp-num { font: 700 17px 'Asap'; }
+.hp-est { font-size: 13px; padding: 1px 8px; border-radius: 10px; background: #eee; }
+.hp-canteiro.seco .hp-est { background: #ffe1c2; }
+.hp-canteiro.ok .hp-est { background: #d7f0df; }
+.hp-canteiro.excesso .hp-est { background: #fbd5e3; }
+.hp-canteiro.atual { box-shadow: 0 0 0 4px #ffc850; }
+.hp-canteiro.sensor { box-shadow: 0 0 0 4px #7b2fd1; }
+.hp-canteiro.regado { box-shadow: 0 0 0 4px #4aa3df; }
+.hp-canteiro.falta { box-shadow: 0 0 0 4px #d6336c; }
+.hp-bolha { position: absolute; top: -34px; left: 50%; transform: translateX(-50%); padding: 3px 9px; border-radius: 10px; background: #7b2fd1; color: #fff; font: 700 14px 'Asap'; white-space: nowrap; }
+.hp-nico { position: absolute; top: 4px; width: 62px; transform: translateX(-50%); transition: left .35s ease; pointer-events: none; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .hp-nico { transition: none; } }
+.hp-prever { margin-top: 10px; padding: 12px 14px; border: 2px dashed #d6336c; border-radius: 10px; background: #fff; }
+.hp-opcoes { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.hp-op { min-height: 44px; min-width: 44px; padding: 6px 12px; border: 2px solid #17213B; border-radius: 8px; background: #fff; font: 600 15px 'Asap'; cursor: pointer; }
+.hp-op[aria-pressed="true"] { background: #2038A6; color: #fff; }
+.hp-resultado { margin-top: 10px; }
+.hp-resultado > p { margin: 0 0 6px; padding: 10px 12px; border-radius: 8px; font: 600 16px 'Asap'; }
+.hp-resultado.certo > p:first-child { background: #e7f6ef; border: 2px solid var(--certo); }
+.hp-resultado.errado > p:first-child { background: #fdecec; border: 2px solid var(--errado); }
+.hp-paleta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.hp-pal { min-height: 40px; padding: 6px 12px; border: 0; border-radius: 8px; color: #fff; font: 700 15px 'Asap'; cursor: pointer; box-shadow: inset 0 -3px 0 rgba(0,0,0,.22); }
+.hp-pal:focus-visible, .hp-mini:focus-visible, .hp-ranhura:focus-visible { outline: 4px solid #2038A6; outline-offset: 2px; }
+.op-para_cada { background: #20bf6b; } .op-repetir { background: #20bf6b; } .op-se_seco { background: #4b7bec; } .op-regar { background: #2b8fd6; } .op-avancar { background: #8854d0; }
+.hp-prog { padding: 10px; border: 2px solid #ddd; border-radius: 10px; background: #f7f8fa; overflow-x: hidden; }
+.hp-comecar { display: inline-block; padding: 6px 12px; border-radius: 10px 10px 0 0; background: #f6b93b; color: #17213B; font: 700 15px 'Asap'; }
+.hp-lista { display: flex; flex-direction: column; gap: 4px; padding: 6px 0 6px 8px; border-left: 6px solid #f6b93b; }
+.hp-lista.dentro { margin: 4px 0 2px 16px; border-left-color: rgba(0,0,0,.18); }
+.hp-bloco { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 8px; color: #fff; font: 700 15px 'Asap'; box-shadow: inset 0 -3px 0 rgba(0,0,0,.2); }
+.hp-bloco.a-correr { outline: 4px solid #ffc850; outline-offset: 1px; }
+.hp-txt { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.hp-txt b { min-width: 22px; text-align: center; padding: 1px 4px; border-radius: 6px; background: #fff; color: #17213B; }
+.hp-acoes { display: flex; gap: 3px; flex: 0 0 auto; }
+.hp-mini { width: 32px; height: 32px; border: 0; border-radius: 6px; background: rgba(255,255,255,.92); color: #17213B; font: 700 15px 'Asap'; cursor: pointer; }
+.hp-mini:disabled { opacity: .35; cursor: default; }
+.hp-ranhura { align-self: flex-start; min-height: 32px; padding: 3px 10px; border: 2px dashed #9aa3b5; border-radius: 8px; background: #fff; color: #4a5468; font: 600 13px 'Asap'; cursor: pointer; }
+.hp-ranhura.ativa { border-color: #2038A6; color: #2038A6; background: #eef1ff; }
+/* M5 */
+.mo-grelha { display: inline-block; user-select: none; }
+.mo-cab, .mo-lat { display: grid; font: 700 14px 'Asap'; color: #66523E; text-align: center; }
+.mo-cab { grid-template-columns: 26px repeat(6, var(--mo, 56px)); }
+.mo-meio { display: flex; }
+.mo-lat { grid-template-rows: repeat(6, var(--mo, 56px)); width: 26px; align-items: center; }
+.mo-campo { position: relative; padding: 0; border: 3px solid #66523E; border-radius: 6px; background: #FFF9EC; }
+.mo-celulas { display: grid; grid-template-columns: repeat(6, var(--mo, 56px)); grid-template-rows: repeat(6, var(--mo, 56px)); }
+.mo-cel { position: relative; padding: 0; border: 1px solid #d9c9ab; background: #fffdf8; cursor: pointer; }
+.mo-cel.cobrir { background: repeating-linear-gradient(45deg, #fffdf8 0 6px, #f1e2c4 6px 9px); }
+.mo-cel.bloq { background: #e8e2d6; cursor: not-allowed; }
+.mo-cel .mo-pad { position: absolute; inset: 2px; width: calc(100% - 4px); height: calc(100% - 4px); border-radius: 3px; }
+.mo-cel.sem-par { outline: 4px solid #d6336c; outline-offset: -4px; z-index: 1; }
+.mo-cel:focus-visible { outline: 4px solid #2038A6; outline-offset: -2px; z-index: 2; }
+.mo-cadeado { position: absolute; right: 1px; bottom: 0; font-size: 14px; }
+.mo-contorno { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mo-contorno line { stroke: #d6336c; stroke-width: .09; stroke-linecap: round; }
+.mo-eixo { position: absolute; top: -8px; bottom: -8px; left: 50%; border-left: 3px dashed #2038A6; pointer-events: none; }
+.mo-eixo span { position: absolute; top: -20px; left: 4px; font: 700 12px 'Asap'; color: #2038A6; }
+.mo-paleta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.mo-cor { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px 4px 4px; border: 2px solid #17213B; border-radius: 8px; background: #fff; font: 600 15px 'Asap'; cursor: pointer; }
+.mo-cor > span { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+.mo-cor > span svg { width: 34px; height: 34px; border-radius: 4px; }
+.mo-cor[aria-pressed="true"] { background: #eef1ff; border-color: #2038A6; box-shadow: 0 0 0 3px #2038A6; }
+.mo-borracha { font: 700 20px 'Asap'; color: #d6336c; border: 2px dashed #d6336c; border-radius: 4px; }
+.mo-contador { font-weight: 700; margin: 8px 0 0; }
+.mo-criterios li.nao { color: #b02a37; }
+.mo-criterios li.nao::before { content: '✗ '; }
+.mo-num { width: 90px; display: inline-block; }
+.mo-campo-prev { display: inline-flex; align-items: center; gap: 6px; margin: 0 14px 10px 0; font-weight: 600; }
+@media (max-width: 1400px) { .mo-grelha { --mo: 50px; } }
+@media (max-width: 1100px) { .at-grelha { grid-template-columns: 1fr; } .mo-grelha { --mo: 46px; } }
+.pc-sessao .ps-curr { font-size: 13px; color: var(--cinza); }
+.pc-est.extra { opacity: .8; border-style: dashed; }
+.pc-mostra { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; padding: 0; margin: 0 0 16px; }
+.pc-mostra li { padding: 8px 12px; border: 2px dashed #b9ab92; border-radius: 10px; color: #6b6355; background: #fff; }
+.pc-mostra li.tem { border: 2px solid var(--certo); color: #17213B; background: #e7f6ef; }
+
+.pc-est span { font-size: 14px; line-height: 1.1; }

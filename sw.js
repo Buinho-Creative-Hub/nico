@@ -1,7 +1,7 @@
 /* Nico — service worker (gerado por ferramentas/gerar-sw.py; não editar à mão).
  * Depois de abrir o nico.buinho.pt uma vez com internet, o Nico fica todo guardado no browser e funciona sem rede.
  * Com internet vai sempre buscar a versão mais recente (rede primeiro); sem internet usa a cópia guardada. */
-const VERSAO = 'nico-4c251b1bbb';
+const VERSAO = 'nico-caa246228f';
 const FICHEIROS = [
  "./",
  "css/faisca.css",
@@ -38,6 +38,15 @@ const FICHEIROS = [
  "img/nico/06_a_celebrar.png",
  "img/nico/07_a_inventar.png",
  "img/nico/08_trapalhao_calmo.png",
+ "img/percurso/balao-vazio.webp",
+ "img/percurso/carta-verso.webp",
+ "img/percurso/cenario-agua.webp",
+ "img/percurso/cenario-fablab.webp",
+ "img/percurso/cenario-horta.webp",
+ "img/percurso/cenario-messejana.webp",
+ "img/percurso/cenario-montado.webp",
+ "img/percurso/cenario-patrimonio.webp",
+ "img/percurso/cesto-vazio.webp",
  "img/percurso/correio-carta.webp",
  "img/percurso/correio-envelope.webp",
  "img/percurso/correio-selo.webp",
@@ -57,7 +66,9 @@ const FICHEIROS = [
  "img/percurso/estacao-portugues.webp",
  "img/percurso/estacao-programar.webp",
  "img/percurso/insignia-construtor-pontes.webp",
+ "img/percurso/mapa-casa-territorio.webp",
  "img/percurso/mapa-com-ponte.webp",
+ "img/percurso/mapa-observatorio-agua.webp",
  "img/percurso/mapa-sem-ponte.webp",
  "img/percurso/moeda-bolota.webp",
  "img/percurso/nico-anda-1.webp",
@@ -67,7 +78,9 @@ const FICHEIROS = [
  "img/percurso/nico-festa.webp",
  "img/percurso/nico-parado.webp",
  "img/percurso/nico-pensa.webp",
+ "img/percurso/nico-salta.webp",
  "img/percurso/nico-sentado.webp",
+ "img/percurso/nico-tropeca.webp",
  "img/percurso/oficina-nico.webp",
  "img/percurso/ponte-mapa.webp",
  "img/percurso/ribeira.webp",
@@ -87,6 +100,7 @@ const FICHEIROS = [
  "js/palco-motor.js",
  "js/palco.js",
  "js/percurso/app.js",
+ "js/percurso/atelie.js",
  "js/percurso/caminho.js",
  "js/percurso/itens.js",
  "js/percurso/jogos.js",

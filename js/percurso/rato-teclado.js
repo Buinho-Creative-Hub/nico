@@ -42,7 +42,7 @@
         if (!t0) t0 = performance.now();
         feitos++; som('apanhar');
         const pum = h('span', { class: 'rt-pum' }, '+1'); pum.style.left = b.style.left; pum.style.top = b.style.top;
-        zona.append(pum); setTimeout(() => pum.remove(), 650);
+        zona.append(pum); api.relogio.depois(() => pum.remove(), 650);
         b.remove();
         info.querySelectorAll('b')[0].textContent = feitos;
         if (feitos >= n) { fim = true; api.concluir({ ok: true, tempo: seg(t0), falhas }); }
@@ -100,15 +100,15 @@
       let timer = null;
       c.addEventListener('click', () => {
         if (c.classList.contains('aberta')) return;
-        clearTimeout(timer);
-        timer = setTimeout(() => {           // um clique só: a caixa abana e a mascote lembra o duplo clique
+        api.relogio.parar(timer);
+        timer = api.relogio.depois(() => {           // um clique só: a caixa abana e a mascote lembra o duplo clique
           cliquesSimples++;
           c.classList.remove('abanar'); void c.offsetWidth; c.classList.add('abanar');
           if (cliquesSimples === 2 || cliquesSimples % 5 === 0) api.dizer('dica', 'Quase! São dois cliques seguidos, bem rápidos, sem mexer o rato: clic-clic!');
         }, 320);
       });
       c.addEventListener('dblclick', () => {
-        clearTimeout(timer);
+        api.relogio.parar(timer);
         if (c.classList.contains('aberta')) return;
         c.classList.add('aberta'); c.textContent = l; c.setAttribute('aria-label', 'Letra ' + l);
         abertas++; som('apanhar');
@@ -277,5 +277,5 @@
     api.dizer('boas_vindas', at.boasVindas || 'Os indicadores ficam nas teclas F e J — têm um risquinho para os encontrares sem olhar.');
   };
 
-  F.PC.rt = { montar: (el, at, api) => { el.innerHTML = ''; T[at.tipo](el, at, api); }, tipos: Object.keys(T), comoEscrever };
+  F.PC.rt = { montar: (el, at, api) => { el.innerHTML = ''; const R = F.PC.relogioDe(api); T[at.tipo](el, at, Object.assign({}, api, { relogio: R })); return { fechar: () => R.limpar() }; }, tipos: Object.keys(T), comoEscrever };
 })();

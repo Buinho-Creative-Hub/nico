@@ -4,7 +4,8 @@
 'use strict';
 const path = require('path');
 const { spawn } = require('child_process');
-const { chromium } = require('playwright-core');
+let pwo; try { pwo = require('playwright'); } catch (e) { pwo = require('playwright-core'); }
+const { chromium } = pwo;
 const PORTA = 8765, BASE = `http://localhost:${PORTA}/`;
 (async () => {
   const srv = spawn('python3', ['-m', 'http.server', String(PORTA)], { cwd: path.join(__dirname, '..'), stdio: 'ignore' });
@@ -38,6 +39,22 @@ const PORTA = 8765, BASE = `http://localhost:${PORTA}/`;
   await page.goto(BASE + 'percurso.html?s=1&a=nico');
   await page.waitForSelector('.rt-alvo', { timeout: 15000 });
   ok(true, 'sem rede: Percurso 4.º ano abre a sessão 1');
+  // percurso: Horta (M4) e Ateliê (M5) e a arte do Ambrósio sem rede
+  await page.goto(BASE + 'percurso.html?s=4&a=nico'); await page.waitForSelector('.pc-est');
+  await page.locator('.pc-est', { hasText: 'Horta programável' }).click();
+  await page.waitForSelector('.hp-canteiro', { timeout: 15000 });
+  await page.waitForTimeout(500);
+  ok(await page.evaluate(() => { const i = document.querySelector('.hp-nico'); return i.complete && i.naturalWidth > 0; }), 'sem rede: Horta programável abre com o Nico do Ambrósio');
+  await page.goto(BASE + 'percurso.html?s=6&a=nico'); await page.waitForSelector('.pc-est');
+  await page.locator('.pc-est', { hasText: 'Ateliê' }).click();
+  await page.waitForSelector('.mo-celulas', { timeout: 15000 });
+  ok(true, 'sem rede: Ateliê de mosaicos abre');
+  const arte = await page.evaluate(async () => {
+    const f = ['cenario-messejana', 'cenario-montado', 'cenario-agua', 'cenario-fablab', 'cenario-horta', 'cenario-patrimonio', 'nico-salta', 'nico-tropeca', 'balao-vazio', 'cesto-vazio', 'carta-verso', 'mapa-observatorio-agua', 'mapa-casa-territorio'];
+    const r = await Promise.all(f.map(n => fetch('img/percurso/' + n + '.webp').then(x => x.ok).catch(() => false)));
+    return f.filter((_, i) => !r[i]);
+  });
+  ok(!arte.length, 'sem rede: imagens do complemento do Ambrósio em cache' + (arte.length ? ' — faltam ' + arte.join(', ') : ''));
   await page.goto(BASE + 'index.html?m=reparar&a=gabi');
   await page.waitForFunction(() => window.Faisca && Faisca.app, null, { timeout: 15000 });
   ok(true, 'sem rede: missão Reparar com a Gabi abre');

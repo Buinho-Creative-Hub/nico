@@ -180,6 +180,7 @@
   // ------------------------------------------------------------ montar no ecrã
   function montar(el, at, api) {
     el.innerHTML = '';
+    const R = F.PC.relogioDe(api), espera = R.espera;
     const M = 'img/nico/01_boas_vindas.png';   // quem anda no mapa é sempre o Nico (a mascote escolhida é quem ajuda)
     const grelha = h('div', { class: 'cm-grelha', html: svgGrelha(at, M) });
     const btnIr = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, '▶ Começar');
@@ -200,8 +201,10 @@
     });
     Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xmlProg(at.inicial || [], at.acao)), ws);
     // enquadrar: o programa inicial tem de se ler todo, sem scroll horizontal (revisão do Ambrósio, P1)
-    const enquadrar = () => { try { const m = ws.getMetrics(), bb = ws.getBlocksBoundingBox(); const w = (bb.right - bb.left) * ws.scale, hh = (bb.bottom - bb.top) * ws.scale; const k = Math.min(1, (m.viewWidth - 40) / Math.max(1, w), (m.viewHeight - 40) / Math.max(1, hh)); if (k < 1) ws.setScale(Math.max(0.55, ws.scale * k)); ws.scrollCenter(); } catch (e) { /* sem métricas ainda */ } };
-    setTimeout(enquadrar, 60);
+    const enquadrar = () => { try { const m = ws.getMetrics(), bb = ws.getBlocksBoundingBox(); const w = (bb.right - bb.left) * ws.scale, hh = (bb.bottom - bb.top) * ws.scale; const k = Math.min(1, (m.viewWidth - 40) / Math.max(1, w), (m.viewHeight - 40) / Math.max(1, hh)); if (k < 1) ws.setScale(Math.max(0.55, ws.scale * k)); encostar(); } catch (e) { /* sem métricas ainda */ } };
+    // o programa fica encostado ao canto de cima à esquerda da área livre: os blocos que se juntam crescem para dentro do ecrã
+    const encostar = () => { const bb = ws.getBlocksBoundingBox(), m = ws.getMetrics(); ws.scroll(24 - bb.left * ws.scale - (m.absoluteLeft || 0) * 0, 24 - bb.top * ws.scale); };
+    R.depois(enquadrar, 60);
     const contar = () => {
       const n = ws.getAllBlocks(false).filter(b => !b.isShadow() && b.type !== 'cm_comecar').length;
       nBlocos.textContent = `Blocos: ${n}` + (at.maxBlocos ? ` · consegues com ${at.maxBlocos} ou menos?` : '');
@@ -229,13 +232,31 @@
     const marca = svgEl('g', { class: 'cm-previsao' }); marca.style.display = 'none';
     marca.innerHTML = `<circle cx="32" cy="32" r="26" fill="none" stroke="#d6336c" stroke-width="5" stroke-dasharray="7 5"/><text x="32" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#d6336c">?</text>`;
     svgG.append(marca);
+    // previsão também por teclado: o mapa recebe o foco (Tab), as setas mudam a casa, Enter confirma (relatório do Ambrósio, ponto 1)
+    const prevEl = h('p', { class: 'cm-prev', 'aria-live': 'polite' });
+    function marcar(c, r, falar) {
+      previsao = [Math.max(0, Math.min(at.cols - 1, c)), Math.max(0, Math.min(at.rows - 1, r))];
+      marca.setAttribute('transform', `translate(${previsao[0] * S},${previsao[1] * S})`); marca.style.display = '';
+      prevEl.textContent = `A tua previsão: coluna ${previsao[0] + 1}, linha ${previsao[1] + 1}.`;
+      if (falar) api.dizer('curiosa', 'Previsão marcada! Agora carrega em ▶ Começar ou vai 👣 passo a passo e vê se acertaste.');
+    }
+    if (at.prever) {
+      grelha.tabIndex = 0; grelha.setAttribute('role', 'application');
+      grelha.setAttribute('aria-label', 'Mapa: escolhe a casa da previsão com as setas e carrega em Enter');
+      el.querySelector('.cm-comandos').before(h('p', { class: 'pe-instr cm-prev-instr' }, 'Prevê onde o Nico vai parar: clica numa casa, ou carrega em Tab até ao mapa, escolhe com as setas e confirma com Enter.'), prevEl);
+      grelha.addEventListener('keydown', ev => {
+        if (aCorrer) return;
+        const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[ev.key];
+        const base = previsao || at.inicio;
+        if (d) { ev.preventDefault(); marcar(base[0] + d[0], base[1] + d[1], false); }
+        else if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); marcar(base[0], base[1], true); }
+      });
+    }
     svgG.addEventListener('click', ev => {
       if (aCorrer || !at.prever) return;
       const pt = svgG.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
       const q = pt.matrixTransform(svgG.getScreenCTM().inverse());
-      previsao = [Math.floor(q.x / S), Math.floor(q.y / S)];
-      marca.setAttribute('transform', `translate(${previsao[0] * S},${previsao[1] * S})`); marca.style.display = '';
-      api.dizer('curiosa', 'Previsão marcada! Agora carrega em ▶ Começar ou vai 👣 passo a passo e vê se acertaste.');
+      marcar(Math.floor(q.x / S), Math.floor(q.y / S), true);
     });
     // um passo do rasto: mexe o Nico, destaca o bloco que está a correr e mostra o estado
     async function darPasso(p, lento) {
@@ -255,7 +276,7 @@
         const certo = previsao[0] === r.final[0] && previsao[1] === r.final[1];
         if (certo) previsoesCertas++;
         nota = certo ? ' E previste bem onde eu ia parar! 🔮' : ` Tinhas previsto outra casa — o que é que o programa fez de diferente?`;
-        previsao = null; marca.style.display = 'none';
+        previsao = null; marca.style.display = 'none'; prevEl.textContent = '';
       }
       if (r.ok) {
         api.concluir({ ok: true, tentativas, blocos: r.blocos, estrelas: r.estrelas, previsoes, previsoesCertas },
@@ -269,7 +290,7 @@
     btnRep.addEventListener('click', () => { if (!aCorrer) repor(); });
     btnPasso.addEventListener('click', async () => {
       if (aCorrer) return;
-      if (at.prever && !previsao && !exec && !tentativas) { api.dizer('curiosa', 'Antes de experimentar: onde achas que eu vou parar? Clica numa casa do mapa.'); return; }
+      if (at.prever && !previsao && !exec && !tentativas) { api.dizer('curiosa', 'Antes de experimentar: onde achas que eu vou parar? Clica numa casa do mapa (ou usa as setas no mapa).'); return; }
       if (!exec) { const keep = previsao; repor(); previsao = keep; exec = { r: simular(at, ws), i: 1 }; tentativas++; }
       const p = exec.r.rasto[exec.i++];
       if (p) await darPasso(p, false);
@@ -287,9 +308,8 @@
       acabar(r);
     });
     api.dizer('boas_vindas', at.boasVindas || (at.prever ? 'Primeiro prevê: clica na casa onde achas que eu vou parar. Depois experimenta!' : 'Arrasta os blocos para dentro do «ao começar» e carrega em ▶ Começar. Lembra-te: norte é para cima.'));
-    return { fechar: () => { ro.disconnect(); ws.dispose(); }, ws };
+    return { fechar: () => { R.limpar(); ro.disconnect(); ws.dispose(); }, ws };
   }
-  const espera = ms => new Promise(r => setTimeout(r, ms));
   function svgEl(tag, at) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in at) e.setAttribute(k, at[k]); return e; }
 
   F.PC.caminho = { montar, correr, xml: xmlProg, simular };

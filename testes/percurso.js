@@ -18,7 +18,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
 (async () => {
   const br = await pw.chromium.launch();
-  const pg = await br.newPage({ viewport: { width: 1440, height: 900 } });
+  const pg = await br.newPage({ viewport: { width: 1366, height: 768 } });
   const erros = [];
   pg.on('pageerror', e => erros.push(e.message));
   pg.on('console', m => { if (m.type() === 'error' && !/favicon|ERR_FILE|nico-api/.test(m.text())) erros.push(m.text()); });
@@ -59,6 +59,13 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
         }
         if (a.tipo === 'detetive') { bom = a.pistas.every(id => { const [i, j] = id.split('.').map(Number); return a.manual.seccoes[i - 1] && a.manual.seccoes[i - 1].frases[j - 1]; }) && a.ajudas && a.ajudas.length === 3; m += ' pistas ok: ' + bom; }
         if (a.tipo === 'correio') bom = !a.rascunho || (a.certo && a.certo.length > 0 && !a.certo.includes(a.rascunho));
+        if (a.tipo === 'horta') { const H = F.PC.horta, sol = H.avaliar(a, a.solucao), ini = a.inicial && a.inicial.length ? H.avaliar(a, a.inicial) : null; bom = sol.ok && (!ini || !ini.ok) && a.ajudas.length === 3; m += ` solução: ${sol.msg} · inicial: ${ini ? ini.tipo : '—'}`; }
+        if (a.tipo === 'mosaico') {
+          const G = F.PC.mosaico.geo, mapa = new Map([...(a.fixos || []), ...a.solucao].map(([r, c, x]) => [G.K(r, c), x])), cel = new Set(mapa.keys()), M = a.metas;
+          bom = (M.area == null || G.area(cel) === M.area) && (M.perimetro == null || G.perimetro(cel) === M.perimetro) && (!M.continua || G.continua(cel)) && (!M.simetria || !G.semPar(mapa, M.simetria.padrao).length)
+            && (!a.cobrir || a.cobrir.every(([r, c]) => cel.has(G.K(r, c)))) && (!a.inventario || Object.entries(a.inventario).every(([k, n]) => a.solucao.filter(x => x[2] === k).length === n));
+          m += ` solução: área ${G.area(cel)}, perímetro ${G.perimetro(cel)}`;
+        }
         out.push([a.id, bom, m]);
       } else if (F.PC.jogos.tipos.includes(a.tipo)) {
         const n = t => Number(String(t).replace(/[\s€]/g, '').replace(',', '.'));
@@ -84,70 +91,125 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   r.out.forEach(([id, b, m]) => ok(b, `${id} — ${m}`));
   ok(r.dup.length === 0, `ids únicos (${r.n} atividades)` + (r.dup.length ? ': ' + r.dup.join(',') : ''));
 
-  // ------------------------------------------------------------ 2. ecrã: mapa
-  console.log('Mapa');
-  ok(await pg.locator('.pc-sessao').count() === 9 && await pg.locator('.pc-mapa-arte .ma-no').count() === 8, 'missão 1 + 6 sessões + prova-ensaio + oficina no mapa e no trilho');
+  // ------------------------------------------------------------ 1b. aceitação das fichas M4/M5 (funções puras)
+  console.log('Aceitação M4 (Horta) e M5 (Mosaicos)');
+  const ac = await pg.evaluate(() => {
+    const H = window.Faisca.PC.horta, G = window.Faisca.PC.mosaico.geo, out = [];
+    const P = (op, corpo, n) => Object.assign({ op }, corpo ? { corpo } : {}, n ? { n } : {});
+    const base = { alvo: { min: 3, max: 4 } };
+    const a2 = Object.assign({}, base, { canteiros: [2, 3, 2, 4], deposito: 2, maxDoses: 2 });
+    const a3 = Object.assign({}, base, { canteiros: [1, 4, 2, 3], deposito: 3, maxDoses: 3 });
+    const sol2 = [P('para_cada', [P('se_seco', [P('regar')])])];
+    let r = H.avaliar(a2, sol2); out.push([r.ok && r.final.join() === '3,3,3,4' && r.usadas === 2, 'H4-02A: para cada { se seco { regar } } → [3,3,3,4] com 2 doses']);
+    r = H.avaliar(a2, [P('para_cada', [P('regar')])]); out.push([!r.ok && r.tipo === 'deposito' && r.final.join() === '3,4,2,4', 'H4-02A: regar todos → falta água no 3.º canteiro e o 2.º recebeu a mais (' + r.final + ')']);
+    r = H.avaliar(a3, sol2); out.push([!r.ok && r.tipo === 'seco' && r.final.join() === '2,4,3,3', 'H4-03B: programa inicial deixa [2,4,3,3] e não chega']);
+    r = H.avaliar(a3, [P('para_cada', [P('repetir', [P('se_seco', [P('regar')])], 2)])]); out.push([r.ok && r.final.join() === '3,4,3,3' && r.usadas === 3, 'H4-03B: repetir 2 { se seco { regar } } reavalia o sensor → [3,4,3,3]']);
+    r = H.avaliar(a3, [P('para_cada', [P('se_seco', [P('repetir', [P('regar')], 2)])])]); out.push([!r.ok && r.tipo === 'deposito', 'H4-03B: se seco { repetir 2 { regar } } gasta uma dose a mais (' + r.tipo + ')']);
+    const ev = H.passos(a2, sol2), falso = ev.find(e => e.t === 'teste' && !e.v);
+    out.push([falso && falso.usadas === ev[ev.indexOf(falso) - 1].usadas && falso.valor === 3, 'condição falsa não gasta água (3 < 3? não)']);
+    const um = Object.assign({}, base, { canteiros: [2], deposito: 2, maxDoses: 2 });
+    out.push([H.avaliar(um, [P('regar')]).ok && H.avaliar(um, [P('regar'), P('regar')]).ok && !H.avaliar(um, [P('regar'), P('regar'), P('regar')]).ok, 'limites 3 e 4 aceites; 5 é excesso (e o depósito 2 pára a 3.ª dose)']);
+    const zero = Object.assign({}, base, { canteiros: [2], deposito: 0, maxDoses: 0 });
+    out.push([H.avaliar(zero, [P('regar')]).tipo === 'deposito', 'depósito zero: a rega não acontece']);
+    out.push([JSON.stringify(H.passos(a3, sol2)) === JSON.stringify(H.passos(a3, sol2)), 'recomeço idêntico: cada execução parte do mesmo estado']);
+    out.push([H.avaliar(a2, [P('para_cada', [])]).tipo === 'vazio' && H.avaliar(a2, [P('repetir', [P('regar')], 9)]).tipo === 'vazio', 'integridade: bloco vazio e repetir fora de 1–8 são o primeiro problema']);
+    out.push([H.avaliar(a2, [P('repetir', [P('repetir', [P('repetir', [P('repetir', [P('se_seco', [P('regar')])], 8)], 8)], 8)], 8)]).tipo === 'limite', 'limite de 100 operações']);
+    const S = l => new Set(l.map(([r, c]) => G.K(r, c)));
+    const t = (cel, a, p) => G.area(S(cel)) === a && G.perimetro(S(cel)) === p;
+    out.push([t([[1, 1]], 1, 4), '1 célula: área 1, perímetro 4']);
+    out.push([t([[1, 1], [1, 2]], 2, 6), 'duas adjacentes: 2/6']);
+    out.push([t([[1, 1], [2, 2]], 2, 8) && !G.continua(S([[1, 1], [2, 2]])), 'duas na diagonal: 2/8 e desligadas']);
+    out.push([t([[2, 2], [2, 3], [2, 4], [3, 2], [3, 3], [3, 4]], 6, 10), 'retângulo 2×3: 6/10']);
+    out.push([t([[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6]], 6, 14), 'fila 1×6: 6/14']);
+    out.push([t([[1, 1], [1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2], [3, 3]], 8, 16), 'anel 3×3 sem centro: 8/16 (conta o contorno de dentro)']);
+    let inv = true; for (let r = 1; r <= 6; r++) for (let c = 1; c <= 6; c++) { const [a, b] = G.refletir(G.refletir([r, c])); if (a !== r || b !== c) inv = false; }
+    out.push([inv, 'refletir duas vezes devolve a célula']);
+    const m3 = new Map([['2,2', 'azul'], ['2,3', 'terracota'], ['3,2', 'verde'], ['4,3', 'azul'], ['2,5', 'azul'], ['2,4', 'terracota'], ['3,5', 'verde'], ['4,4', 'azul']]);
+    out.push([!G.semPar(m3, true).length, 'M5-03B: solução de referência é simétrica (posição e padrão)']);
+    m3.delete('4,4'); m3.set('4,5', 'azul');
+    out.push([G.semPar(m3, true).map(x => x.join(',')).join(' ') === '4,3 4,5', 'M5-03B: azul em (4,5) deixa só (4,3) e (4,5) sem par']);
+    m3.set('2,5', 'verde'); out.push([G.semPar(m3, true).some(x => x.join() === '2,5'), 'simetria de padrão: cor trocada não tem par']);
+    return out;
+  });
+  ac.forEach(([b, m]) => ok(b, m));
+
+  // ------------------------------------------------------------ 2. ecrã: mapa (1366×768)
+  console.log('Mapa (1366×768)');
+  const fecharJanela = async () => { if (await pg.locator('#janela:not([hidden])').count()) await pg.click('#janelaBotoes .btn:last-child'); };
+  const seguinte = async () => { await pg.click('#btnSeguinte'); await pg.waitForTimeout(80); await fecharJanela(); };
+  const P = () => pg.evaluate(() => JSON.parse(JSON.stringify(window.Faisca.PC.app.progresso())));
+  ok(await pg.locator('.pc-sessao').count() === 9 && await pg.locator('.pc-mapa-arte .ma-no').count() === 8, '7 missões + prova-ensaio + oficina na lista; 8 destinos no mapa');
+  const caixaMapa = await pg.locator('.pc-mapa-arte').boundingBox();
+  const nos = await pg.$$eval('.pc-mapa-arte .ma-no', l => l.map(b => { const r = b.getBoundingClientRect(); return [b.getAttribute('aria-label'), r.left, r.right, r.top, r.bottom]; }));
+  const cortados = nos.filter(([, l, r, t, b]) => l < caixaMapa.x || r > caixaMapa.x + caixaMapa.width || t < caixaMapa.y);
+  ok(!cortados.length, 'nenhum botão do mapa sai da imagem' + (cortados.length ? ': ' + cortados.map(x => x[0]).join(', ') : ''));
+  const agua = nos.find(n => /Missão 4/.test(n[0])), pat = nos.find(n => /Missão 7/.test(n[0]));
+  ok(agua && Math.abs((agua[1] + 25 - caixaMapa.x) / caixaMapa.width - 585 / 1536) < 0.02 && pat && Math.abs((pat[1] + 25 - caixaMapa.x) / caixaMapa.width - 180 / 1536) < 0.02,
+    'Observatório da Água em (585,650) e Património em (180,70)');
+  ok(await pg.locator('.pc-mapa-arte .ma-camada[src*="mapa-observatorio-agua"]').count() === 1, 'camada do Observatório da Água no mapa sem ponte');
   await foto('01-mapa');
 
-  // ------------------------------------------------------------ sessão 1
-  console.log('Sessão 1');
+  // ------------------------------------------------------------ 3. Missão 2 (sessão 1) de ponta a ponta pela interface
+  console.log('Missão 2 · As placas da Mostra (sessão 1)');
   await pg.locator('.pc-sessao').nth(1).click();
+  await pg.waitForSelector('#janela:not([hidden])');
+  ok((await pg.textContent('#janelaTexto')).includes('perdem-se'), 'a missão abre com o problema: ' + (await pg.textContent('#janelaTitulo')));
+  await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('.rt-alvo');
-  await foto('02-alvos');
-  for (let i = 0; i < 12; i++) { await pg.locator('.rt-alvo').click(); }
-  await pg.waitForSelector('#btnSeguinte:not([hidden])');
-  ok(true, 'bolotas: 12 cliques concluem a atividade');
-  await pg.click('#btnSeguinte');
+  for (let i = 0; i < 12; i++) await pg.locator('.rt-alvo').click();
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
   await pg.waitForSelector('.tc-entrada');
-  await foto('03-teclado');
   const linhas = await pg.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes[1].estacoes[0].atividades[1].linhas);
   await pg.click('.tc-entrada');
   for (const l of linhas) { await pg.keyboard.type(l, { delay: 5 }); await pg.waitForTimeout(30); }
   await pg.waitForSelector('#btnSeguinte:not([hidden])');
-  ok(true, 'teclado: escrever as linhas conclui a atividade');
-  await pg.click('#btnSeguinte');
-  // rebentar balões: escrever a palavra de cada balão que aparece
-  await pg.waitForSelector('.jg-baloes');
-  for (let k = 0; k < 40 && !(await pg.locator('#btnSeguinte:not([hidden])').count()); k++) {
-    const b = await pg.$$eval('.jg-balao:not(.pum)', l => l.map(x => x.textContent));
-    if (b.length) { await pg.click('.tc-entrada'); await pg.keyboard.type(b[0], { delay: 10 }); if (k === 1) await foto('03b-baloes'); }
-    else await pg.waitForTimeout(500);
-  }
-  ok(await pg.locator('#btnSeguinte:not([hidden])').count() === 1, 'balões: escrever as palavras rebenta-os todos');
-  await pg.click('#btnSeguinte');            // janela: fim da estação
-  await pg.waitForSelector('#janela:not([hidden])');
-  await pg.click('#janelaBotoes .btn');
-  await pg.waitForSelector('.cm-grelha svg');
-  await pg.waitForTimeout(300);
-  await foto('04-caminho');
-  // caminho: carregar a solução no espaço de blocos e correr
-  for (let k = 0; k < 3; k++) {
-    await pg.evaluate(() => {
-      const F = window.Faisca, a = F.PC.app.atual(), X = F.MISSOES['percurso-4'];
-      const at = document.title && X.sessoes[1].estacoes[1].atividades.find(x => x.titulo === document.querySelector('#atTitulo').textContent);
-      a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml(at.solucao)), a.ws);
-    });
-    await pg.waitForTimeout(100);
+  ok(true, 'aquecer: bolotas com o rato e teclas de casa');
+  await seguinte();
+  // programar: o 1.º caminho montado com o rato — arrastar o bloco da paleta, mudar a direção e o número
+  await pg.waitForSelector('.cm-grelha svg'); await pg.waitForTimeout(400);
+  {
+    const fly = pg.locator('.blocklyFlyout .blocklyDraggable').first(); const fb = await fly.boundingBox();
+    const tb = await pg.evaluate(() => { const b = window.Faisca.PC.app.atual().ws.getTopBlocks()[0], r = b.getSvgRoot().getBoundingClientRect(); return { x: r.x, y: r.y, h: r.height }; });
+    await pg.mouse.move(fb.x + 10, fb.y + 10); await pg.mouse.down();
+    await pg.mouse.move(tb.x + 30, tb.y + 44, { steps: 14 }); await pg.mouse.up();
+    await pg.waitForTimeout(250);
+    const ligados = await pg.evaluate(() => window.Faisca.PC.app.atual().ws.getTopBlocks()[0].getDescendants().length);
+    ok(ligados >= 2, 'caminho: bloco arrastado da paleta encaixa no «ao começar» (' + ligados + ' blocos ligados)');
+    // mudar a direção (menu) e o número (campo) com cliques reais
+    const caixaCampo = nome => pg.evaluate(n => { const a = window.Faisca.PC.app.atual(); const b = a.ws.getAllBlocks(false).find(x => x.getField(n)); const r = b.getField(n).getSvgRoot().getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }, nome);
+    let c = await caixaCampo('DIR'); await pg.mouse.click(c.x, c.y);
+    await pg.waitForSelector('.blocklyDropDownDiv [role="option"], .blocklyDropDownDiv .blocklyMenuItem');
+    await pg.locator('.blocklyDropDownDiv .blocklyMenuItem', { hasText: 'este' }).first().click();
+    c = await caixaCampo('NUM'); await pg.mouse.click(c.x, c.y);
+    await pg.waitForSelector('.blocklyHtmlInput');
+    await pg.keyboard.press('Control+A'); await pg.keyboard.type('3'); await pg.keyboard.press('Enter');
+    await pg.waitForTimeout(150);
     await pg.click('.cm-comandos .btn-azul');
     await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 15000 });
-    if (k === 2) await foto('05-caminho-feito');
-    ok(true, 'caminho ' + (k + 1) + ' resolvido no ecrã');
-    await pg.click('#btnSeguinte');
+    ok(true, 'caminho 1: arrastar + escolher «este» + escrever 3 → o Nico chega à escola');
+    await foto('04-caminho-arrastado');
+    await seguinte();
   }
-  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
-  // Matemática: m1 escolha (errar uma vez, depois acertar)
+  for (let k = 1; k < 3; k++) {
+    await pg.waitForSelector('.cm-grelha svg');
+    await pg.evaluate(() => {
+      const F = window.Faisca, a = F.PC.app.atual(), X = F.MISSOES['percurso-4'];
+      const at = X.sessoes[1].estacoes[1].atividades.find(x => x.titulo === document.querySelector('#atTitulo').textContent);
+      a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml(at.solucao)), a.ws);
+    });
+    await pg.waitForTimeout(100); await pg.click('.cm-comandos .btn-azul');
+    await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 15000 });
+    ok(true, 'caminho ' + (k + 1) + ' (programa da solução carregado nos blocos) corre no ecrã');
+    await seguinte();
+  }
+  // números grandes
   await pg.waitForSelector('.it-opcao');
   await pg.locator('.it-opcao').nth(1).click(); await pg.click('#btnVerificar');
   ok((await pg.textContent('#atMsg')).includes('mais uma tentativa'), 'escolha: 1.ª tentativa errada dá segunda oportunidade');
   await pg.locator('.it-opcao').nth(0).click(); await pg.click('#btnVerificar');
-  await pg.waitForSelector('#btnSeguinte:not([hidden])');
-  ok((await pg.textContent('#atMsg')).includes('Certo'), 'escolha: certa à 2.ª');
-  await pg.click('#btnSeguinte');
-  // m2 curta
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
   await pg.fill('.it-curta input', '104 060'); await pg.click('#btnVerificar');
-  ok((await pg.textContent('#atMsg')).includes('Certo'), 'curta: aceita «104 060»');
-  await pg.click('#btnSeguinte');
-  // ligar pontos: arrastar do ponto atual até ao seguinte
+  ok((await pg.textContent('#atMsg')).includes('Certo'), 'curta: aceita «104 060»'); await seguinte();
   await pg.waitForSelector('.jg-ligar');
   const nPontos = await pg.locator('.jg-ponto').count();
   for (let k = 1; k < nPontos; k++) {
@@ -155,24 +217,8 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     await pg.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await pg.mouse.down();
     await pg.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 }); await pg.mouse.up();
   }
-  await pg.waitForSelector('#btnSeguinte:not([hidden])');
-  await foto('06-ligar');
-  ok(true, 'ligar pontos: arrastar linhas pela ordem revela o desenho');
-  await pg.click('#btnSeguinte');
-  // plataforma: o Nico anda com as setas e salta com o espaço
-  await pg.waitForSelector('.jg canvas');
-  const x0 = await pg.evaluate(() => window.Faisca.PC.app.atual().estado().x);
-  await pg.keyboard.down('ArrowRight'); await pg.waitForTimeout(500); await pg.keyboard.press(' '); await pg.waitForTimeout(400); await pg.keyboard.up('ArrowRight');
-  const e1 = await pg.evaluate(() => window.Faisca.PC.app.atual().estado());
-  await foto('06b-plataforma');
-  ok(e1.x > x0 + 60, `plataforma: as setas mexem o Nico (${Math.round(x0)} → ${Math.round(e1.x)})`);
-  await pg.evaluate(() => window.Faisca.PC.app.atual().resolver());
-  await pg.waitForSelector('#btnSeguinte:not([hidden])');
-  ok(true, 'plataforma: apanhar as certas e chegar à bandeira conclui');
-  await pg.click('#btnSeguinte');
-  // m4 escolha
-  await pg.locator('.it-opcao').nth(2).click(); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
-  // m5 arrastar etiquetas para os espaços
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); ok(true, 'ligar pontos com o rato'); await seguinte();
+  await pg.locator('.it-opcao').nth(2).click(); await pg.click('#btnVerificar'); await seguinte();
   const certas = ['30 000', '8 000', '500'];
   for (let k = 0; k < 3; k++) {
     const e = pg.locator('.it-banco .it-etiq', { hasText: new RegExp('^' + certas[k] + '$') });
@@ -180,59 +226,87 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     await pg.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await pg.mouse.down();
     await pg.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 10 }); await pg.mouse.up();
   }
-  await foto('07-arrastar');
-  await pg.click('#btnVerificar');
-  ok((await pg.textContent('#atMsg')).includes('Certo'), 'arrastar: etiquetas arrastadas para os espaços');
-  await pg.click('#btnSeguinte');
-  // m6 curta errada duas vezes → mostra a resposta certa
+  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('Certo'), 'arrastar etiquetas'); await seguinte();
   await pg.fill('.it-curta input', '4700'); await pg.click('#btnVerificar');
   await pg.fill('.it-curta input', '5000'); await pg.click('#btnVerificar');
-  ok(await pg.locator('.it-explica:not([hidden])').count() === 1, 'curta: à 2.ª errada mostra a resposta certa');
-  await pg.click('#btnSeguinte');
-  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
-  // Português: texto ao lado + vf + palavras + extensa
+  ok(await pg.locator('.it-explica:not([hidden])').count() === 1, 'curta: à 2.ª errada mostra a resposta certa'); await seguinte();
+  // ler, investigar e escrever
   await pg.waitForSelector('.pd-texto');
-  await pg.locator('.it-opcao').nth(2).click(); await foto('08-portugues'); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
+  await pg.locator('.it-opcao').nth(2).click(); await pg.click('#btnVerificar'); await seguinte();
   for (const [k, v] of [[0, 'V'], [1, 'F'], [2, 'V'], [3, 'F']]) await pg.locator('.it-vf tbody tr').nth(k).locator('button', { hasText: v }).click();
-  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('Certo'), 'verdadeiro/falso'); await pg.click('#btnSeguinte');
+  await pg.click('#btnVerificar'); await seguinte();
   await pg.locator('.it-palavra', { hasText: /^Rui$/ }).click(); await pg.locator('.it-palavra', { hasText: /^Messejana$/ }).click();
-  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('Certo'), 'clicar nas palavras'); await pg.click('#btnSeguinte');
-  // arrastar com cliques (alternativa ao arrastar)
+  await pg.click('#btnVerificar'); await seguinte();
   for (const [k, t] of [[0, 'oeste'], [1, 'agulha'], [2, 'norte']]) { await pg.locator('.it-banco .it-etiq', { hasText: new RegExp('^' + t + '$') }).click(); await pg.locator('.it-buraco').nth(k).click(); }
-  const nosBuracos = await pg.$$eval('.it-buraco', b => b.map(x => x.textContent).join('|'));
-  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('Certo'), 'arrastar com cliques (escolher etiqueta + espaço): ' + nosBuracos); await pg.click('#btnSeguinte');
+  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('Certo'), 'arrastar com cliques'); await seguinte();
   await pg.fill('.it-extensa textarea', 'Aponta o braço direito para onde o Sol nasce. Assim ficas virado para norte e já sabes o caminho.');
-  await foto('09-extensa');
-  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('guardado'), 'texto escrito guardado');
+  await pg.click('#btnVerificar'); ok((await pg.textContent('#atMsg')).includes('guardado'), 'texto escrito guardado'); await seguinte();
+  // detetive da placa
+  await pg.waitForSelector('.of-manual');
+  await pg.locator('.of-frase[data-id="1.1"]').click();
+  ok((await pg.textContent('#balao')).includes('ao contrário'), 'detetive: pista errada explica porquê');
+  for (const id of ['1.2', '2.2', '3.2']) { await pg.locator(`.of-frase[data-id="${id}"]`).focus(); await pg.keyboard.press('Enter'); }
+  await pg.keyboard.press('Enter');   // o botão «Já tenho as pistas» recebe o foco
+  await pg.waitForSelector('.it-ordem');
+  for (let volta = 0; volta < 20; volta++) {
+    const ordem = await pg.$$eval('.it-ordem li', l => l.map(x => Number(x.dataset.i)));
+    const e = ordem.findIndex((x, k) => x !== k); if (e < 0) break;
+    await pg.locator(`.it-ordem li[data-i="${e}"]`).focus(); await pg.keyboard.press('ArrowUp');
+  }
+  await pg.click('text=Confirmar a ordem');
+  await pg.waitForSelector('.of-reparacao.fase-1');
+  ok(true, 'detetive: a reparação começa no estado avariado (fase 1)');
+  await pg.waitForSelector('.of-reparacao.fase-3', { timeout: 4000 });
+  ok(/aponta para norte/.test(await pg.textContent('.of-reparacao figcaption')), 'detetive: transformação visível avaria → reparado → a funcionar, com legenda');
+  await foto('s1-detetive-reparado');
+  await pg.fill('.of-explica', 'O N da placa estava virado para o Sol do meio-dia, que está a sul.');
+  await pg.click('text=Entregar o relatório');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
+  // correio para a Junta
+  await pg.waitForSelector('.of-carta-caixa');
+  await pg.click('.tc-entrada'); await pg.keyboard.type('As placas da Mostra já apontam para norte.', { delay: 5 });
+  await pg.waitForSelector('textarea.of-explica');
+  await pg.fill('textarea.of-explica', 'A Mostra é em messejana, ao pé da escola.'); await pg.click('text=Verificar a correção');
+  ok(/Ainda há 1 palavra/.test(await pg.textContent('.of-estado')), 'correio: diz quantas palavras faltam corrigir');
+  await pg.fill('textarea.of-explica', 'A Mostra é em Messejana, ao pé da escola.'); await pg.click('text=Verificar a correção');
+  await pg.waitForSelector('button:has-text("Enviar")');
+  await pg.fill('textarea.of-explica', 'Ao meio-dia o Sol está a sul. Quem ficar de costas para o Sol olha para norte e encontra a escola.');
+  await pg.click('button:has-text("Enviar")');
+  await pg.waitForSelector('.of-resposta', { timeout: 5000 });
   await pg.click('#btnSeguinte');
   await pg.waitForSelector('#janela:not([hidden])');
-  ok((await pg.textContent('#janelaTitulo')).includes('Sessão terminada'), 'fim da sessão');
-  await foto('10-fim-sessao');
-  const prog = await pg.evaluate(() => window.Faisca.PC.app.progresso());
-  ok(prog.feitos === 18 && prog.bolotas >= 50, `progresso guardado: ${prog.feitos} atividades feitas na sessão 1 · ${prog.bolotas} bolotas · insígnias ${JSON.stringify(prog.insignias)}`);
-  await pg.click('#janelaBotoes .btn');   // voltar ao percurso
+  const fim = await pg.textContent('#janelaTexto');
+  ok((await pg.textContent('#janelaTitulo')).includes('Missão cumprida') && fim.includes('Placas da Mostra') && await pg.locator('#janelaBotoes button', { hasText: 'Treino extra' }).count() === 1,
+    'missão 2 cumprida sem fazer o treino extra; o mundo muda: «Placas da Mostra ✓»');
+  await foto('s1-fim');
+  const p1 = await P();
+  const s1 = await pg.evaluate(() => { const s = window.Faisca.MISSOES['percurso-4'].sessoes[1]; return s.estacoes.filter(e => !e.extra).flatMap(e => e.atividades).map(a => [a.id, a.tipo]); });
+  const esperadas = s1.reduce((t, [, tp]) => t + (['caminho', 'ponte', 'detetive', 'correio', 'horta', 'mosaico'].includes(tp) ? 5 : 3), 0);
+  ok(s1.every(([id]) => p1.at[id]) && p1.bolotas === esperadas && p1.mundo.placas, `progresso: ${s1.length} atividades, ${p1.bolotas} bolotas (esperadas ${esperadas}), mundo.placas`);
+  await pg.click('#janelaBotoes .btn');
+  await pg.waitForSelector('.pc-mapa-arte .ma-marca');
+  ok((await pg.textContent('.pc-mapa-arte')).includes('Placas da Mostra'), 'a marca «Placas da Mostra ✓» aparece no mapa');
 
-  // ------------------------------------------------------------ Missão 1 (Mostra de Invenções) de ponta a ponta
+  // ------------------------------------------------------------ 4. Missão 1: previsão só com teclado, ponte, detetive, correio
   console.log('Missão 1 · A ponte da ribeira');
-  await pg.goto(url('percurso.html', '?s=1'));
+  await pg.locator('.pc-sessao').nth(0).click(); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('.rt-alvo');
   for (let i = 0; i < 8; i++) await pg.locator('.rt-alvo').click();
-  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await pg.click('#btnSeguinte');
-  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
-  // prever: sem previsão não corre; com previsão corre o programa inicial (falha), depois a solução
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
   await pg.waitForSelector('.cm-grelha svg');
-  await pg.click('.cm-comandos .btn-azul');
-  ok((await pg.textContent('#balao')).includes('onde achas'), 'caminho com previsão: pede para prever antes de correr');
-  const g = await pg.locator('.cm-grelha svg').boundingBox();
-  await pg.mouse.click(g.x + g.width * (3.5 / 6), g.y + g.height * (1.5 / 4));   // casa (4, 2): onde o programa inicial o deixa
-  await pg.click('.cm-comandos .btn-azul');
+  await pg.locator('.cm-comandos .btn-azul').focus(); await pg.keyboard.press('Enter');
+  ok((await pg.textContent('#balao')).includes('onde achas'), 'previsão: sem prever não corre');
+  await pg.locator('.cm-grelha').focus();
+  for (const k of ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowUp', 'ArrowUp']) await pg.keyboard.press(k);
+  await pg.keyboard.press('Enter');
+  ok((await pg.textContent('.cm-prev')).includes('coluna 4, linha 2'), 'previsão só com teclado: setas no mapa + Enter (' + await pg.textContent('.cm-prev') + ')');
+  await pg.locator('.cm-comandos .btn-azul').focus(); await pg.keyboard.press('Enter');
   await pg.waitForFunction(() => /previste bem/i.test(document.querySelector('#balao').textContent), null, { timeout: 15000 });
-  ok(true, 'previsão certa reconhecida (o programa inicial pára onde se previu)');
-  await foto('m1-prever');
+  ok(true, 'a previsão feita com o teclado é comparada com o resultado');
+  await foto('m1-prever-teclado');
   await pg.evaluate(() => { const F = window.Faisca, a = F.PC.app.atual(); a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml([['N', 3], ['E', 5]])), a.ws); });
   await pg.waitForTimeout(100); await pg.click('.cm-comandos .btn-azul');
-  await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 15000 }); await pg.click('#btnSeguinte');
-  // passo a passo: o bloco a correr fica destacado e o estado do «se» aparece
+  await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 15000 }); await seguinte();
   await pg.waitForSelector('.cm-grelha svg');
   await pg.evaluate(() => { const F = window.Faisca, a = F.PC.app.atual(); a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml([['rep', 6, [['E', 1], ['se', 'par', [['ap']]]]]])), a.ws); });
   await pg.waitForTimeout(150);
@@ -240,119 +314,274 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   for (let k = 0; k < 60 && !(await pg.locator('#btnSeguinte:not([hidden])').count()); k++) {
     await pg.click('button:has-text("Um passo")');
     if (/se o número aqui é/.test(await pg.textContent('.cm-estado'))) viuSe = true;
-    if (k === 4) await foto('m1-passo');
   }
-  ok(viuSe && await pg.locator('#btnSeguinte:not([hidden])').count() === 1, 'passo a passo: mostra o «se» a decidir e conclui');
-  await pg.click('#btnSeguinte');
-  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
-  // ponte 1: errar primeiro (falta) e depois acertar com cliques nas peças
+  ok(viuSe, 'passo a passo mostra o «se» a decidir'); await seguinte();
   await pg.waitForSelector('.of-ponte');
   await pg.locator('.of-peca', { hasText: /^1\/2$/ }).click();
   await pg.click('text=O Nico experimenta a ponte');
   await pg.waitForFunction(() => /ainda falta/i.test(document.querySelector('#balao').textContent), null, { timeout: 8000 });
-  ok(/um meio|1\/2/.test(await pg.textContent('#balao')), 'ponte: diz quanto falta («' + (await pg.textContent('#balao')).trim().slice(0, 60) + '»)');
-  await pg.waitForTimeout(700);
-  await pg.locator('.of-peca', { hasText: /^1\/4$/ }).first().click();
-  await pg.locator('.of-peca', { hasText: /^1\/4$/ }).first().click();
-  await foto('m1-ponte');
-  await pg.click('text=O Nico experimenta a ponte');
-  await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 });
-  ok(true, 'ponte: 1/2 + 1/4 + 1/4 atravessa');
-  await pg.click('#btnSeguinte');
-  for (let k = 0; k < 2; k++) { await pg.waitForSelector('.of-ponte'); await pg.evaluate(() => window.Faisca.PC.app.atual().resolver()); await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 }); await pg.click('#btnSeguinte'); }
-  ok(true, 'pontes 2 e 3 (com restrição de peças) resolvem-se');
-  await pg.locator('.it-opcao').nth(1).click(); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
-  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
-  // detetive: pista errada, pistas certas, ordem, relatório
+  ok(true, 'ponte: erro diz quanto falta');
+  await pg.waitForFunction(() => !document.querySelector('.of .btn-grande').disabled, null, { timeout: 5000 });
+  await pg.locator('.of-tabuleiro').focus();
+  for (let k = 0; k < 6; k++) { const s = await pg.textContent('.of-peca.sel'); if (s === '1/4') break; await pg.keyboard.press('ArrowRight'); }
+  await pg.keyboard.press('Enter');
+  for (let k = 0; k < 6; k++) { const s = await pg.textContent('.of-peca.sel'); if (s === '1/4') break; await pg.keyboard.press('ArrowRight'); }
+  await pg.keyboard.press('Enter');
+  ok((await pg.textContent('.of-estado')).includes('tem a medida do vão'), 'ponte: peças escolhidas só com o teclado (setas + Enter)');
+  await pg.locator('.of .btn-grande').focus(); await pg.keyboard.press('Enter');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 }); await seguinte();
+  for (let k = 0; k < 2; k++) { await pg.waitForSelector('.of-ponte'); await pg.evaluate(() => window.Faisca.PC.app.atual().resolver()); await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 }); await seguinte(); }
+  await pg.locator('.it-opcao').nth(1).click(); await pg.click('#btnVerificar'); await seguinte();
   await pg.waitForSelector('.of-manual');
-  await pg.locator('.of-frase[data-id="1.1"]').click();
-  ok((await pg.textContent('#balao')).includes('SÓ o canteiro 3'), 'detetive: pista errada dá explicação');
-  await pg.locator('.of-frase[data-id="2.2"]').click(); await pg.locator('.of-frase[data-id="3.2"]').click();
+  for (const id of ['2.2', '3.2']) await pg.locator(`.of-frase[data-id="${id}"]`).click();
   await pg.click('text=Já tenho as pistas');
-  await pg.waitForSelector('.it-ordem', { timeout: 5000 });
-  await foto('m1-detetive');
-  // ordenar só com o teclado: foco no cartão + setas (revisão do Ambrósio, P1)
-  for (let volta = 0; volta < 20; volta++) {
-    const ordem = await pg.$$eval('.it-ordem li', l => l.map(x => Number(x.dataset.i)));
-    const e = ordem.findIndex((x, k) => x !== k); if (e < 0) break;
-    await pg.locator(`.it-ordem li[data-i="${e}"]`).focus();
-    await pg.keyboard.press('ArrowUp');
-  }
-  ok(await pg.locator('.it-ordem li.a-arrastar').count() === 0, 'ordenar com teclado (setas) e sem classes de arrasto presas');
+  await pg.waitForSelector('.it-ordem');
+  for (let volta = 0; volta < 20; volta++) { const o = await pg.$$eval('.it-ordem li', l => l.map(x => Number(x.dataset.i))); const e = o.findIndex((x, k) => x !== k); if (e < 0) break; await pg.locator(`.it-ordem li[data-i="${e}"]`).focus(); await pg.keyboard.press('ArrowUp'); }
   await pg.click('text=Confirmar a ordem');
-  await pg.waitForSelector('.of-explica');
+  await pg.waitForSelector('.of-reparacao.fase-3', { timeout: 4000 });
+  ok(/chega ao canteiro 3/.test(await pg.textContent('.of-reparacao figcaption')), 'detetive da rega: tubo esmagado → reparado → a água chega ao canteiro 3');
+  await foto('m1-detetive-reparado');
   await pg.fill('.of-explica', 'O trator esmagou o tubo do canteiro 3 e a água não passava.');
-  await pg.click('text=Entregar o relatório');
-  await pg.waitForSelector('#btnSeguinte:not([hidden])');
-  ok(true, 'detetive: pistas → ordem → relatório conclui');
-  await pg.click('#btnSeguinte');
-  // correio: copiar, corrigir, escrever, enviar
+  await pg.click('text=Entregar o relatório'); await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
   await pg.waitForSelector('.of-carta-caixa');
   await pg.click('.tc-entrada'); await pg.keyboard.type('A rega do canteiro 3 já está reparada.', { delay: 5 });
   await pg.waitForSelector('textarea.of-explica');
-  await pg.fill('textarea.of-explica', 'amanhã vamos a horta ver as couves'); await pg.click('text=Verificar a correção');
-  ok(/Ainda há \d+ palavra/.test(await pg.textContent('.of-estado')), 'correio: diz quantas palavras faltam corrigir (' + await pg.textContent('.of-estado') + ')');
   await pg.fill('textarea.of-explica', 'Amanhã vamos à horta ver as couves.'); await pg.click('text=Verificar a correção');
   await pg.waitForSelector('button:has-text("Enviar")');
   await pg.fill('textarea.of-explica', 'Olá, Dona Aurora! No dia 20 de maio há a Mostra de Invenções do Nico na escola, com pontes e robôs. Venha!');
-  await foto('m1-correio');
-  await pg.click('button:has-text("Enviar")');
-  await pg.waitForSelector('.of-resposta', { timeout: 5000 });
-  ok(true, 'correio: cópia → correção → mensagem própria → resposta da Dona Aurora');
-  await pg.click('#btnSeguinte');
+  await pg.click('button:has-text("Enviar")'); await pg.waitForSelector('.of-resposta', { timeout: 5000 }); await pg.click('#btnSeguinte');
   await pg.fill('.it-curta input', 'passou'); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
   await pg.waitForSelector('#janela:not([hidden])');
-  ok((await pg.textContent('#janelaTexto')).includes('Construtor de pontes'), 'missão 1 completa: insígnia «Construtor de pontes»');
+  ok((await pg.textContent('#janelaTexto')).includes('Construtor de pontes'), 'missão 1 completa: insígnia');
   await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('.pc-mapa-arte');
-  ok(await pg.evaluate(() => !!window.Faisca.PC.app.progresso().mundo.ponte) && (await pg.getAttribute('.pc-mapa-arte > img.ma-fundo', 'src')).includes('mapa-com-ponte'), 'a ponte construída fica no mapa (mapa-com-ponte do Ambrósio)');
+  ok((await pg.getAttribute('.pc-mapa-arte > img.ma-fundo', 'src')).includes('mapa-com-ponte') && await pg.locator('.pc-mapa-arte .ma-camada[src*="mapa-observatorio-agua"]').count() === 1,
+    'mapa com ponte: a camada do Observatório da Água continua no mesmo sítio');
   await foto('m1-mapa-com-ponte');
-  // oficina: comprar uma decoração
-  await pg.click('text=🛠 A oficina do Nico');
-  const antes = await pg.evaluate(() => window.Faisca.PC.app.progresso().bolotas);
-  await pg.locator('.pc-loja button').first().click();
-  const depois = await pg.evaluate(() => window.Faisca.PC.app.progresso());
-  ok(depois.bolotas === antes - 10 && depois.oficina.includes('rosmaninho'), `oficina: o vaso com rosmaninho custa 10 bolotas (${antes} → ${depois.bolotas})`);
-  await foto('m1-oficina');
-  const reg = await pg.evaluate(() => window.Faisca.PC.app.progresso().at);
-  ok(reg['m1-pt1'].estado === 'apoio' && reg['m1-r1'].estado === 'autonomo', `registos separam autónomo/apoio (ponte 1: ${reg['m1-pt1'].estado}, bolotas: ${reg['m1-r1'].estado})`);
 
-  // cancelar ao mudar de estação: experimentar a ponte e sair logo — não pode haver conclusão nem bolotas tardias
+  // ------------------------------------------------------------ 5. Horta programável (M4) só com teclado
+  console.log('Missão 4 · Horta programável (só teclado)');
+  const tecla = async (sel, k = 'Enter') => { await pg.locator(sel).first().focus(); await pg.keyboard.press(k); };
+  await pg.locator('.pc-sessao').nth(3).click(); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
+  await pg.locator('.pc-est', { hasText: 'Horta programável' }).click();
+  await pg.waitForSelector('.hp-canteiro');
+  // h1: uma dose de cada vez (prever 1 dose no canteiro 1)
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-prever:not([hidden])');
+  await tecla('.hp-prever .hp-op >> text="1"'); await tecla('.hp-prever .hp-op >> text="Canteiro 1"', ' '); await tecla('.hp-prever .btn-azul');
+  await tecla('.hp-pal >> text=regar');
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-resultado.certo', { timeout: 8000 });
+  ok((await pg.textContent('.hp-resultado')).includes('Usaste 1 dose') && (await pg.textContent('.hp-resultado')).includes('✓ · canteiros regados ✓'), 'H1: previsão certa (1 dose, canteiro 1) e canteiro entre 3 e 4');
+  await pg.keyboard.type('Uma dose chega porque de 2 gotas passa para 3.');
+  await tecla('.at-explica .btn-azul');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok((await pg.textContent('#atMsg')).includes('Texto guardado'), 'H1: explicação guardada para o professor');
+  await seguinte();
+  // h2: regar sem desperdiçar — o programa inicial falha (depósito), corrigir só com teclado
+  await pg.waitForSelector('.hp-canteiro');
+  await tecla('.hp-canteiro >> nth=0'); await pg.keyboard.press('ArrowRight'); await pg.keyboard.press('Enter');
+  ok((await pg.textContent('.at-vivo')).includes('Sensor do canteiro 2: 3 gotas — adequado'), 'ler o sensor com setas + Enter: ' + await pg.textContent('.at-vivo'));
+  await tecla('.at-rodape .btn-azul');
+  await tecla('.hp-prever .hp-op >> text="vai faltar água"'); await tecla('.hp-prever .btn-azul');
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-resultado.errado', { timeout: 10000 });
+  const rErro = await pg.textContent('.hp-resultado');
+  ok(rErro.includes('O depósito ficou vazio antes desta rega') && rErro.includes('faltar água ✓'), 'H2: «rega todos» → falta água; previsão «vai faltar água» certa');
+  await foto('m4-erro-deposito');
+  await tecla('button:has-text("Voltar à edição")');
+  await tecla('.hp-bloco.op-regar .hp-mini[aria-label^="Tirar"]');
+  await tecla('.hp-lista.dentro > .hp-ranhura');
+  await tecla('.hp-pal.op-se_seco'); await tecla('.hp-pal.op-regar');
+  const progH = await pg.evaluate(() => JSON.stringify(window.Faisca.PC.app.atual().estado().prog));
+  ok(progH === JSON.stringify([{ op: 'para_cada', corpo: [{ op: 'se_seco', corpo: [{ op: 'regar' }] }] }]), 'programa editado só com teclado: para cada { se seco { regar } }');
+  // um passo: a condição falsa tem passo próprio
+  let viuFalso = false;
+  await tecla('button:has-text("Um passo")');
+  if (await pg.locator('.hp-prever:not([hidden])').count()) { await tecla('.hp-prever .hp-op >> text="2"'); await tecla('.hp-prever .btn-azul'); await tecla('button:has-text("Um passo")'); }
+  for (let k = 0; k < 30 && !(await pg.locator('.hp-resultado.certo').count()); k++) {
+    if (/3 é menor do que 3\? Não\. Este bloco de rega não vai correr/.test(await pg.textContent('.at-vivo'))) { viuFalso = true; await foto('m4-sensor-falso'); }
+    await pg.keyboard.press('Enter');
+  }
+  ok(viuFalso, 'Um passo: «3 é menor do que 3? Não. Este bloco de rega não vai correr.»');
+  ok((await pg.textContent('.hp-resultado')).includes('Todos os canteiros ficaram entre 3 e 4 gotas. Usaste 2 doses.'), 'H2 resolvida passo a passo: [3,3,3,4] com 2 doses');
+  const b0 = (await P()).bolotas;
+  await pg.keyboard.type('O sensor só deixa regar os canteiros com menos de 3 gotas.');
+  await tecla('.at-explica .btn-azul'); await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  const ph = await P();
+  ok(ph.bolotas === b0 + 5 && ph.at['s3-h2'].estado === 'autonomo' && ph.at['s3-h2'].v.includes('sensor') && ph.at['s3-h2'].previsoes >= 1, `H2: 5 bolotas, estado ${ph.at['s3-h2'].estado}, explicação e previsões registadas`);
+  // recarregar e repetir: a recompensa não volta a ser paga
+  await pg.reload(); await pg.waitForSelector('.pc-mapa-arte');
+  await pg.locator('.pc-sessao').nth(3).click(); await fecharJanela();
+  await pg.locator('.pc-est', { hasText: 'Horta programável' }).click(); await pg.waitForSelector('.hp-canteiro');
+  await pg.evaluate(() => window.Faisca.PC.app.seguinte());
+  await pg.waitForSelector('.hp-canteiro');
+  await pg.evaluate(() => window.Faisca.PC.app.atual().resolver());
+  await pg.waitForSelector('.at-explica textarea'); await pg.fill('.at-explica textarea', 'Repeti a rega para treinar outra vez.'); await pg.click('.at-explica .btn-azul');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok((await P()).bolotas === ph.bolotas, `depois de recarregar e repetir, as bolotas não aumentam (${ph.bolotas})`);
+
+  // ------------------------------------------------------------ 6. Ateliê de mosaicos (M5) só com teclado
+  console.log('Missão 6 · Ateliê de mosaicos (só teclado)');
+  const cel = (r, c) => `.mo-celulas > button:nth-child(${(r - 1) * 6 + c})`;
+  await pg.locator('#btnMissoes').click(); await pg.waitForSelector('.pc-mapa-arte');
+  await pg.locator('.pc-sessao').nth(5).click(); await fecharJanela();
+  await pg.locator('.pc-est', { hasText: 'Ateliê de mosaicos' }).click();
+  await pg.waitForSelector('.mo-celulas');
+  ok(await pg.locator('.mo-cel.cobrir').count() === 6, 'A1: retângulo 2×3 marcado para cobrir');
+  await pg.locator(cel(3, 2)).focus();
+  for (const k of ['Enter', 'ArrowRight', 'Enter', 'ArrowRight', 'Enter', 'ArrowDown', 'Enter', 'ArrowLeft', 'Enter']) await pg.keyboard.press(k);
+  await tecla('.at-rodape .btn-azul');
+  ok((await pg.textContent('.hp-resultado')).includes('Ainda há 1 célula do retângulo por cobrir'), 'A1: verificar a meio diz o que falta');
+  await pg.locator(cel(4, 2)).focus(); await pg.keyboard.press('Enter');
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-resultado.certo');
+  await pg.keyboard.type('Contei os azulejos: 3 em cada fila, 2 filas, 6 quadrados.');
+  await tecla('.at-explica .btn-azul'); await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
+  // A2: seis azulejos, dez lados
+  await pg.waitForSelector('.mo-celulas');
+  await pg.locator(cel(2, 1)).focus();
+  for (let k = 0; k < 6; k++) { await pg.keyboard.press('Enter'); await pg.keyboard.press('ArrowRight'); }
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-prever:not([hidden])');
+  await pg.keyboard.type('6'); await pg.keyboard.press('Tab'); await pg.keyboard.type('14'); await pg.keyboard.press('Enter');
+  await pg.waitForSelector('.hp-resultado.errado');
+  const rf = await pg.textContent('.hp-resultado'), lis = await pg.$$eval('.mo-criterios li', l => l.map(x => x.className));
+  ok(rf.includes('o contorno tem 14 lados') && rf.includes('área 6 ✓') && rf.includes('perímetro 14 ✓') && lis.join() === 'ok,ok,nao', 'A2: fila 1×6 → área ✓, contínua ✓, perímetro 14 ✗ (previsão 6/14 certa)');
+  await tecla('button:has-text("Mostrar o contorno")');
+  ok(await pg.locator('.mo-contorno line').count() === 14, 'mostrar o contorno: 14 lados desenhados');
+  await foto('m5-fila-contorno');
+  // desfazer repõe; Delete tira; Enter põe
+  await pg.locator(cel(5, 5)).focus(); await pg.keyboard.press('Enter');
+  ok(await pg.locator('.mo-cel.cheia').count() === 7, 'Enter põe um azulejo');
+  await tecla('button:has-text("Desfazer")');
+  ok(await pg.locator('.mo-cel.cheia').count() === 6, 'Desfazer repõe o estado anterior');
+  await pg.locator(cel(2, 6)).focus();
+  for (const k of ['Delete', 'ArrowLeft', 'Backspace', 'ArrowLeft', 'Delete']) await pg.keyboard.press(k);
+  await pg.locator(cel(3, 1)).focus();
+  for (const k of ['Enter', 'ArrowRight', 'Enter', 'ArrowRight', 'Enter']) await pg.keyboard.press(k);
+  await tecla('.at-rodape .btn-azul');
+  await pg.keyboard.type('6'); await pg.keyboard.press('Tab'); await pg.keyboard.type('10'); await pg.keyboard.press('Enter');
+  await pg.waitForSelector('.hp-resultado.certo');
+  ok((await pg.textContent('.hp-resultado')).includes('Perímetro 10 ✓'), 'A2: duas filas de três → área 6, perímetro 10, contínua');
+  await foto('m5-certo');
+  await pg.keyboard.type('Juntei os azulejos em duas filas e os lados de dentro deixaram de contar.');
+  await tecla('.at-explica .btn-azul'); await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok((await P()).at['s5-a2'].perimetro === 10, 'A2 registada com área e perímetro');
+  // rascunho: a Horta 3 (s5-h1) guarda o programa ao sair e ao recarregar
+  await pg.locator('.pc-est', { hasText: 'Horta programável' }).click(); await pg.waitForSelector('.hp-canteiro');
+  await tecla('.hp-lista.dentro .hp-lista.dentro > .hp-ranhura'); await tecla('.hp-pal.op-repetir');
+  const antesR = await pg.evaluate(() => JSON.stringify(window.Faisca.PC.app.atual().estado().prog));
+  await pg.reload(); await pg.waitForSelector('.pc-mapa-arte');
+  await pg.locator('.pc-sessao').nth(5).click(); await fecharJanela();
+  await pg.locator('.pc-est', { hasText: 'Horta programável' }).click(); await pg.waitForSelector('.hp-canteiro');
+  ok(await pg.evaluate(() => JSON.stringify(window.Faisca.PC.app.atual().estado().prog)) === antesR && (await pg.textContent('.at-vivo')).includes('Recuperei'), 'rascunho da Horta retomado depois de recarregar');
+
+  // M5-03B: painel em espelho com erro deliberado
+  console.log('Missão 7 · painel em espelho');
+  await pg.locator('#btnMissoes').click(); await pg.locator('.pc-sessao').nth(6).click(); await fecharJanela();
+  await pg.locator('.pc-est', { hasText: 'Ateliê' }).click();
+  await pg.waitForSelector('.mo-celulas');
+  const n0 = await pg.locator('.mo-cel.cheia').count();
+  await pg.locator(cel(2, 2)).focus(); await pg.keyboard.press('Delete');
+  ok(await pg.locator('.mo-cel.cheia').count() === n0 && (await pg.textContent('.at-vivo')).includes('fixo'), 'azulejo fixo 🔒 não sai');
+  const porCor = async (cor, r, c) => { await tecla(`.mo-cor:has-text("${cor}")`); await pg.locator(cel(r, c)).focus(); await pg.keyboard.press('Enter'); };
+  await porCor('azul', 2, 5); await porCor('azul', 4, 5); await porCor('terracota', 2, 4); await porCor('verde', 3, 5);
+  await porCor('verde', 5, 5);
+  ok((await pg.textContent('.at-vivo')).includes('Já não tens azulejos verde'), 'inventário: só há as peças necessárias');
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-resultado.errado');
+  ok((await pg.textContent('.hp-resultado')).includes('linha 4, coluna 3 está a uma casa do eixo') && await pg.locator('.mo-cel.sem-par').count() === 2, 'erro deliberado azul em (4,5): destaca só as células sem par e pede a distância ao eixo');
+  await foto('m5-espelho-erro');
+  await pg.locator(cel(4, 5)).focus(); await pg.keyboard.press('Delete');
+  await porCor('azul', 4, 4);
+  await tecla('.at-rodape .btn-azul');
+  await pg.waitForSelector('.hp-resultado.certo');
+  await pg.keyboard.type('Contei a distância de cada azulejo ao eixo e pus o par à mesma distância.');
+  await tecla('.at-explica .btn-azul'); await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok(true, 'M5-03B resolvida só com teclado');
+
+  // ------------------------------------------------------------ 7. sair a meio cancela os temporizadores
+  console.log('Sair a meio (temporizadores)');
   {
     const ctx2 = await br.newContext({ viewport: { width: 1366, height: 768 } }), p2 = await ctx2.newPage();
-    await p2.goto(url('percurso.html', '?s=1'));
-    await p2.waitForSelector('.pc-est');
-    await p2.locator('.pc-est', { hasText: 'Construir a ponte' }).click();
-    await p2.waitForSelector('.of-ponte');
+    const e2 = []; p2.on('pageerror', e => e2.push(e.message));
+    await p2.goto(url('percurso.html', '?s=1')); await p2.waitForSelector('.pc-est');
+    const sair = async (onde) => {
+      const ant = await p2.evaluate(() => { window.__r = window.Faisca.PC.relogioAtual(); return window.__r.pendentes(); });
+      await p2.locator('.pc-est', { hasText: onde }).click();
+      await p2.waitForTimeout(2500);
+      return [ant, await p2.evaluate(() => [window.__r.morto, window.__r.pendentes()])];
+    };
+    await p2.locator('.pc-est', { hasText: 'Construir a ponte' }).click(); await p2.waitForSelector('.of-ponte');
     for (const t of ['1/2', '1/4', '1/4']) await p2.locator('.of-peca', { hasText: new RegExp('^' + t.replace('/', '\\/') + '$') }).first().click();
-    await p2.click('text=O Nico experimenta a ponte');
-    await p2.locator('.pc-est', { hasText: 'Programar' }).click();
-    await p2.waitForTimeout(2500);
-    const r2 = await p2.evaluate(() => ({ p: window.Faisca.PC.app.progresso(), t: document.querySelector('#atTitulo').textContent }));
-    ok(!r2.p.at['m1-pt1'] && !(r2.p.bolotas > 0), `sair a meio da ponte não conclui nem dá bolotas na estação nova («${r2.t}»)`);
+    await p2.click('text=O Nico experimenta a ponte'); await p2.waitForTimeout(200);
+    let [ant, [morto, pend]] = await sair('Programar');
+    let pp = await p2.evaluate(() => window.Faisca.PC.app.progresso());
+    ok(ant > 0 && morto && pend === 0 && !pp.at['m1-pt1'] && !(pp.bolotas > 0), `ponte: ${ant} temporizadores ativos ao sair → 0; sem conclusão nem bolotas`);
+    // correio: enviar e sair antes da resposta
+    await p2.locator('.pc-est', { hasText: 'Investigar' }).click(); await p2.waitForSelector('.of-manual');
+    await p2.evaluate(() => window.Faisca.PC.app.seguinte()); await p2.waitForSelector('.of-carta-caixa');
+    await p2.click('.tc-entrada'); await p2.keyboard.type('A rega do canteiro 3 já está reparada.', { delay: 2 });
+    await p2.waitForSelector('textarea.of-explica'); await p2.fill('textarea.of-explica', 'Amanhã vamos à horta ver as couves.'); await p2.click('text=Verificar a correção');
+    await p2.waitForSelector('button:has-text("Enviar")'); await p2.fill('textarea.of-explica', 'Dona Aurora, venha à Mostra de Invenções no dia 20 de maio, às dez horas, na escola!');
+    await p2.click('button:has-text("Enviar")');
+    [ant, [morto, pend]] = await sair('Aquecer');
+    pp = await p2.evaluate(() => window.Faisca.PC.app.progresso());
+    ok(ant > 0 && morto && pend === 0 && !pp.at['m1-c1'], `correio: a espera de 900 ms é cancelada ao sair (${ant} → 0) e não conclui`);
+    // horta a correr
+    await p2.goto(url('percurso.html', '?s=4')); await p2.waitForSelector('.pc-est');
+    await p2.locator('.pc-est', { hasText: 'Horta programável' }).click(); await p2.waitForSelector('.hp-canteiro');
+    await p2.evaluate(() => window.Faisca.PC.app.seguinte()); await p2.waitForSelector('.hp-canteiro');
+    await p2.click('.at-rodape .btn-azul'); await p2.click('.hp-prever .hp-op >> text="1"'); await p2.click('.hp-prever .btn-azul');
+    await p2.click('.at-rodape .btn-azul'); await p2.waitForTimeout(150);
+    [ant, [morto, pend]] = await sair('Aquecer');
+    ok(ant > 0 && morto && pend === 0, `horta: a animação pára ao sair (${ant} → 0)`);
+    ok(e2.length === 0, 'sem erros ao sair a meio' + (e2.length ? ': ' + e2.join(' | ') : ''));
     await ctx2.close();
   }
 
-  // ------------------------------------------------------------ outras sessões abrem sem erros (cada atividade)
-  console.log('Sessões 2–6 (abrir cada atividade)');
-  for (let s = 3; s <= 7; s++) {
+  // ------------------------------------------------------------ 8. alunos diferentes no mesmo computador
+  console.log('Alunos diferentes');
+  {
+    const ctx3 = await br.newContext({ viewport: { width: 1366, height: 768 } }), p3 = await ctx3.newPage();
+    const entrar = id => p3.evaluate(i => localStorage.setItem('nico.turma.sessao', JSON.stringify({ token: 't', desde: Date.now(), turma: { codigo: 'TESTE' }, aluno: { id: i, nome: i } })), id);
+    await p3.goto(url('percurso.html')); await entrar('ana'); await p3.goto(url('percurso.html', '?s=2'));
+    await p3.waitForSelector('.rt-alvo'); for (let i = 0; i < 12; i++) await p3.locator('.rt-alvo').click();
+    await p3.waitForSelector('#btnSeguinte:not([hidden])');
+    await entrar('rui'); await p3.goto(url('percurso.html'));
+    const rui = await p3.evaluate(() => window.Faisca.PC.app.progresso());
+    await entrar('ana'); await p3.goto(url('percurso.html'));
+    const ana = await p3.evaluate(() => window.Faisca.PC.app.progresso());
+    ok(!rui.at['s1-r1'] && !rui.bolotas && ana.at['s1-r1'] && ana.bolotas === 3, `progresso por aluno: Ana tem s1-r1 (${ana.bolotas} bolotas), Rui começa do zero`);
+    await ctx3.close();
+  }
+
+  // ------------------------------------------------------------ 9. todas as atividades de todas as missões abrem (inclui o treino extra)
+  console.log('Todas as atividades abrem e concluem');
+  for (let s = 2; s <= 7; s++) {
     await pg.goto(url('percurso.html', '?s=' + s));
     await pg.waitForSelector('#vSessao:not([hidden])');
-    const n = await pg.evaluate(k => window.Faisca.MISSOES['percurso-4'].sessoes[k].estacoes.flatMap(e => e.atividades).length, s - 1);
-    for (let k = 0; k < n; k++) {
-      if (k === 2 || k === 9) await foto(`s${s}-${k}`);
-      const jogo = await pg.evaluate(() => { const a = window.Faisca.PC.app.atual(); return !!(a && a.resolver); });
-      if (jogo) {
-        await pg.waitForTimeout(700);
-        await foto(`s${s}-${k}-jogo`);
-        await pg.evaluate(() => window.Faisca.PC.app.atual().resolver());
-        await pg.waitForTimeout(300);
-        ok(await pg.locator('#btnSeguinte:not([hidden])').count() === 1, `sessão ${s}: jogo «${await pg.textContent('#atTitulo')}» conclui`);
+    const ests = await pg.evaluate(k => window.Faisca.MISSOES['percurso-4'].sessoes[k].estacoes.map(e => e.atividades.length), s - 1);
+    let n = 0;
+    for (let e = 0; e < ests.length; e++) {
+      await pg.locator('.pc-est').nth(e).click();
+      for (let k = 0; k < ests[e]; k++) {
+        n++;
+        const jogo = await pg.evaluate(() => { const a = window.Faisca.PC.app.atual(); return !!(a && a.resolver); });
+        if (jogo) {
+          await pg.waitForTimeout(500);
+          if (k === 0) await foto(`s${s}-e${e}`);
+          await pg.evaluate(() => window.Faisca.PC.app.atual().resolver());
+          await pg.waitForSelector('.at-explica textarea, #btnSeguinte:not([hidden])', { timeout: 15000 }).catch(() => {});
+          if (await pg.locator('.at-explica textarea').count()) { await pg.fill('.at-explica textarea', 'Explicação de teste com algumas palavras.'); await pg.click('.at-explica .btn-azul'); }
+          await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 }).catch(() => {});
+          ok(await pg.locator('#btnSeguinte:not([hidden])').count() === 1, `missão ${s}: «${await pg.textContent('#atTitulo')}» conclui`);
+        }
+        if (k + 1 < ests[e]) { await pg.evaluate(() => window.Faisca.PC.app.seguinte()); await fecharJanela(); }
       }
-      await pg.evaluate(() => window.Faisca.PC.app.seguinte());
-      if (await pg.locator('#janela:not([hidden])').count()) await pg.click('#janelaBotoes .btn:last-child');
     }
-    ok(true, `sessão ${s}: ${n} atividades abertas`);
+    ok(true, `missão ${s}: ${n} atividades abertas`);
   }
 
   // ------------------------------------------------------------ prova-ensaio

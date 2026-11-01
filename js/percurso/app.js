@@ -49,8 +49,9 @@
   }
   // bolotas: recompensa fixa pela primeira conclusão (também com apoio). Repetir serve para aprender, não para juntar moedas.
   // As bolotas só compram decoração para a oficina do Nico — nunca pistas, temas ou vantagens (revisão do Ambrósio, 1 Nov).
-  function valor(at, res) { return res ? (at.missao || ['ponte', 'detetive', 'correio'].includes(at.tipo) ? 5 : 3) : 0; }
+  function valor(at, res) { return res ? (['caminho', 'ponte', 'detetive', 'correio', 'horta', 'mosaico'].includes(at.tipo) ? 5 : 3) : 0; }
   const sessaoFeita = s => atividadesDe(s).every(a => feitoEm(a.id));
+  const contam = s => s.estacoes.filter(e => !e.extra);   // o «Treino extra» é opcional: não conta para concluir
 
   // ------------------------------------------------------------ mapa
   function mapa() {
@@ -64,16 +65,17 @@
     X.sessoes.forEach((s, k) => {
       const ats = atividadesDe(s), feitas = ats.filter(a => feitoEm(a.id)).length;
       const b = h('button', { type: 'button', class: 'pc-sessao' + (feitas === ats.length ? ' feita' : '') },
-        h('span', { class: 'ps-num' }, rotulo(k)),
+        h('span', { class: 'ps-num' }, rotulo(k) + (s.lugar ? ' · ' + s.lugar : '')),
         h('strong', null, s.titulo),
-        h('span', { class: 'ps-tema' }, s.resumo),
-        h('span', { class: 'ps-areas' }, s.estacoes.map(e => {
+        h('span', { class: 'ps-tema' }, s.missao || s.resumo),
+        s.missao ? h('span', { class: 'ps-curr' }, s.resumo) : null,
+        h('span', { class: 'ps-areas' }, contam(s).map(e => {
           const t = e.atividades.length, f = e.atividades.filter(a => feitoEm(a.id)).length;
           const i = h('i'); i.style.width = (t ? 100 * f / t : 0) + '%'; i.style.background = AREAS[e.area].cor;
           return h('span', { title: AREAS[e.area].nome + ': ' + f + ' de ' + t }, i);
         })),
         h('span', { class: 'ps-estado' }, feitas === 0 ? 'Começar' : feitas === ats.length ? 'Feita ✓ · voltar' : `Continuar · ${feitas} de ${ats.length}`));
-      b.addEventListener('click', () => abrirSessao(k));
+      b.addEventListener('click', () => { abrirSessao.doMapa = true; abrirSessao(k); });
       L.append(b);
     });
     if (X.prova) {
@@ -91,15 +93,18 @@
     L.append(bOf);
     masc.dizer('boas_vindas', X.boasVindas);
   }
-  const atividadesDe = s => s.estacoes.flatMap(e => e.atividades);
+  const atividadesDe = s => contam(s).flatMap(e => e.atividades);
   // «Missão 1» (fatia vertical da Mostra de Invenções) ou «Sessão N» (as sessões numeradas sem contar as missões)
   const rotulo = k => X.sessoes[k].rotulo || 'Sessão ' + (X.sessoes.slice(0, k + 1).filter(s => !s.rotulo).length);
   const curto = k => X.sessoes[k].rotulo ? X.sessoes[k].rotulo.replace('Missão ', 'M') : String(X.sessoes.slice(0, k + 1).filter(s => !s.rotulo).length);
 
   // mapa da campanha: arte do Ambrósio (img/percurso/mapa-sem-ponte / mapa-com-ponte, 1536×1024) com botões por cima.
-  // Pontos: os do LEIA-ME do pacote. A sessão 3 (água) e a sessão 6 (Portugal) ainda não têm sítio próprio no mapa:
-  // ficam provisoriamente no Ateliê e no Correio até o Ambrósio as situar.
-  const SITIOS = { m1: [805, 515], s1: [265, 200], s2: [300, 440], s3: [1245, 790], s4: [275, 775], s5: [1260, 460], s6: [1280, 235], prova: [1220, 70] };
+  // Pontos e camadas: MAPA-E-CENARIOS.json do complemento (1 Nov 2026). A Água e o Património têm sítio próprio;
+  // a Horta (1260,460) recebe a sessão 5; Ateliê (1245,790) e Correio (1280,235) ficam reservados às suas funções.
+  const SITIOS = { m1: [805, 515], s1: [265, 200], s2: [300, 440], s3: [585, 650], s4: [275, 775], s5: [1260, 460], s6: [180, 70], prova: [1220, 70] };
+  const CAMADAS = [{ src: 'img/percurso/mapa-observatorio-agua.webp', x: 490, y: 510, w: 190, h: 126.667 }];   // nos dois estados da ponte
+  // tema dos cenários quando a atividade não traz um (themeBySession)
+  const TEMA_SESSAO = { s1: 'messejana', s2: 'montado', s3: 'alqueva', s4: 'fablab', s5: 'horta', s6: 'castelo', m1: 'alqueva' };
   function trilho() {
     const L = $('listaSessoes');
     const atualK = X.sessoes.findIndex(s => !sessaoFeita(s));
@@ -107,6 +112,9 @@
     const caixa = h('div', { class: 'pc-mapa-arte', role: 'list', 'aria-label': 'Mapa da Mostra de Invenções' },
       h('img', { class: 'ma-fundo', src: `img/percurso/mapa-${ponte ? 'com' : 'sem'}-ponte.webp`, alt: ponte ? 'Mapa: a ponte da ribeira já está construída' : 'Mapa: a ribeira ainda não tem ponte' }));
     const pos = ([x, y]) => ({ left: (100 * x / 1536) + '%', top: (100 * y / 1024) + '%' });
+    CAMADAS.forEach(c => { const i = h('img', { class: 'ma-camada', src: c.src, alt: '' }); Object.assign(i.style, pos([c.x, c.y]), { width: (100 * c.w / 1536) + '%', height: (100 * c.h / 1024) + '%' }); caixa.append(i); });
+    // marcas no mapa quando uma missão transforma o mundo (rótulos de texto; a pintura só muda onde o Ambrósio a desenhou)
+    (X.marcasMundo || []).forEach(m => { if (!(P.mundo || {})[m.id]) return; const e = h('span', { class: 'ma-marca' }, m.texto); Object.assign(e.style, pos(m.em)); caixa.append(e); });
     const etapas = [...X.sessoes.map((s, k) => ({ s, k, id: s.id })), ...(X.prova ? [{ prova: true, id: 'prova' }] : [])];
     etapas.forEach(e => {
       const sitio = SITIOS[e.id]; if (!sitio) return;
@@ -114,10 +122,10 @@
       const aqui = e.prova ? atualK < 0 : e.k === atualK;
       const b = h('button', { type: 'button', class: 'ma-no' + (feita ? ' feita' : '') + (aqui ? ' aqui' : ''), role: 'listitem',
         'aria-label': (e.prova ? X.prova.titulo : `${rotulo(e.k)}: ${e.s.titulo}`) + (feita ? ' (feita)' : '') },
-        h('b', null, feita ? '✓' : e.prova ? '★' : curto(e.k)), e.prova ? 'Prova-ensaio' : e.s.titulo,
+        h('b', null, feita ? '✓' : e.prova ? '★' : curto(e.k)), h('span', { class: 'ma-nome' }, e.prova ? 'Prova-ensaio' : (e.s.lugar || e.s.titulo)),
         feita && !e.prova && e.s.id === 'm1' ? h('img', { class: 'ma-ins', src: 'img/percurso/insignia-construtor-pontes.webp', alt: 'Insígnia Construtor de pontes' }) : null);
       Object.assign(b.style, pos(sitio));
-      b.addEventListener('click', () => e.prova ? abrirProva() : abrirSessao(e.k));
+      b.addEventListener('click', () => { if (e.prova) return abrirProva(); abrirSessao.doMapa = true; abrirSessao(e.k); });
       caixa.append(b);
       if (aqui) { const n = h('img', { class: 'ma-nico', src: 'img/percurso/nico-parado.webp', alt: '' }); Object.assign(n.style, pos([sitio[0], sitio[1] - 24])); caixa.append(n); }
     });
@@ -132,17 +140,24 @@
     const s = X.sessoes[k];
     if (e == null) {    // continuar onde ficou
       e = 0; a = 0;
-      outer: for (let i = 0; i < s.estacoes.length; i++) for (let j = 0; j < s.estacoes[i].atividades.length; j++) if (!feitoEm(s.estacoes[i].atividades[j].id)) { e = i; a = j; break outer; }
+      outer: for (let i = 0; i < s.estacoes.length; i++) { if (s.estacoes[i].extra) continue; for (let j = 0; j < s.estacoes[i].atividades.length; j++) if (!feitoEm(s.estacoes[i].atividades[j].id)) { e = i; a = j; break outer; } }
     }
     S = { k, e, a };
     vista('vSessao');
     mostrar();
+    // a missão começa com o problema (só quando se entra pelo mapa, para continuar)
+    if (abrirSessao.doMapa && s.missao) {
+      const feitas = atividadesDe(s).filter(x => feitoEm(x.id)).length, total = atividadesDe(s).length;
+      janela(s.imagem ? 'img:' + s.imagem : 'boas_vindas', `${s.rotulo || ''} · ${s.titulo}`.replace(/^ · /, ''), s.missao + (feitas ? ` (Já fizeste ${feitas} de ${total}.)` : ''),
+        [[feitas ? 'Continuar a missão' : 'Começar a missão', 'btn-azul', () => {}]]);
+    }
+    abrirSessao.doMapa = false;
   }
   function estacoesTopo() {
     const s = X.sessoes[S.k], nav = $('estacoes'); nav.innerHTML = '';
     s.estacoes.forEach((e, i) => {
       const feita = e.atividades.every(a => feitoEm(a.id));
-      const b = h('button', { type: 'button', class: 'pc-est' + (i === S.e ? ' atual' : '') + (feita ? ' feita' : ''), title: AREAS[e.area].nome },
+      const b = h('button', { type: 'button', class: 'pc-est' + (i === S.e ? ' atual' : '') + (feita ? ' feita' : '') + (e.extra ? ' extra' : ''), title: e.titulo || AREAS[e.area].nome },
         h('i', { class: feita ? '' : 'icone' }, feita ? '✓' : h('img', { src: `img/percurso/${AREAS[e.area].img}.webp`, alt: '' })), h('span', null, e.titulo || AREAS[e.area].nome));
       b.addEventListener('click', () => { S.e = i; S.a = 0; mostrar(); });
       nav.append(b);
@@ -152,6 +167,7 @@
   function mostrar() {
     fecharAtual();
     const minha = ++geracao, viva = () => minha === geracao && !$('vSessao').hidden;
+    const relogio = relogioAtual = F.PC.relogio();
     const s = X.sessoes[S.k], est = s.estacoes[S.e], at = est.atividades[S.a], A = AREAS[est.area];
     document.title = 'Nico · ' + s.titulo;
     estacoesTopo();
@@ -174,14 +190,17 @@
       const ja = feitoEm(at.id);
       const reg = Object.assign({ ok: !!res.ok, t: Math.round((performance.now() - t0) / 1000), ajudas }, res);
       // o que o professor precisa de saber: feito sozinho, feito com apoio (pistas ou 2.ª tentativa), ou com a resposta mostrada
-      reg.estado = !res.ok ? 'mostrada' : (ajudas > 0 || (res.tentativas || 1) > 1) ? 'apoio' : 'autonomo';
-      delete reg.valor;
+      reg.estado = !res.ok ? 'mostrada' : res.modo === 'mostrada' ? 'mostrada' : (ajudas > 0 || (!('modo' in res) && (res.tentativas || 1) > 1)) ? 'apoio' : 'autonomo';
+      delete reg.valor; delete reg.modo;
       if (res.valor !== undefined) reg.v = res.valor;
       // fica o melhor resultado (não se perde um «certo» por repetir)
       const antes = ja ? valor(at, ja) : 0, agora = valor(at, reg);   // só a 1.ª conclusão conta
       if (!ja || (!ja.ok && reg.ok) || (ja.ok && reg.ok && (reg.estrelas || 0) > (ja.estrelas || 0))) { P.at[at.id] = reg; if (agora > antes) ganhar(agora - antes); gravar(); }
       if (res.ok && at.transforma) { P.mundo = Object.assign({}, P.mundo, { [at.transforma]: true }); gravar(); }
       if (S && sessaoFeita(X.sessoes[S.k]) && !(P.insignias || []).includes(X.sessoes[S.k].id)) { P.insignias = [...(P.insignias || []), X.sessoes[S.k].id]; gravar(); }
+      // missão cumprida: o mundo do Nico muda (marca no mapa e peça na Mostra)
+      const tr = S && X.sessoes[S.k].transforma;
+      if (tr && sessaoFeita(X.sessoes[S.k]) && !(P.mundo || {})[tr.id]) { P.mundo = Object.assign({}, P.mundo, { [tr.id]: true }); gravar(); }
       if (res.ok && F.Som) F.Som.tocar('sucesso');
       if (frase !== null) masc.dizer(res.ok ? 'celebrar' : 'calma', frase || (res.ok ? elogio() : 'Não faz mal. Vê a resposta certa e a explicação — para a próxima já sabes.'));
       $('atMsg').textContent = res.ok ? (res.aberta ? 'Texto guardado ✓' : 'Certo! ✓') : 'Vê a resposta certa.';
@@ -191,7 +210,9 @@
       pts.children[S.a].className = (P.at[at.id].ok ? 'feito' : 'falhado') + ' atual';
     };
     const api = {
-      concluir, viva, dizer: (e, t) => { if (viva()) masc.dizer(e, t); },
+      concluir, viva, relogio, dizer: (e, t) => { if (viva()) masc.dizer(e, t); },
+      // rascunho por atividade (M4/M5): guardado a cada ação, para retomar depois de sair ou recarregar
+      rascunho: { ler: () => (P.rascunhos || {})[at.id], gravar: d => { if (!viva()) return; P.rascunhos = Object.assign({}, P.rascunhos, { [at.id]: d }); gravar(); } },
       msg: (t, tipo) => { if (!viva()) return; $('atMsg').textContent = t; $('atMsg').className = 'pr-msg ' + (tipo || ''); },
     };
     let ouvir = () => at.missao || at.pergunta || '';
@@ -203,10 +224,10 @@
       atual = F.PC.oficina.montar(palco, at, api);
       ouvir = () => at.pergunta || at.pedido || '';
     } else if (F.PC.jogos.tipos.includes(at.tipo)) {
-      atual = F.PC.jogos.montar(palco, at, api);
+      atual = F.PC.jogos.montar(palco, at.tema ? at : Object.assign({}, at, { tema: TEMA_SESSAO[s.id] }), api);
       ouvir = () => at.pergunta || '';
     } else if (F.PC.rt.tipos.includes(at.tipo)) {
-      F.PC.rt.montar(palco, at, api);
+      atual = F.PC.rt.montar(palco, at, api);
       ouvir = () => at.pergunta || '';
     } else {
       // item de pergunta (com o texto de leitura ao lado quando a estação o tem)
@@ -257,12 +278,15 @@
   }
   const ELOGIOS = ['Muito bem!', 'Isso mesmo!', 'Boa! Nem eu farejava melhor.', 'Certíssimo!', 'Excelente!', 'Assim é que é!'];
   const elogio = () => ELOGIOS[Math.floor(Math.random() * ELOGIOS.length)];
-  function fecharAtual() { if (atual && atual.fechar) atual.fechar(); atual = null; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+  let relogioAtual = null;
+  F.PC.relogioAtual = () => relogioAtual;
+  function fecharAtual() { if (atual && atual.fechar) atual.fechar(); atual = null; if (relogioAtual) relogioAtual.limpar(); if ('speechSynthesis' in window) speechSynthesis.cancel(); }
 
   function seguinte() {
     const s = X.sessoes[S.k], est = s.estacoes[S.e];
     if (S.a + 1 < est.atividades.length) { S.a++; mostrar(); return; }
-    if (S.e + 1 < s.estacoes.length) {
+    if (est.extra) { fimSessao(); return; }
+    if (S.e + 1 < s.estacoes.length && !s.estacoes[S.e + 1].extra) {
       const prox = s.estacoes[S.e + 1];
       janela('celebrar', `${AREAS[est.area].nome}: feito!`, `A seguir: ${prox.titulo || AREAS[prox.area].nome}.`,
         [['Continuar', 'btn-escuro', () => { S.e++; S.a = 0; mostrar(); }]]);
@@ -273,7 +297,9 @@
   function fimSessao() {
     fecharAtual();
     const s = X.sessoes[S.k];
-    const linhas = s.estacoes.map(e => { const t = e.atividades.length, f = e.atividades.filter(a => feitoEm(a.id) && feitoEm(a.id).ok).length; return `${AREAS[e.area].nome}: ${f} de ${t}`; });
+    const linhas = contam(s).map(e => { const t = e.atividades.length, f = e.atividades.filter(a => feitoEm(a.id) && feitoEm(a.id).ok).length; return `${e.titulo || AREAS[e.area].nome}: ${f} de ${t}`; });
+    const iExtra = s.estacoes.findIndex(e => e.extra);
+    const bExtra = iExtra >= 0 ? [['Treino extra (opcional)', 'btn-texto', () => { S.e = iExtra; S.a = 0; mostrar(); }]] : [];
     const falta = atividadesDe(s).filter(a => !feitoEm(a.id)).length;
     const ins = sessaoFeita(s) && s.insignia ? ` Ganhaste a insígnia «${s.insignia}»! 🏅` : '';
     if (falta) {   // não dizer «terminada» quando ainda há atividades por fazer
@@ -281,8 +307,9 @@
         [['Voltar ao percurso', 'btn-texto', mapa], ['Continuar o que falta', 'btn-azul', () => abrirSessao(S.k)]]);
       return;
     }
-    janela(s.id === 'm1' ? 'insignia' : 'celebrar', s.rotulo ? 'Missão cumprida!' : 'Sessão terminada!', linhas.join(' · ') + ins,
-      [['Voltar ao percurso', 'btn-escuro', mapa], ...(S.k + 1 < X.sessoes.length ? [['Seguinte →', 'btn-azul', () => abrirSessao(S.k + 1)]] : [])]);
+    const mundo = s.transforma ? ` No mapa: ${s.transforma.texto}` : '';
+    janela(s.id === 'm1' ? 'insignia' : 'celebrar', s.rotulo ? 'Missão cumprida!' : 'Sessão terminada!', linhas.join(' · ') + ins + mundo,
+      [['Voltar ao percurso', 'btn-escuro', mapa], ...bExtra, ...(S.k + 1 < X.sessoes.length ? [['Seguinte →', 'btn-azul', () => { abrirSessao.doMapa = true; abrirSessao(S.k + 1); }]] : [])]);
   }
 
   // ------------------------------------------------------------ prova-ensaio
@@ -397,17 +424,25 @@
       b.addEventListener('click', () => { if (tem.has(id) || (P.bolotas || 0) < preco) return; P.bolotas -= preco; P.oficina = [...tem, id]; gravar(); if (F.Som) F.Som.tocar('nivel'); oficina(); });
       loja.append(b);
     });
+    const mostra = h('ul', { class: 'pc-mostra' });
+    X.sessoes.forEach(s => {
+      const tr = s.transforma || (s.id === 'm1' ? { id: 'ponte', texto: 'Ponte da ribeira ✓' } : null);
+      if (!tr) return;
+      const tem = !!(P.mundo || {})[tr.id];
+      mostra.append(h('li', { class: tem ? 'tem' : '' }, h('strong', null, s.rotulo || ''), ' ', tem ? tr.texto : `${s.titulo} — ainda por fazer`));
+    });
     const v = $('vOficina'); v.innerHTML = '';
     v.append(h('div', { class: 'pc-mapa' }, h('div', { class: 'pc-oficina' }, h('h1', null, 'A oficina do Nico'),
       h('p', null, 'É aqui que o Nico prepara a Mostra de Invenções. Ganhas bolotas por cada atividade que acabas (uma vez por atividade) e podes usá-las para decorar.'),
-      cena, loja, h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: mapa }, '← Voltar ao percurso')))));
+      cena, h('h2', null, 'Na Mostra de Invenções'), mostra, h('h2', null, 'Decorar a oficina'), loja, h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: mapa }, '← Voltar ao percurso')))));
     masc.dizer('celebrar', tem.size ? 'Está a ficar linda, a nossa oficina!' : 'Ainda está vazia… escolhe o primeiro enfeite!');
   }
 
   // ------------------------------------------------------------ janela e vistas
   function janela(estado, titulo, texto, botoes) {
-    $('janelaImg').src = estado === 'insignia' ? 'img/percurso/insignia-construtor-pontes.webp' : masc.img(estado);
-    $('janelaImg').className = estado === 'insignia' ? 'insignia' : '';
+    const ilu = estado.startsWith('img:') ? estado.slice(4) : null;   // ilustração do Ambrósio para o destino (ex.: casa do território)
+    $('janelaImg').src = ilu || (estado === 'insignia' ? 'img/percurso/insignia-construtor-pontes.webp' : masc.img(estado));
+    $('janelaImg').className = estado === 'insignia' || ilu ? 'insignia' : '';
     $('janelaTitulo').textContent = titulo; $('janelaTexto').textContent = texto;
     const bx = $('janelaBotoes'); bx.innerHTML = '';
     botoes.forEach(([t, cls, f]) => { const b = h('button', { type: 'button', class: 'btn btn-grande ' + cls }, t); b.onclick = () => { $('janela').hidden = true; f(); }; bx.append(b); });

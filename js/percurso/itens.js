@@ -80,6 +80,22 @@
     }
   }
   F.PC.arrastavel = arrastavel;
+  // Relógio de uma atividade: todos os temporizadores e esperas passam por aqui; ao sair, limpar() cancela-os todos
+  // (as esperas pendentes nunca resolvem, por isso as sequências assíncronas param onde estavam).
+  F.PC.relogio = () => {
+    const to = new Set(), iv = new Set(); let morto = false;
+    const R = {
+      depois(fn, ms) { if (morto) return 0; const id = setTimeout(() => { to.delete(id); if (!morto) fn(); }, ms); to.add(id); return id; },
+      cada(fn, ms) { if (morto) return 0; const id = setInterval(() => { if (!morto) fn(); }, ms); iv.add(id); return id; },
+      parar(id) { clearTimeout(id); clearInterval(id); to.delete(id); iv.delete(id); },
+      espera: ms => new Promise(r => R.depois(r, ms)),
+      limpar() { morto = true; to.forEach(clearTimeout); iv.forEach(clearInterval); to.clear(); iv.clear(); },
+      pendentes: () => to.size + iv.size,
+      get morto() { return morto; },
+    };
+    return R;
+  };
+  F.PC.relogioDe = api => (api && api.relogio) || F.PC.relogio();
 
   // ------------------------------------------------------------ estímulos (figuras e tabelas)
   const NS = 'http://www.w3.org/2000/svg';

@@ -43,6 +43,71 @@
     return f[0] === 1 && um ? 'um ' + um : f[0] + '/' + f[1];
   }
 
+  // ------------------------------------------------------------ transformação visível da reparação (Detetive, fase 3)
+  // Desenho esquemático exato em SVG (sem arte nova): avaria → reparado → a funcionar, com legenda em texto.
+  const REPARACOES = {
+    tubo: {
+      legendas: ['O tubo do canteiro 3 está esmagado: a água para ali.', 'O tubo foi endireitado e reparado.', 'A água passa outra vez e chega ao canteiro 3.'],
+      svg: `<rect x="16" y="24" width="84" height="100" rx="8" fill="#fff" stroke="#66523E" stroke-width="4"/>
+        <rect x="20" y="52" width="76" height="68" rx="5" fill="#8fc8ec"/><text x="58" y="44" text-anchor="middle" font-size="15" font-weight="700" fill="#17213B">depósito</text>
+        <rect x="500" y="104" width="96" height="40" rx="6" fill="#b07a45" stroke="#66523E" stroke-width="3"/><text x="548" y="130" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">canteiro 3</text>
+        <g class="rp-antes"><path d="M100 80 H270 Q300 80 300 92 Q300 104 330 104 H520" fill="none" stroke="#66523E" stroke-width="22" stroke-linejoin="round"/>
+          <path d="M100 80 H270 Q300 80 300 92 Q300 104 330 104 H520" fill="none" stroke="#fff" stroke-width="15" stroke-linejoin="round"/>
+          <path d="M282 72 L318 112 M318 72 L282 112" stroke="#d6336c" stroke-width="5"/>
+          <path d="M102 80 H268" stroke="#4aa3df" stroke-width="9" stroke-linecap="round"/></g>
+        <g class="rp-depois"><path d="M100 92 H520" stroke="#66523E" stroke-width="22"/><path d="M100 92 H520" stroke="#fff" stroke-width="15"/>
+          <rect x="286" y="78" width="28" height="28" rx="4" fill="none" stroke="#2038A6" stroke-width="4"/></g>
+        <g class="rp-fluxo"><path class="rp-agua" d="M102 92 H518" stroke="#4aa3df" stroke-width="9" stroke-linecap="round" stroke-dasharray="18 10"/>
+          <circle cx="532" cy="110" r="5" fill="#4aa3df"/><circle cx="548" cy="116" r="4" fill="#4aa3df"/><circle cx="564" cy="110" r="5" fill="#4aa3df"/></g>`,
+    },
+    circuito: {
+      legendas: ['O fio está desligado: o circuito está aberto e a luz não acende.', 'O fio foi ligado outra vez: o circuito ficou fechado.', 'A corrente passa e a luz acende.'],
+      svg: `<rect x="40" y="56" width="90" height="44" rx="6" fill="#fff" stroke="#66523E" stroke-width="4"/><text x="85" y="84" text-anchor="middle" font-size="15" font-weight="700" fill="#17213B">pilha</text>
+        <circle cx="470" cy="78" r="30" fill="#fff" stroke="#66523E" stroke-width="4"/><text x="470" y="132" text-anchor="middle" font-size="15" font-weight="700" fill="#17213B">luz</text>
+        <path d="M130 78 H260 M340 78 H440" stroke="#66523E" stroke-width="6" stroke-linecap="round"/>
+        <g class="rp-antes"><path d="M260 78 L300 50" stroke="#66523E" stroke-width="6" stroke-linecap="round"/><path d="M296 70 L312 86 M312 70 L296 86" stroke="#d6336c" stroke-width="4"/></g>
+        <g class="rp-depois"><path d="M260 78 H340" stroke="#2038A6" stroke-width="6" stroke-linecap="round"/></g>
+        <g class="rp-fluxo"><circle cx="470" cy="78" r="22" fill="#ffd34d"/><path d="M470 34 V22 M506 48 L516 40 M434 48 L424 40" stroke="#e0a800" stroke-width="4" stroke-linecap="round"/></g>`,
+    },
+  };
+  REPARACOES.placa = {
+    legendas: ['O N da placa estava virado para o Sol do meio-dia, que está a sul: tudo ao contrário.', 'A placa rodou meia volta.', 'Agora o N aponta para norte e a seta da escola também.'],
+    svg: `<circle cx="470" cy="80" r="26" fill="#ffd34d" stroke="#e0a800" stroke-width="4"/><text x="470" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#17213B">Sol do meio-dia (sul)</text>
+      <path d="M150 140 V96" stroke="#66523E" stroke-width="8"/><text x="60" y="150" font-size="14" font-weight="700" fill="#17213B">placa</text>
+      <g class="rp-antes"><g transform="translate(150 70) rotate(90)"><circle r="34" fill="#fff" stroke="#66523E" stroke-width="4"/><path d="M0 -28 L7 0 L0 28 L-7 0Z" fill="#d6336c"/><text y="-38" text-anchor="middle" font-size="16" font-weight="800" fill="#d6336c" transform="rotate(-90 0 -44)">N</text></g>
+        <path d="M200 70 H300" stroke="#d6336c" stroke-width="5" marker-end="url(#rpSeta)"/><text x="250" y="58" text-anchor="middle" font-size="14" font-weight="700" fill="#d6336c">«norte» ✗</text></g>
+      <g class="rp-depois"><g transform="translate(150 70) rotate(-90)"><circle r="34" fill="#fff" stroke="#66523E" stroke-width="4"/><path d="M0 -28 L7 0 L0 28 L-7 0Z" fill="#2038A6"/><text y="-38" text-anchor="middle" font-size="16" font-weight="800" fill="#2038A6" transform="rotate(90 0 -44)">N</text></g></g>
+      <g class="rp-fluxo"><path d="M100 70 H20" stroke="#2e8b57" stroke-width="5" marker-end="url(#rpSetaV)"/><text x="60" y="58" text-anchor="middle" font-size="14" font-weight="700" fill="#2e8b57">norte ✓</text></g>
+      <defs><marker id="rpSeta" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#d6336c"/></marker>
+        <marker id="rpSetaV" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2e8b57"/></marker></defs>`,
+  };
+  // linha do tempo exata (anos verdadeiros dos dados da atividade)
+  function calendario(d) {
+    const x = a => 50 + (a - d.de) / (d.ate - d.de) * 512, m = d.marca, hj = d.hoje;
+    const marcaSvg = (a, t, cor) => `<path d="M${x(a)} 70 V110" stroke="${cor}" stroke-width="4"/><text x="${x(a)}" y="132" text-anchor="middle" font-size="15" font-weight="800" fill="${cor}">${a}${t ? ' · ' + t : ''}</text>`;
+    return {
+      legendas: d.legendas,
+      svg: `<path d="M40 90 H572" stroke="#66523E" stroke-width="4"/>
+        <text x="${x(d.de)}" y="58" text-anchor="middle" font-size="15" font-weight="800" fill="#17213B">${d.de}</text><path d="M${x(d.de)} 80 V100" stroke="#17213B" stroke-width="4"/>
+        <g class="rp-antes">${m ? marcaSvg(m, d.nome, '#d6336c') : `<text x="${x(d.de)}" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#d6336c">última tiragem</text>`}</g>
+        <g class="rp-depois"><rect x="${x(d.de)}" y="82" width="${x(d.ate) - x(d.de)}" height="16" rx="6" fill="#4aa3df" fill-opacity=".45"/>
+          <text x="${x(d.ate)}" y="58" text-anchor="middle" font-size="15" font-weight="800" fill="#17213B">${d.ate}</text><path d="M${x(d.ate)} 80 V100" stroke="#17213B" stroke-width="4"/></g>
+        <g class="rp-fluxo">${m ? marcaSvg(m, d.nome, '#2e8b57') : ''}${hj ? marcaSvg(hj, 'hoje', '#d6336c') : ''}</g>`,
+    };
+  }
+  function reparacao(tipo, R, dados) {
+    const def = tipo === 'calendario' && dados ? calendario(dados) : (REPARACOES[tipo] || REPARACOES.tubo);
+    const caixa = h('figure', { class: 'of-reparacao fase-1' });
+    caixa.innerHTML = `<svg viewBox="0 0 612 160" role="img" aria-label="Reparação: antes e depois">${def.svg}</svg>`;
+    const leg = h('figcaption', { 'aria-live': 'polite' }, '1. ' + def.legendas[0]);
+    caixa.append(leg);
+    const ir = n => { caixa.className = 'of-reparacao fase-' + n; leg.textContent = def.legendas.slice(0, n).map((t, i) => `${i + 1}. ${t}`).join(' '); };
+    const pouco = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (pouco) ir(3); else { R.depois(() => ir(2), 1100); R.depois(() => ir(3), 2200); }
+    caixa.ir = ir;
+    return caixa;
+  }
+
   const T = {};
 
   // =================================================================================== M1 · Pontes de cortiça
@@ -52,6 +117,7 @@
     // cenário do Ambrósio (img/percurso/ribeira, 900×330): margens em x≈175 e x≈688, chão em y=166 (LEIA-ME do pacote de arte)
     const W = 900, M0 = 175, VAO = 513, esc = VAO / valorNum(alvo), Y = 166, ALT = 22;
     let postas = [], sel = 0, tent = 0, feito = false; const t0 = performance.now();
+    const R = F.PC.relogioDe(api);
     const svg = svgEl('svg', { viewBox: `0 0 ${W} 330`, class: 'of-ponte', role: 'img', 'aria-label': 'Ribeira com o vão da ponte' });
     const caixa = h('div', { class: 'of-tabuleiro', role: 'listbox', 'aria-label': 'Peças de cortiça (setas para escolher, Enter para pôr)', tabindex: '0' });
     const estado = h('p', { class: 'of-estado' });
@@ -102,6 +168,7 @@
       const tot = total(), c = cmp(tot, alvo);
       estado.textContent = postas.length ? `Ponte: ${postas.map(p => p.t).join(' + ')} = ${escrever(tot, dec, at.unidade)}` + (c < 0 ? ' · ainda há vão' : c > 0 ? ' · passa do vão!' : ' · tem a medida do vão') : 'Ainda não há peças no vão.';
       caixa.innerHTML = '';
+      if (pecas[sel] && pecas[sel].usada) { const l = pecas.findIndex(p => !p.usada); sel = l < 0 ? 0 : l; }   // a seleção nunca fica numa peça já posta
       pecas.forEach((p, k) => {
         if (p.usada) return;
         const b = h('span', { class: 'of-peca' + (k === sel ? ' sel' : ''), role: 'option', 'aria-selected': String(k === sel) }, p.t);
@@ -133,9 +200,9 @@
     const poucoMovimento = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const anda = (x, ms) => new Promise(r => {
       if (!vivo) return;
-      let f = 0; const passo = poucoMovimento ? null : setInterval(() => { if (vivo) pose('anda-' + (f++ % 4 + 1)); }, 125);
+      let f = 0; const passo = poucoMovimento ? 0 : R.cada(() => pose('anda-' + (f++ % 4 + 1)), 125);
       nico.style.transition = `transform ${ms}ms linear`; nico.style.transform = `translateX(${x}px)`;
-      setTimeout(() => { clearInterval(passo); if (vivo) pose('parado'); r(); }, ms + 30);
+      R.depois(() => { R.parar(passo); pose('parado'); r(); }, ms + 30);
     });
     btnTestar.addEventListener('click', async () => {
       if (feito) return;
@@ -161,14 +228,14 @@
       } else {
         api.dizer('a_pensar', `A medida está certa, mas a missão pede ${n} peças e usaste ${postas.length}. Consegues de outra maneira?`);
       }
-      await new Promise(r => setTimeout(r, 900));
+      await R.espera(900);
       await anda(0, 500);
       btnTestar.disabled = false;
     });
     desenhar();
     api.dizer('boas_vindas', at.boasVindas || 'A ribeira levou a ponte! Constrói uma nova com as peças de cortiça. Quando achares que está bem, eu experimento.');
     return {
-      fechar: () => { vivo = false; },
+      fechar: () => { vivo = false; R.limpar(); },
       resolver: () => {
         // procura uma combinação que sirva (para os testes): todas as subsequências das peças
         const n = pecas.length;
@@ -185,6 +252,7 @@
   // =================================================================================== M2 · Detetive da oficina
   T.detetive = (el, at, api) => {
     const t0 = performance.now(); let fase = 1, falhasPistas = 0, tentOrdem = 0, ordemCtrl = null;
+    const R = F.PC.relogioDe(api);
     const achadas = new Set();
     const manual = h('div', { class: 'of-manual', tabindex: '0', 'aria-label': 'Manual (rola para ler)' }, h('h2', null, at.manual.titulo));
     at.manual.seccoes.forEach((sc, i) => {
@@ -201,7 +269,7 @@
             caderno();
             if (achadas.size === at.pistas.length) { const b = h('button', { type: 'button', class: 'btn btn-azul' }, 'Já tenho as pistas → ordenar a reparação'); b.addEventListener('click', () => irFase(2)); corpo.append(b); b.focus(); }
           } else {
-            falhasPistas++; som('apagar'); s.classList.add('nao'); setTimeout(() => s.classList.remove('nao'), 700);
+            falhasPistas++; som('apagar'); s.classList.add('nao'); R.depois(() => s.classList.remove('nao'), 700);
             api.dizer('a_pensar', at.dicaPista || 'Essa frase é verdade, mas ajuda a explicar a avaria? Relê o pedido.');
           }
         };
@@ -238,7 +306,7 @@
         });
         corpo.append(b);
       } else {
-        const anim = h('div');
+        const anim = reparacao(at.reparacao || 'tubo', R, at.linhaTempo);
         const ta = h('textarea', { class: 'of-explica', placeholder: 'Escreve aqui…', 'aria-label': 'A tua explicação' });
         const lista = h('ul', { class: 'it-lista' });
         const crit = F.PC.itens.criteriosExtensa({ min: at.minExplica || 8 });
@@ -251,14 +319,14 @@
           api.concluir({ ok: true, tempo: seg(t0), falhas: falhasPistas, tentativas: tentOrdem, valor: ta.value, aberta: true }, at.sucesso || 'Caso resolvido! O relatório fica para o professor ler. 🔎');
         });
         corpo.append(anim, h('p', { class: 'pe-pergunta' }, at.explicar || 'Explica numa ou duas frases o que estava avariado e como o descobriste.'), ta, lista, b);
-        som('sucesso');
+        som('sucesso'); anim.scrollIntoView({ block: 'nearest' });
         api.dizer('celebrar', at.reparado || 'Funciona outra vez! Agora explica o que descobriste.');
       }
     }
     irFase(1);
     api.dizer('boas_vindas', at.boasVindas || 'Temos um caso na oficina! Lê o manual à esquerda e encontra as pistas.');
     return {
-      fechar: () => {},
+      fechar: () => R.limpar(),
       resolver: () => {
         at.pistas.forEach(id => manual.querySelector(`[data-id="${id}"]`).click());
         irFase(2); ordemCtrl.repor(at.passos.map((_, i) => i)); corpo.querySelector('.btn-azul').click();
@@ -271,6 +339,7 @@
   // =================================================================================== M3 · Correio do Nico
   T.correio = (el, at, api) => {
     const t0 = performance.now(); let fase = 0, enganos = 0, tentEdicao = 0, total = 0, tCopia = null, ccm = 0;
+    const R = F.PC.relogioDe(api);
     const fasesDef = [at.copia ? 'copia' : null, at.rascunho ? 'edicao' : null, at.propria ? 'propria' : null].filter(Boolean);
     const carta = h('div', { class: 'of-carta' });
     const topo = h('div', { class: 'of-carta-topo' }, h('span', { class: 'of-selo', 'aria-hidden': 'true' }, h('img', { src: 'img/percurso/correio-selo.webp', alt: '' })), h('div', null, h('small', null, 'Para:'), h('strong', null, at.para)), h('img', { class: 'of-envelope', src: 'img/percurso/correio-envelope.webp', alt: '' }));
@@ -301,12 +370,12 @@
           if (!tCopia) tCopia = performance.now();
           if (ev.inputType === 'insertText' && ev.data) { const pos = (inp.selectionStart || inp.value.length) - ev.data.length; [...ev.data].forEach((c, i) => { total++; if (c !== L[pos + i]) enganos++; }); }
           pintar();
-          if (inp.value.normalize('NFC') === L) { ccm = Math.round(L.length / (((performance.now() - tCopia) / 1000) / 60 || 1)); textos.copia = L; som('encaixe'); inp.disabled = true; setTimeout(seguinte, 600); }
+          if (inp.value.normalize('NFC') === L) { ccm = Math.round(L.length / (((performance.now() - tCopia) / 1000) / 60 || 1)); textos.copia = L; som('encaixe'); inp.disabled = true; R.depois(seguinte, 600); }
         });
         ajuda.querySelector('input').addEventListener('change', () => { pintar(); inp.focus(); });
         carta.append(h('p', { class: 'of-manuscrito' }, at.copia));
         corpo.append(h('p', { class: 'pe-instr' }, 'Copia a mensagem do Nico para o envelope, letra a letra.'), alvo, inp, dica, ajuda);
-        pintar(); setTimeout(() => inp.focus(), 60);
+        pintar(); R.depois(() => inp.focus(), 60);
         api.dizer('boas_vindas', 'Primeiro copia a mensagem. Lê-a antes de começar!');
       } else if (f === 'edicao') {
         const ta = h('textarea', { class: 'of-explica', spellcheck: 'false', 'aria-label': 'Rascunho para corrigir' });
@@ -317,7 +386,7 @@
         b.addEventListener('click', () => {
           tentEdicao++;
           const v = norm(ta.value);
-          if (at.certo.some(c => norm(c) === v)) { textos.edicao = v; som('encaixe'); res.textContent = 'Corrigido ✓'; ta.readOnly = true; b.disabled = true; setTimeout(seguinte, 700); return; }
+          if (at.certo.some(c => norm(c) === v)) { textos.edicao = v; som('encaixe'); res.textContent = 'Corrigido ✓'; ta.readOnly = true; b.disabled = true; R.depois(seguinte, 700); return; }
           // quantas palavras ainda são diferentes da versão certa mais parecida
           const pv = v.split(' '), melhor = at.certo.map(c => norm(c).split(' ')).map(c => c.reduce((n, w, i) => n + (w !== pv[i] ? 1 : 0), 0) + Math.abs(c.length - pv.length)).sort((a, b) => a - b)[0];
           res.textContent = `Ainda há ${melhor} ${melhor === 1 ? 'palavra' : 'palavras'} por corrigir.`;
@@ -325,7 +394,7 @@
         });
         carta.append(h('p', { class: 'of-manuscrito riscado' }, at.rascunho));
         corpo.append(h('p', { class: 'pe-instr' }, at.instrEdicao || 'O rascunho tem erros. Corrige-o na caixa: usa as setas para andar no texto, ⌫ para apagar e escreve o que falta.'), ta, res, b);
-        setTimeout(() => ta.focus(), 60);
+        R.depois(() => ta.focus(), 60);
         api.dizer('a_pensar', 'Escrevi isto à pressa… Ajudas-me a corrigir antes de enviar?');
       } else {
         const ta = h('textarea', { class: 'of-explica', 'aria-label': 'A tua mensagem', placeholder: at.propria.dica || 'Escreve aqui a tua mensagem…' });
@@ -339,7 +408,7 @@
           textos.propria = ta.value; b.disabled = true; ta.readOnly = true; seguinte();
         });
         corpo.append(h('p', { class: 'pe-pergunta' }, at.propria.pergunta), ta, lista, b);
-        setTimeout(() => ta.focus(), 60);
+        R.depois(() => ta.focus(), 60);
         api.dizer('curiosa', 'Agora escreve tu. Lê a mensagem antes de a enviares!');
       }
     }
@@ -347,7 +416,7 @@
       pintarFases(); corpo.innerHTML = '';
       carta.innerHTML = ''; carta.append(h('p', { class: 'of-manuscrito' }, textos.propria || textos.edicao || textos.copia));
       carta.parentNode.classList.add('enviada'); som('sucesso');
-      setTimeout(() => {
+      R.depois(() => {
         corpo.append(h('div', { class: 'of-resposta' }, h('strong', null, `Resposta ${at.respostaDe || 'de ' + at.para}:`), h('p', null, at.resposta)));
         api.concluir({ ok: true, tempo: seg(t0), falhas: enganos, ccm, precisao: total ? Math.round(100 * (total - enganos) / total) : 100, tentativas: tentEdicao || 1, valor: textos.propria || '', aberta: !!at.propria },
           'Mensagem entregue! Olha, já respondeu. 📬');
@@ -355,7 +424,7 @@
     }
     mostrar();
     return {
-      fechar: () => {},
+      fechar: () => R.limpar(),
       resolver: () => {
         textos.copia = at.copia; textos.edicao = at.certo && at.certo[0]; textos.propria = 'O Nico escreveu uma mensagem muito bonita para a oficina do Buinho.';
         fase = fasesDef.length; enviar();
@@ -363,5 +432,7 @@
     };
   };
 
-  F.PC.oficina = { montar: (el, at, api) => { el.innerHTML = ''; return T[at.tipo](el, at, api); }, tipos: Object.keys(T), fr, soma, cmp };
+  const tipos = Object.keys(T);
+  F.PC.oficina = { montar: (el, at, api) => { el.innerHTML = ''; return T[at.tipo](el, at, api); }, tipos, fr, soma, cmp, reparacao,
+    registar: (nome, fn) => { T[nome] = fn; if (!tipos.includes(nome)) tipos.push(nome); } };
 })();

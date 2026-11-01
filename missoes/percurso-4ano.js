@@ -57,7 +57,8 @@
     // A Mostra de Invenções: a ribeira levou a ponte do caminho para a horta. Construir, investigar, escrever e programar
     // são momentos da mesma missão; a ponte construída fica no mapa.
     {
-      id: 'm1', rotulo: 'Missão 1', insignia: 'Construtor de pontes', titulo: 'A ponte da ribeira',
+      id: 'm1', rotulo: 'Missão 1', lugar: 'Ponte da ribeira', insignia: 'Construtor de pontes', titulo: 'A ponte da ribeira',
+      missao: 'A ribeira levou a ponte do caminho para a horta. Sem ponte, a cortiça não chega à Mostra e a rega da horta avariou.',
       resumo: 'A ribeira levou a ponte: constrói-a com frações, descobre porque a rega falhou, escreve à Dona Aurora e programa a rega.',
       estacoes: [
         { area: 'maos', titulo: 'Aquecer as mãos', atividades: [
@@ -582,6 +583,214 @@
     },
   ];
 
+  // ================================================================================================= SESSÕES → MISSÕES
+  // Conversão das sessões 1–6 no modelo aprovado (revisão do Ambrósio, PR #68): cada sessão é uma missão da Mostra com um
+  // problema, e a turma constrói, investiga, programa e escreve — e no fim o mundo do Nico muda (marca no mapa e na oficina).
+  // Os ids antigos ficam todos (o progresso guarda-se por id). Os mini-jogos mais fracos (plataforma, apanhar, memória e
+  // balões) passam para um «Treino extra» opcional, que não conta para concluir a missão.
+  const PISTAS_CORREIO = ['Lê cada mensagem antes de escrever.', 'Maiúscula no início, ponto final no fim.', 'Relê a tua mensagem antes de enviar: falta alguma palavra?'];
+  const P_HORTA = ['Lê o sensor: clica num canteiro (ou usa as setas e Enter) para veres quantas gotas tem.', 'Usa 👣 Um passo: vê o que o programa faz em cada canteiro.', 'Rega só quando o canteiro está seco: põe o «regar» dentro do «se estiver seco».'];
+  const P_MOSAICO = ['Conta os azulejos: cada um é 1 quadrado de área.', 'Para o perímetro, conta os lados de fora, à volta da forma.', 'Experimenta «Mostrar o contorno» depois de verificar.'];
+  const NOVAS = {
+    // ---- Missão 2 · Messejana
+    's1-d1': { id: 's1-d1', tipo: 'detetive', titulo: 'Detetive: a placa trocada', reparacao: 'placa',
+      pedido: 'A placa da praça diz que a escola fica a norte, mas quem segue a seta vai parar à ribeira, que fica a sul. O que está errado na placa?',
+      manual: { titulo: 'Manual das placas de orientação', seccoes: [
+        { titulo: 'Como se faz uma placa', frases: ['A placa tem uma rosa dos ventos pintada no topo.', 'O N da rosa dos ventos tem de apontar para norte.', 'As setas com os nomes dos sítios saem do centro da placa.'] },
+        { titulo: 'Como encontrar o norte', frases: ['O Sol nasce a este e põe-se a oeste.', 'Ao meio-dia, em Portugal, o Sol está a sul.', 'Se ficares de costas para o Sol do meio-dia, olhas para norte.'] },
+        { titulo: 'Registo da instalação', frases: ['A placa foi pintada na oficina numa sexta-feira.', 'O Sr. Rui fixou a placa ao meio-dia, com o N virado para o Sol.', 'As cores da placa são azul e branco, como as casas.'] },
+      ] },
+      pistas: ['1.2', '2.2', '3.2'],
+      ajudas: ['O problema é a direção: procura frases sobre o N e sobre o Sol.', 'Onde está o Sol ao meio-dia? Há uma frase sobre isso.', 'No registo da instalação, para onde viraram o N?'],
+      porquePistas: { '1.2': 'Isso! O N tem de apontar para norte.', '2.2': 'Boa! Ao meio-dia o Sol está a sul.', '3.2': 'Apanhado! Viraram o N para o Sol do meio-dia… que está a sul.' },
+      dicaPista: 'Essa frase é verdade, mas explica porque é que a seta aponta ao contrário?',
+      passos: ['Ler o que diz o manual sobre o N da rosa dos ventos.', 'Ao meio-dia, ver onde está o Sol: a sul.', 'Rodar a placa para o N ficar do lado contrário ao Sol.', 'Confirmar que a seta da escola aponta agora para norte.'],
+      reparado: 'A placa já aponta bem! Agora explica o que descobriste.',
+      explicar: 'Escreve no relatório o que estava errado na placa e como o descobriste.' },
+    's1-c1': { id: 's1-c1', tipo: 'correio', titulo: 'Correio para a Junta', para: 'Junta de Freguesia de Messejana', respostaDe: 'da Junta de Freguesia',
+      copia: 'As placas da Mostra já apontam para norte.',
+      rascunho: 'a mostra é em messejana, ao pé da escola', certo: ['A Mostra é em Messejana, ao pé da escola.'],
+      dicaEdicao: 'Os nomes próprios e o início da frase levam maiúscula: «A», «Mostra», «Messejana». E falta o ponto final.',
+      propria: { pergunta: 'Escreve à Junta a explicar como um visitante pode encontrar o norte usando o Sol.', min: 15, palavrasChave: ['Sol'] },
+      resposta: 'Obrigado, Nico! Vamos pôr uma placa igual junto à estrada, para quem chega de carro. — Junta de Freguesia',
+      pistas: ['Lê cada mensagem antes de escrever.', 'Nomes de terras e de festas são nomes próprios: maiúscula!', 'Diz onde está o Sol ao meio-dia e para onde fica o norte.'] },
+    // ---- Missão 3 · Montado
+    's2-d1': { id: 's2-d1', tipo: 'detetive', titulo: 'Detetive: o sobreiro do 9', reparacao: 'calendario',
+      linhaTempo: { de: 2019, ate: 2028, hoje: 2026, legendas: ['O 9 pintado no tronco quer dizer 2019.', 'Mais nove anos: 2019 + 9 = 2028.', 'Em 2026 ainda não: este sobreiro só dá cortiça em 2028.'] },
+      pedido: 'O Sr. Joaquim quer tirar cortiça este ano, 2026, do sobreiro grande junto ao caminho, que tem um 9 pintado no tronco. Pode tirar?',
+      manual: { titulo: 'Guia do tirador de cortiça', seccoes: [
+        { titulo: 'Regras do descortiçamento', frases: ['A cortiça só se tira de nove em nove anos.', 'Tira-se no verão, quando o sobreiro a solta melhor.', 'Nunca se tira cortiça de um sobreiro novo.'] },
+        { titulo: 'O número no tronco', frases: ['Depois de tirar a cortiça, pinta-se um algarismo no tronco.', 'O algarismo é o último algarismo do ano em que se tirou a cortiça.', 'A tinta é branca para se ver de longe.'] },
+        { titulo: 'Caderno do Sr. Joaquim', frases: ['Os sobreiros com o algarismo 7 foram descortiçados em 2017.', 'O sobreiro grande junto ao caminho tem um 9 pintado.', 'Este ano choveu pouco no montado.'] },
+      ] },
+      pistas: ['1.1', '2.2', '3.2'],
+      ajudas: ['Precisas de saber de quanto em quanto tempo se tira a cortiça.', 'O que quer dizer o algarismo pintado no tronco?', 'Que algarismo tem o sobreiro grande?'],
+      porquePistas: { '1.1': 'Isso: de nove em nove anos.', '2.2': 'Boa! O algarismo é o fim do ano da última tiragem.', '3.2': 'O 9 quer dizer 2019.' },
+      dicaPista: 'Essa frase é verdade, mas ajuda a saber QUANDO se pode tirar a cortiça?',
+      perguntaOrdem: 'Põe o raciocínio pela ordem certa.',
+      passos: ['Ler o algarismo do tronco: 9.', 'Descobrir o ano da última tiragem: 2019.', 'Somar nove anos: 2019 + 9 = 2028.', 'Concluir: só se pode tirar cortiça em 2028.'],
+      reparado: 'Caso resolvido! Agora explica ao Sr. Joaquim.',
+      explicar: 'Escreve no relatório porque é que o sobreiro grande ainda não pode dar cortiça.' },
+    's2-c1': { id: 's2-c1', tipo: 'correio', titulo: 'Correio para o Sr. Joaquim', para: 'Sr. Joaquim, tirador de cortiça', respostaDe: 'do Sr. Joaquim',
+      copia: 'O sobreiro grande só dá cortiça em 2028.',
+      rascunho: 'o sobreiro e muito velho e alto', certo: ['O sobreiro é muito velho e alto.', 'O sobreiro é muito velho e alto!'],
+      dicaEdicao: 'Falta: maiúscula no início, o acento de «é» e um ponto final.',
+      propria: { pergunta: 'Descreve ao Sr. Joaquim o banco de cortiça que queres para a Mostra. Usa pelo menos dois adjetivos.', min: 15, palavrasChave: ['cortiça'] },
+      resposta: 'Que boa ideia! Tenho cortiça de 2017 guardada: chega para o banco. Levo-a à Mostra. — Joaquim',
+      pistas: ['Lê cada mensagem antes de escrever.', 'Um adjetivo diz como é: macio, leve, castanho…', 'Uma mensagem começa com maiúscula e acaba com ponto final.'] },
+    // ---- Missão 4 · Observatório da Água
+    's3-h1': { id: 's3-h1', tipo: 'horta', versao: 1, titulo: 'Horta: uma dose de cada vez',
+      pergunta: 'O canteiro 1 tem 2 gotas e precisa de 3 ou 4. Programa a rega.',
+      canteiros: [2], alvo: { min: 3, max: 4 }, deposito: 2, maxDoses: 2, blocos: ['regar', 'repetir', 'se_seco'], inicial: [], solucao: [{ op: 'regar' }],
+      explicar: 'Quantas doses usaste? Explica porque chegam.', ajudas: P_HORTA },
+    's3-h2': { id: 's3-h2', tipo: 'horta', versao: 1, titulo: 'Horta: regar sem desperdiçar',
+      pergunta: 'Os canteiros com menos de 3 gotas precisam de água. Tens 2 doses. O programa do Nico rega todos… Experimenta e corrige-o.',
+      canteiros: [2, 3, 2, 4], alvo: { min: 3, max: 4 }, deposito: 2, maxDoses: 2, blocos: ['para_cada', 'se_seco', 'regar', 'repetir'],
+      inicial: [{ op: 'para_cada', corpo: [{ op: 'regar' }] }], solucao: [{ op: 'para_cada', corpo: [{ op: 'se_seco', corpo: [{ op: 'regar' }] }] }],
+      explicar: 'Porque é que o bloco «se estiver seco» poupa água?', ajudas: P_HORTA },
+    's3-c1': { id: 's3-c1', tipo: 'correio', titulo: 'Correio do Observatório', para: 'Dona Aurora, da horta', respostaDe: 'da Dona Aurora',
+      copia: 'O Observatório mediu a água de cada canteiro.',
+      rascunho: 'ontem o nico rega a horta', certo: ['Ontem o Nico regou a horta.'],
+      dicaEdicao: '«Ontem» pede o passado: o Nico «regou». E faltam as maiúsculas e o ponto final.',
+      propria: { pergunta: 'Escreve à Dona Aurora duas maneiras de poupar água na horta.', min: 15, palavrasChave: ['água'] },
+      resposta: 'Vou experimentar regar ao fim da tarde, como sugeriram. O Observatório é uma grande ajuda! — Aurora',
+      pistas: ['Lê cada mensagem antes de escrever.', 'O que já aconteceu escreve-se no passado: regou, mediu, choveu.', 'Escreve duas ideias, uma em cada frase.'] },
+    // ---- Missão 5 · FabLab
+    's4-pt1': { id: 's4-pt1', tipo: 'ponte', titulo: 'A ponte das bicicletas', pergunta: 'As bicicletas da Mostra precisam de outra ponte na ribeira. Mede 2 m. Constrói-a com 3 peças.',
+      alvo: '2', unidade: 'm', restricao: { pecas: 3 }, pecas: ['0,5', '0,75', '1,25', '1', '0,25'],
+      pistas: ['Escolhe a peça maior e vê quanto falta para 2 m.', '1,25 + 0,5 = 1,75. Quanto falta para 2?', 'Há mais do que uma maneira: 0,75 + 1 + 0,25 também dá 2.'] },
+    's4-d1': { id: 's4-d1', tipo: 'detetive', titulo: 'Detetive: a luz da bicicleta', reparacao: 'circuito',
+      pedido: 'A luz da bicicleta da Mostra não acende nada, nem um bocadinho. A pilha é nova. Porquê?',
+      manual: { titulo: 'Manual da luz da bicicleta', seccoes: [
+        { titulo: 'Como funciona', frases: ['A pilha dá energia à luz.', 'A corrente só passa se o circuito estiver fechado, sem cortes.', 'O interruptor abre e fecha o circuito.'] },
+        { titulo: 'Avarias frequentes', frases: ['Se a pilha estiver gasta, a luz fica muito fraca.', 'Um fio solto abre o circuito e a luz não acende nada.', 'Uma lâmpada fundida tem o fio de dentro partido.'] },
+        { titulo: 'Registo do FabLab', frases: ['Segunda-feira: pilha nova, comprada na loja.', 'Terça-feira: a bicicleta caiu e o fio da luz ficou solto.', 'Quarta-feira: a bicicleta foi lavada.'] },
+      ] },
+      pistas: ['1.2', '2.2', '3.2'],
+      ajudas: ['A luz não acende NADA: procura uma avaria que explique isso.', 'O que acontece quando o circuito tem um corte?', 'No registo do FabLab, o que aconteceu na terça-feira?'],
+      porquePistas: { '1.2': 'Isso! Com um corte, a corrente não passa.', '2.2': 'Boa! Um fio solto abre o circuito.', '3.2': 'Apanhado! Quando a bicicleta caiu, o fio soltou-se.' },
+      dicaPista: 'Essa frase é verdade, mas explica porque é que a luz não acende NADA?',
+      passos: ['Desligar o interruptor.', 'Encontrar o fio solto.', 'Ligar o fio outra vez ao parafuso e apertar.', 'Ligar o interruptor e ver se a luz acende.'],
+      reparado: 'A luz acendeu! Agora explica o que descobriste.',
+      explicar: 'Escreve no relatório o que estava avariado e como o descobriste.' },
+    's4-c1': { id: 's4-c1', tipo: 'correio', titulo: 'Correio para o FabLab', para: 'Sr. Rui, do FabLab', respostaDe: 'do Sr. Rui',
+      copia: 'A luz da bicicleta já acende.',
+      rascunho: 'liga o fio e aperta o parafuso', certo: ['Liga o fio e aperta o parafuso.', 'Liga o fio e aperta o parafuso!'],
+      dicaEdicao: 'Uma instrução também começa com maiúscula e acaba com ponto final.',
+      propria: { pergunta: 'Escreve ao Sr. Rui as instruções para trocar a pilha da luz. Usa formas verbais que dão ordens (por exemplo: «abre», «tira», «põe»).', min: 15 },
+      resposta: 'Instruções claras! Vou imprimi-las e pô-las na bancada do café de reparações. — Rui',
+      pistas: ['Lê cada mensagem antes de escrever.', 'Instruções: um passo em cada frase, pela ordem certa.', 'Começa com «Primeiro, abre…».'] },
+    // ---- Missão 6 · Horta
+    's5-h1': { id: 's5-h1', tipo: 'horta', versao: 1, titulo: 'Horta: um canteiro mais seco',
+      pergunta: 'O canteiro 1 está muito seco. Tens 3 doses. O programa do Nico rega uma vez em cada canteiro seco… chega?',
+      canteiros: [1, 4, 2, 3], alvo: { min: 3, max: 4 }, deposito: 3, maxDoses: 3, blocos: ['para_cada', 'repetir', 'se_seco', 'regar'],
+      inicial: [{ op: 'para_cada', corpo: [{ op: 'se_seco', corpo: [{ op: 'regar' }] }] }],
+      solucao: [{ op: 'para_cada', corpo: [{ op: 'repetir', n: 2, corpo: [{ op: 'se_seco', corpo: [{ op: 'regar' }] }] }] }],
+      explicar: 'Porque é importante voltar a ler o sensor?', ajudas: ['Usa 👣 Um passo: quantas gotas tem o canteiro 1 depois da primeira rega?', 'O sensor tem de ler o canteiro outra vez depois de regar.', 'Experimenta pôr o «se estiver seco» dentro de um «repetir 2 vezes».'] },
+    's5-a1': { id: 's5-a1', tipo: 'mosaico', versao: 1, titulo: 'Ateliê: cobrir e contar',
+      pergunta: 'A mesa do almoço da Mostra leva um retângulo de azulejos. Cobre o retângulo marcado, com um azulejo em cada quadrado.',
+      cobrir: [[3, 2], [3, 3], [3, 4], [4, 2], [4, 3], [4, 4]], metas: { area: 6 },
+      solucao: [[3, 2, 'azul'], [3, 3, 'azul'], [3, 4, 'azul'], [4, 2, 'verde'], [4, 3, 'verde'], [4, 4, 'verde']],
+      explicar: 'Qual é a área do retângulo? Explica como a contaste.', ajudas: P_MOSAICO },
+    's5-a2': { id: 's5-a2', tipo: 'mosaico', versao: 1, titulo: 'Ateliê: seis azulejos, dez lados', previsao: true,
+      pergunta: 'Faz uma forma com 6 azulejos (área 6), ligados pelos lados, com perímetro 10.',
+      metas: { area: 6, perimetro: 10, continua: true },
+      solucao: [[2, 2, 'terracota'], [2, 3, 'terracota'], [2, 4, 'terracota'], [3, 2, 'verde'], [3, 3, 'verde'], [3, 4, 'verde']],
+      explicar: 'Como conseguiste encurtar o contorno sem mudar a área?', ajudas: ['Seis azulejos numa fila têm perímetro 14. É demasiado.', 'Quando dois azulejos se tocam por um lado, esse lado deixa de ser contorno.', 'Experimenta duas filas de três.'] },
+    's5-c1': { id: 's5-c1', tipo: 'correio', titulo: 'Correio para a cantina', para: 'Dona Fátima, da cantina', respostaDe: 'da Dona Fátima',
+      copia: 'O almoço da Mostra tem sopa, peixe e fruta.',
+      rascunho: 'ja comeste a fruta', certo: ['Já comeste a fruta?'],
+      dicaEdicao: 'É uma pergunta: maiúscula no início, acento em «Já» e ponto de interrogação no fim.',
+      propria: { pergunta: 'Convida a Dona Fátima para ver o painel de azulejos da mesa. Escreve uma frase interrogativa e uma exclamativa.', min: 12 },
+      resposta: 'Claro que vou! E levo uma salada de fruta para a mesa dos azulejos. — Fátima',
+      pistas: ['Lê cada mensagem antes de escrever.', 'A frase interrogativa acaba com «?» e a exclamativa com «!».', 'Diz quando é a Mostra.'] },
+    // ---- Missão 7 · Património e território
+    's6-a1': { id: 's6-a1', tipo: 'mosaico', versao: 1, titulo: 'Ateliê: o painel em espelho',
+      pergunta: 'O painel do castelo tem de ficar igual dos dois lados do eixo. Completa-o com os 4 azulejos que tens (área 8).',
+      fixos: [[2, 2, 'azul'], [2, 3, 'terracota'], [3, 2, 'verde'], [4, 3, 'azul']], inventario: { azul: 2, terracota: 1, verde: 1 },
+      metas: { area: 8, simetria: { padrao: true } },
+      solucao: [[2, 5, 'azul'], [2, 4, 'terracota'], [3, 5, 'verde'], [4, 4, 'azul']],
+      explicar: 'Como descobriste onde ficava o par de cada azulejo?', ajudas: ['Conta a que distância do eixo está cada azulejo fixo.', 'O par fica à mesma distância, do outro lado do eixo.', 'O azulejo da coluna 3 está encostado ao eixo: o par fica na coluna 4.'] },
+    's6-d1': { id: 's6-d1', tipo: 'detetive', titulo: 'Detetive: a legenda do painel', reparacao: 'calendario',
+      linhaTempo: { de: 1101, ate: 1200, marca: 1147, nome: 'conquista de Lisboa', legendas: ['A legenda dizia «século XI».', 'Na linha do tempo, 1147 fica entre 1101 e 1200.', 'A legenda passa a dizer «século XII».'] },
+      pedido: 'A legenda do painel diz «Conquista de Lisboa — século XI». O Nico desconfia. Está certa?',
+      manual: { titulo: 'Notas do cronista', seccoes: [
+        { titulo: 'Como contar os séculos', frases: ['Um século são cem anos.', 'Os anos de 1101 a 1200 formam o século XII.', 'Os séculos escrevem-se em numeração romana.'] },
+        { titulo: 'Datas do primeiro rei', frases: ['D. Afonso Henriques nasceu por volta de 1109.', 'Lisboa foi conquistada aos mouros em 1147.', 'O reino foi reconhecido pelo Papa em 1179.'] },
+        { titulo: 'O painel', frases: ['A legenda foi copiada à pressa de um livro antigo.', 'O azulejo da legenda é azul e branco.', 'O painel fica na entrada da Mostra.'] },
+      ] },
+      pistas: ['1.2', '2.2', '3.1'],
+      ajudas: ['Precisas de duas coisas: o ano da conquista e como se contam os séculos.', 'Em que ano foi conquistada Lisboa?', 'E porque é que a legenda pode estar errada? Vê a secção «O painel».'],
+      porquePistas: { '1.2': 'Isso: 1101 a 1200 é o século XII.', '2.2': 'Boa! 1147.', '3.1': 'Ah! Copiada à pressa… pode ter um erro.' },
+      dicaPista: 'Essa frase é verdade, mas ajuda a saber o século da conquista?',
+      perguntaOrdem: 'Põe o raciocínio pela ordem certa.',
+      passos: ['Encontrar o ano da conquista de Lisboa: 1147.', 'Ver entre que anos fica: de 1101 a 1200.', 'Concluir que é o século XII.', 'Corrigir a legenda do painel.'],
+      reparado: 'Legenda corrigida! Agora explica o que descobriste.',
+      explicar: 'Escreve no relatório porque é que a legenda estava errada.' },
+    's6-c1': { id: 's6-c1', tipo: 'correio', titulo: 'Correio para a biblioteca', para: 'Professora bibliotecária', respostaDe: 'da professora bibliotecária',
+      copia: 'Lisboa foi conquistada em 1147, no século XII.',
+      rascunho: 'd afonso henriques foi o primeiro rei de portugal', certo: ['D. Afonso Henriques foi o primeiro rei de Portugal.'],
+      dicaEdicao: 'Nomes de pessoas e de países levam maiúscula: «D.», «Afonso», «Henriques», «Portugal». E o ponto final.',
+      propria: { pergunta: 'Convida a professora bibliotecária para a Mostra: diz em que dia é e o que vai ver no painel.', min: 15, palavrasChave: ['Mostra'] },
+      resposta: 'Aceito com gosto! Vou levar o livro antigo para compararmos com a legenda corrigida. — A professora bibliotecária',
+      pistas: PISTAS_CORREIO },
+  };
+  const MISSOES_S = {
+    s1: { rotulo: 'Missão 2', lugar: 'Messejana', titulo: 'As placas da Mostra', marca: [265, 252], transforma: { id: 'placas', texto: 'Placas da Mostra ✓' },
+      missao: 'Os visitantes da Mostra vão chegar de todos os lados e perdem-se em Messejana. O Nico precisa de placas que apontem bem para norte, sul, este e oeste.',
+      resumo: 'Orientação pelo Sol e pela rosa dos ventos · números grandes · nomes próprios.',
+      estacoes: { maos: 'Aquecer as mãos', prog: 'Guiar os visitantes', mat: 'Números grandes', port: 'Ler, investigar e escrever' },
+      novas: { port: ['s1-d1', 's1-c1'] }, extra: ['s1-j3', 's1-j2'] },
+    s2: { rotulo: 'Missão 3', lugar: 'Montado', titulo: 'A cortiça da Mostra', marca: [300, 492], transforma: { id: 'cortica', texto: 'Banco de cortiça ✓' },
+      missao: 'Para a Mostra, o Nico quer um banco feito de cortiça. Mas só se pode tirar cortiça de alguns sobreiros — de quais?',
+      resumo: 'Seres vivos do montado · multiplicação e tabuadas · adjetivos e sinónimos.',
+      estacoes: { maos: 'Aquecer as mãos', prog: 'Contar no montado', mat: 'Tabuadas da cortiça', port: 'Ler, investigar e escrever' },
+      novas: { port: ['s2-d1', 's2-c1'] }, extra: ['s2-j1', 's2-j2', 's2-j3'] },
+    s3: { rotulo: 'Missão 4', lugar: 'Observatório da Água', titulo: 'A água da horta', marca: [585, 702], transforma: { id: 'observatorio', texto: 'Rega sem desperdício ✓' },
+      missao: 'A horta da Mostra precisa de água, mas o depósito tem pouca. No Observatório da Água, o Nico mede e programa a rega para não desperdiçar.',
+      resumo: 'O ciclo da água · divisão e gráficos de barras · tempos verbais · programar a rega.',
+      estacoes: { maos: 'Aquecer as mãos', prog: 'Programar', mat: 'Medir a água', port: 'Ler e escrever' },
+      depoisDe: { prog: { area: 'prog', titulo: 'Horta programável', atividades: ['s3-h1', 's3-h2'] } },
+      novas: { port: ['s3-c1'] }, extra: ['s3-j1', 's3-j2'] },
+    s4: { rotulo: 'Missão 5', lugar: 'FabLab', titulo: 'Reparar no FabLab', marca: [275, 827], transforma: { id: 'reparacoes', texto: 'Café de reparações ✓' },
+      missao: 'Na Mostra vai haver um café de reparações. A turma treina no FabLab: constrói com decimais, conserta a luz da bicicleta e escreve as instruções.',
+      resumo: 'Resíduos e ecopontos · frações, decimais e dinheiro · textos de instruções.',
+      estacoes: { maos: 'Aquecer as mãos', prog: 'Programar', mat: 'Construir com frações e decimais', port: 'Ler, investigar e escrever' },
+      novas: { mat: ['s4-pt1'], port: ['s4-d1', 's4-c1'] }, extra: ['s4-j1', 's4-j3'] },
+    s5: { rotulo: 'Missão 6', lugar: 'Horta', titulo: 'O almoço da Mostra', marca: [1260, 512], transforma: { id: 'almoco', texto: 'Mesa da Mostra ✓' },
+      missao: 'No dia da Mostra há almoço para os visitantes. A horta tem de estar regada e a mesa leva um painel de azulejos com a área e o perímetro certos.',
+      resumo: 'A Roda dos Alimentos · horas, medidas, perímetro e área · tipos de frase · programar a rega.',
+      estacoes: { maos: 'Aquecer as mãos', prog: 'Programar', mat: 'Horas e medidas', port: 'Ler e escrever' },
+      depoisDe: { prog: { area: 'prog', titulo: 'Horta programável', atividades: ['s5-h1'] }, mat: { area: 'mat', titulo: 'Ateliê de mosaicos', atividades: ['s5-a1', 's5-a2'] } },
+      novas: { port: ['s5-c1'] }, extra: ['s5-j1', 's5-j2', 's5-j3'] },
+    s6: { imagem: 'img/percurso/mapa-casa-territorio.webp', rotulo: 'Missão 7', lugar: 'Património e território', titulo: 'O painel do castelo', marca: [180, 122], transforma: { id: 'painel', texto: 'Painel de azulejos ✓' },
+      missao: 'A Mostra termina com um painel de azulejos sobre a história de Portugal. O Nico investiga as datas e a turma completa o painel em espelho.',
+      resumo: 'Rios, serras e o primeiro rei · ângulos, simetria e dados · cronologia.',
+      estacoes: { maos: 'Aquecer as mãos', prog: 'Programar', mat: 'Simetria e dados', port: 'Ler, investigar e escrever' },
+      depoisDe: { mat: { area: 'mat', titulo: 'Ateliê de mosaicos', atividades: ['s6-a1'] } },
+      novas: { port: ['s6-d1', 's6-c1'] }, extra: ['s6-j1'] },
+  };
+  (function converter() {
+    sessoes.forEach(s => {
+      const C = MISSOES_S[s.id]; if (!C) return;
+      s.cursoOriginal = s.titulo;   // título curricular antigo (o professor continua a reconhecê-lo)
+      Object.assign(s, { imagem: C.imagem, rotulo: C.rotulo, lugar: C.lugar, titulo: C.titulo, missao: C.missao, resumo: C.resumo, transforma: C.transforma, marca: C.marca });
+      const extra = [];
+      s.estacoes.forEach(e => {
+        e.atividades = e.atividades.filter(a => { if (C.extra.includes(a.id)) { extra.push(a); return false; } return true; });
+        if (C.estacoes[e.area]) e.titulo = C.estacoes[e.area];
+        (C.novas[e.area] || []).forEach(id => e.atividades.push(NOVAS[id]));
+      });
+      Object.entries(C.depoisDe || {}).forEach(([area, d]) => {
+        const i = s.estacoes.findIndex(e => e.area === area);
+        s.estacoes.splice(i + 1, 0, { area: d.area, titulo: d.titulo, atividades: d.atividades.map(id => NOVAS[id]) });
+      });
+      if (extra.length) s.estacoes.push({ area: 'maos', titulo: 'Treino extra (opcional)', extra: true, atividades: extra });
+    });
+  })();
+  // o mapa mostra uma marca por cada missão cumprida (P.mundo[id]); a da Missão 1 é a ponte pintada pelo Ambrósio
+  const marcasMundo = sessoes.filter(s => s.transforma).map(s => ({ id: s.transforma.id, texto: s.transforma.texto, em: s.marca }));
+
   // ================================================================================================= PROVA-ENSAIO
   const prova = {
     titulo: 'Prova-ensaio do Nico', minutos: 40,
@@ -622,14 +831,14 @@
     id: 'percurso-4', chave: 'nico.percurso4.v1', pagina: 'percurso.html',
     titulo: 'Percurso 4.º ano', tema: 'A Mostra de Invenções do Nico', cor: '#0e9f6e',
     descricao: 'Construir pontes, investigar avarias, escrever cartas e programar — e chegar à prova no computador a dominar o rato e o teclado.',
-    boasVindas: { nico: 'Olá! Este é o nosso percurso do 4.º ano. Em cada sessão treinamos as mãos, programamos e resolvemos desafios de Matemática e Português. Escolhe uma sessão!',
-      _: 'Olá! Este é o percurso do 4.º ano. Em cada sessão treinamos as mãos, programamos e resolvemos desafios de Matemática e Português. Escolhe uma sessão!' },
-    sessoes, prova,
+    boasVindas: { nico: 'Olá! Estou a preparar a Mostra de Invenções e preciso de ti. Em cada missão constróis, investigas, programas e escreves — e o nosso mundo vai mudando. Escolhe uma missão!',
+      _: 'Olá! Em cada missão da Mostra de Invenções constróis, investigas, programas e escreves. Escolhe uma missão!' },
+    sessoes, prova, marcasMundo,
   };
   // compatível com o resto do Nico (ecrã inicial, turmas, professor): cada sessão é um «nível» e cada atividade um «desafio»
-  X.niveis = sessoes.map(s => ({ nome: s.titulo, desafios: s.estacoes.flatMap(e => e.atividades) }));
+  X.niveis = sessoes.map(s => ({ nome: (s.rotulo ? s.rotulo + ' · ' : '') + s.titulo, desafios: s.estacoes.filter(e => !e.extra).flatMap(e => e.atividades) }));
   const totalAtividades = X.niveis.reduce((t, n) => t + n.desafios.length, 0);
-  X.textoNiveis = `${sessoes.length} sessões · ${totalAtividades} atividades · prova-ensaio`;
+  X.textoNiveis = `${sessoes.length} missões · ${totalAtividades} atividades · prova-ensaio`;
   // resumo para a área do professor: certas por área e a última prova-ensaio
   const AREA_DE = {};
   sessoes.forEach(s => s.estacoes.forEach(e => e.atividades.forEach(a => { AREA_DE[a.id] = e.area; })));
