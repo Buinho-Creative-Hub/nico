@@ -6,7 +6,7 @@
   const T = window.Faisca.Turma;
   const $ = id => document.getElementById(id);
   const K = 'nico.prof.sessao';
-  const MISSOES = [['palco', 'Palco (Missão 0)'], ['primeiros-passos', 'Primeiros passos'], ['reparar', 'Reparar'], ['toy-hacking', 'Toy hacking'],
+  const MISSOES = [['percurso-4', 'Percurso 4.º ano'], ['palco', 'Palco (Missão 0)'], ['primeiros-passos', 'Primeiros passos'], ['reparar', 'Reparar'], ['toy-hacking', 'Toy hacking'],
     ['citizen-sensing', 'Citizen sensing'], ['matematica', 'Matemática'], ['natureza', 'Natureza'], ['livre', 'Modo livre']];
 
   let S = null; try { S = JSON.parse(localStorage.getItem(K)); } catch (e) { S = null; }
@@ -151,7 +151,7 @@
           if (!r) return h('td', { class: 'prof-vazio' }, '—');
           if (mid === 'livre') return h('td', null, '✓ usou');
           const tot = r.total || 0, pc = tot ? Math.round(100 * Math.min(r.feitos, tot) / tot) : 0;
-          return h('td', { title: (r.titulo || mid) + ': ' + r.feitos + ' de ' + tot }, h('span', { class: 'prof-num' }, r.feitos + '/' + tot), h('span', { class: 'prof-barra' }, h('i', { style: 'width:' + pc + '%' })));
+          return h('td', { title: (r.titulo || mid) + ': ' + r.feitos + ' de ' + tot + (r.detalhe ? '\n' + r.detalhe : '') }, h('span', { class: 'prof-num' }, r.feitos + '/' + tot), h('span', { class: 'prof-barra' }, h('i', { style: 'width:' + pc + '%' })));
         }),
         h('td', { class: 'prof-sub' }, quando(a.visto)),
         h('td', { class: 'prof-menu' },

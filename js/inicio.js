@@ -103,7 +103,7 @@
       b.querySelector('strong').textContent = X.titulo;
       b.querySelector('.cx-desc').textContent = X.descricao;
       const nn = X.niveis.length;
-      b.querySelector('.cx-niveis').textContent = (nn === 1 ? '1 nível · ' : nn + ' níveis · ') + total + ' desafios + ' + (nn === 1 ? '1 projeto livre' : nn + ' projetos livres') + (X.emPreparacao ? ' · ' + X.emPreparacao : '');
+      b.querySelector('.cx-niveis').textContent = X.textoNiveis || ((nn === 1 ? '1 nível · ' : nn + ' níveis · ') + total + ' desafios + ' + (nn === 1 ? '1 projeto livre' : nn + ' projetos livres') + (X.emPreparacao ? ' · ' + X.emPreparacao : ''));
       b.querySelector('.cx-barra span').style.width = (total ? 100 * feitos / total : 0) + '%';
       b.querySelector('.cx-feito').textContent = feitos === 0 ? 'Começar' : feitos >= total ? 'Feita! Voltar' : `Continuar · ${feitos} de ${total}`;
       b.addEventListener('click', () => abrir(id));

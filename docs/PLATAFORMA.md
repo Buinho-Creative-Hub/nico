@@ -410,3 +410,9 @@ encontrar um micro:bit no chão — a ponte para «Primeiros passos».
   topo das missões e do palco (esconde-se abaixo de 1250 px) e no rodapé do ecrã inicial («Um projeto do Buinho
   Educativo»), que tem também o link «Área do professor».
 
+
+## 14. Percurso 4.º ano — preparar a prova digital (desde 1 Nov 2026 — pedido do Carlos)
+
+Módulo próprio em `percurso.html` (sessões × estações: rato e teclado · programar numa quadrícula · Matemática ·
+Português) com prova-ensaio. Regista-se como missão (`missoes/percurso-4ano.js`, `pagina: 'percurso.html'`) para
+aparecer no ecrã inicial, nas turmas e no painel do professor. Tudo em `docs/PERCURSO-4ANO.md`.

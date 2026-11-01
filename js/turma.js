@@ -57,6 +57,7 @@
     const d = ls.json(prefixoDe(sessao()) + chave, {});
     const r = { feitos: d.feitos || 0 };
     if (X) { r.titulo = X.titulo; r.missao = X.id; try { r.total = F.desafiosDe(X).length; } catch (e) { /* missão sem desafios */ } }
+    if (X && X.resumoExtra) { try { Object.assign(r, X.resumoExtra(d)); } catch (e) { /* resumo extra opcional */ } }
     return r;
   }
   let espera = null;

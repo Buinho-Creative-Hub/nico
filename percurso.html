@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nico · Percurso 4.º ano</title>
+<script src="js/escolha.js"></script>
+<link rel="icon" href="img/nico/01_boas_vindas.png">
+<link rel="stylesheet" href="css/faisca.css">
+<link rel="stylesheet" href="css/percurso.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2b3a8f">
+<script src="js/offline.js"></script>
+</head>
+<body class="percurso">
+<header class="topo">
+  <a class="btn-missoes" id="btnMissoes" href="index.html" title="Voltar às missões do Nico">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <span>Missões</span>
+  </a>
+  <div class="marca">
+    <span class="marca-icone-caixa" id="marcaIcone"></span>
+    <span class="marca-nome">Nico</span>
+    <span class="marca-sub">Percurso 4.º ano</span>
+    <a class="logo-buinho logo-topo" href="https://buinho.pt" target="_blank" rel="noopener" title="Buinho — Messejana"><img src="img/buinho/buinho-logo-branco.svg" alt="Buinho"></a>
+  </div>
+  <nav class="pc-estacoes" id="estacoes" aria-label="Estações da sessão"></nav>
+  <div class="ligacao">
+    <span class="turma-barra" data-turma="missao"></span>
+    <div class="sons" data-sons></div>
+  </div>
+</header>
+
+<main class="pc-main">
+  <!-- mapa: lista das sessões -->
+  <section class="pc-vista pc-mapa" id="vMapa" aria-label="Percurso">
+    <div class="pc-mapa-dentro">
+      <div class="pc-cabeca">
+        <img id="mapaMasc" src="" alt="">
+        <div>
+          <h1>Percurso 4.º ano</h1>
+          <p>Em cada sessão há quatro estações: <b>mãos no rato e no teclado</b>, <b>programar</b>, <b>Matemática</b> e <b>Português</b>.
+            No fim há uma <b>prova-ensaio</b> igual a uma prova no computador: navegar entre perguntas, arrastar, escrever e entregar.</p>
+          <ul class="pc-legenda">
+            <li><b style="background:var(--maos)"></b>Rato e teclado</li>
+            <li><b style="background:var(--prog)"></b>Programar</li>
+            <li><b style="background:var(--mat)"></b>Matemática</li>
+            <li><b style="background:var(--port)"></b>Português (com Estudo do Meio)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pc-sessoes" id="listaSessoes"></div>
+    </div>
+  </section>
+
+  <!-- sessão: uma atividade de cada vez -->
+  <section class="pc-vista" id="vSessao" hidden>
+    <div class="pc-trabalho">
+      <div class="pc-barra">
+        <span class="pb-area" id="atArea"></span>
+        <h1 id="atTitulo"></h1>
+        <div class="pc-pontos" id="atPontos" aria-hidden="true"></div>
+        <span class="pb-conta" id="atConta"></span>
+      </div>
+      <div class="pc-palco" id="atPalco"></div>
+      <div class="pc-rodape">
+        <span class="pr-msg" id="atMsg" role="status" aria-live="polite"></span>
+        <button type="button" class="btn btn-texto" id="btnSaltar">Saltar</button>
+        <button type="button" class="btn btn-azul btn-grande" id="btnVerificar">Verificar</button>
+        <button type="button" class="btn btn-escuro btn-grande" id="btnSeguinte" hidden>Seguinte →</button>
+      </div>
+    </div>
+    <aside class="pc-lado" aria-label="Mascote">
+      <div class="pc-balao" id="balao" role="status" aria-live="polite"></div>
+      <div class="pc-masc"><img id="mascImg" src="" alt=""></div>
+      <div class="pc-masc-botoes">
+        <button type="button" class="btn btn-escuro" id="btnAjuda">Ajuda</button>
+        <button type="button" class="btn btn-texto" id="btnOuvir" title="Ouvir o enunciado">🔊 Ouvir</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- prova-ensaio -->
+  <section class="pc-vista" id="vProva" hidden>
+    <div class="pv" id="prova"></div>
+  </section>
+</main>
+
+<div class="pc-janela" id="janela" hidden><div>
+  <img id="janelaImg" src="" alt="">
+  <h2 id="janelaTitulo"></h2>
+  <p id="janelaTexto"></p>
+  <div class="pj-botoes" id="janelaBotoes"></div>
+</div></div>
+
+<script src="vendor/blockly_compressed.js"></script>
+<script src="vendor/blockly-msg-pt.js"></script>
+<script src="js/blocks.js"></script>
+<script src="js/fonte.js"></script>
+<script src="js/sim.js"></script>   <!-- só pelo F.audio (o som da plataforma) -->
+<script src="js/som.js"></script>
+<script src="js/desafios.js"></script>
+<script src="mascotes/gabi.js"></script>
+<script src="mascotes/nico.js"></script>
+<script src="js/percurso/mascote.js"></script>
+<script src="js/percurso/itens.js"></script>
+<script src="js/percurso/rato-teclado.js"></script>
+<script src="js/percurso/caminho.js"></script>
+<script src="missoes/percurso-4ano.js"></script>
+<script src="js/turma.js"></script>
+<script src="js/inicio.js"></script>
+<script src="js/percurso/app.js"></script>
+</body>
+</html>

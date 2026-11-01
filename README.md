@@ -15,6 +15,11 @@ vivia na rua do Buinho.
   de cara e de cenário (rua de Messejana, FabLab, montado, horta, palco), como no Scratch — mas com blocos com o aspecto
   do **MakeCode Arcade**, para a passagem para o micro:bit ser natural. Abre em `palco.html`. Nível 1 pronto (11 desafios
   + projeto livre); níveis 2 (repetir e reagir) e 3 (decidir) em preparação.
+- **Percurso 4.º ano** (piloto EB de Messejana, 2026/27): preparar a prova digital ModA. 6 sessões × 4 estações — rato e
+  teclado (clicar, arrastar, duplo clique, rolar, acentos no teclado português), programar o caminho do Nico numa
+  quadrícula (pontos cardeais, repetir, se), Matemática e Português (texto à esquerda, pergunta à direita, como nas provas;
+  Estudo do Meio como tema) — e uma **prova-ensaio** com navegação, «marcar para rever», tempo e entrega. Abre em
+  `percurso.html`. Ver `docs/PERCURSO-4ANO.md`.
 - **Modo livre**: todos os blocos arrumados por categorias, como no MakeCode, incluindo os sensores (ruído, luz,
   PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**, e a extensão **Sensory OLED** do Buinho
   (barra de intensidade, gráfico, número grande, medidor de atividade).
@@ -33,8 +38,8 @@ vivia na rua do Buinho.
 - Gravar no micro:bit: botão **Enviar** → **Gravar** (Chrome/Edge) ou **Descarregar** e arrastar para a pasta MICROBIT.
 
 ### Documentação
-`docs/PLATAFORMA.md` (como está feita, como acrescentar missões e mascotes), `docs/TESTES-MASCOTE.md`.
-Testes automáticos: `node testes/testar.js`, `node testes/blocos-novos.js` e `node testes/palco.js` (Missão 0) (playwright-core + Chromium).
+`docs/PLATAFORMA.md` (como está feita, como acrescentar missões e mascotes), `docs/PERCURSO-4ANO.md` (Percurso 4.º ano), `docs/TESTES-MASCOTE.md`.
+Testes automáticos: `node testes/testar.js`, `node testes/blocos-novos.js`, `node testes/palco.js` (Missão 0) e `node testes/percurso.js` (Percurso 4.º ano) (playwright-core + Chromium).
 
 ---
 
