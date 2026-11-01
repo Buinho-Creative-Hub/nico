@@ -268,14 +268,17 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.locator('.of-frase[data-id="1.1"]').click();
   ok((await pg.textContent('#balao')).includes('SÓ o canteiro 3'), 'detetive: pista errada dá explicação');
   await pg.locator('.of-frase[data-id="2.2"]').click(); await pg.locator('.of-frase[data-id="3.2"]').click();
+  await pg.click('text=Já tenho as pistas');
   await pg.waitForSelector('.it-ordem', { timeout: 5000 });
   await foto('m1-detetive');
-  for (let volta = 0; volta < 10; volta++) {
+  // ordenar só com o teclado: foco no cartão + setas (revisão do Ambrósio, P1)
+  for (let volta = 0; volta < 20; volta++) {
     const ordem = await pg.$$eval('.it-ordem li', l => l.map(x => Number(x.dataset.i)));
     const e = ordem.findIndex((x, k) => x !== k); if (e < 0) break;
-    const a = await pg.locator('.it-ordem li').nth(ordem.indexOf(e)).boundingBox(), b = await pg.locator('.it-ordem li').nth(e).boundingBox();
-    await pg.mouse.move(a.x + 40, a.y + a.height / 2); await pg.mouse.down(); await pg.mouse.move(b.x + 40, b.y + b.height / 2, { steps: 12 }); await pg.mouse.up();
+    await pg.locator(`.it-ordem li[data-i="${e}"]`).focus();
+    await pg.keyboard.press('ArrowUp');
   }
+  ok(await pg.locator('.it-ordem li.a-arrastar').count() === 0, 'ordenar com teclado (setas) e sem classes de arrasto presas');
   await pg.click('text=Confirmar a ordem');
   await pg.waitForSelector('.of-explica');
   await pg.fill('.of-explica', 'O trator esmagou o tubo do canteiro 3 e a água não passava.');
@@ -313,6 +316,22 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await foto('m1-oficina');
   const reg = await pg.evaluate(() => window.Faisca.PC.app.progresso().at);
   ok(reg['m1-pt1'].estado === 'apoio' && reg['m1-r1'].estado === 'autonomo', `registos separam autónomo/apoio (ponte 1: ${reg['m1-pt1'].estado}, bolotas: ${reg['m1-r1'].estado})`);
+
+  // cancelar ao mudar de estação: experimentar a ponte e sair logo — não pode haver conclusão nem bolotas tardias
+  {
+    const ctx2 = await br.newContext({ viewport: { width: 1366, height: 768 } }), p2 = await ctx2.newPage();
+    await p2.goto(url('percurso.html', '?s=1'));
+    await p2.waitForSelector('.pc-est');
+    await p2.locator('.pc-est', { hasText: 'Construir a ponte' }).click();
+    await p2.waitForSelector('.of-ponte');
+    for (const t of ['1/2', '1/4', '1/4']) await p2.locator('.of-peca', { hasText: new RegExp('^' + t.replace('/', '\\/') + '$') }).first().click();
+    await p2.click('text=O Nico experimenta a ponte');
+    await p2.locator('.pc-est', { hasText: 'Programar' }).click();
+    await p2.waitForTimeout(2500);
+    const r2 = await p2.evaluate(() => ({ p: window.Faisca.PC.app.progresso(), t: document.querySelector('#atTitulo').textContent }));
+    ok(!r2.p.at['m1-pt1'] && !(r2.p.bolotas > 0), `sair a meio da ponte não conclui nem dá bolotas na estação nova («${r2.t}»)`);
+    await ctx2.close();
+  }
 
   // ------------------------------------------------------------ outras sessões abrem sem erros (cada atividade)
   console.log('Sessões 2–6 (abrir cada atividade)');

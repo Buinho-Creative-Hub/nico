@@ -23,15 +23,16 @@
   T.alvos = (el, at, api) => {
     const n = at.n || 10, [t1, t2] = at.tamanho || [90, 46];
     let feitos = 0, falhas = 0, t0 = null, fim = false;
-    const info = h('p', { class: 'rt-info' }, 'Bolotas: ', h('b', null, '0'), ' de ' + n, '  ·  Falhaste: ', h('b', null, '0'));
+    const nome = at.objeto || { varios: 'Bolotas', um: 'Bolota', estilo: '' };   // o que se apanha tem o mesmo nome no enunciado, no contador e no botão
+    const info = h('p', { class: 'rt-info' }, nome.varios + ': ', h('b', null, '0'), ' de ' + n, '  ·  Falhaste: ', h('b', null, '0'));
     const zona = h('div', { class: 'rt-zona', 'aria-label': 'Zona de jogo' });
     el.append(h('div', { class: 'pc-enunciado' }, h('p', { class: 'pe-pergunta' }, at.pergunta || `Clica em cada bolota que aparecer. São ${n}.`), info, zona));
     zona.addEventListener('pointerdown', ev => { if (ev.target === zona && t0 && !fim) { falhas++; info.querySelectorAll('b')[1].textContent = falhas; } });
     function nova() {
       const w = zona.clientWidth || 900, hh = zona.clientHeight || 480;
       const tam = Math.round(t1 + (t2 - t1) * (feitos / Math.max(1, n - 1)));
-      const b = h('button', { type: 'button', class: 'rt-alvo', 'aria-label': 'Bolota' });
-      b.style.width = b.style.height = tam + 'px';
+      const b = h('button', { type: 'button', class: 'rt-alvo' + (nome.estilo ? ' ' + nome.estilo : ''), 'aria-label': nome.um });
+      b.style.width = tam + 'px'; b.style.height = (nome.estilo === 'cortica' ? Math.round(tam * 0.6) : tam) + 'px';
       b.style.left = Math.round(10 + Math.random() * (w - tam - 20)) + 'px';
       b.style.top = Math.round(10 + Math.random() * (hh - tam - 20)) + 'px';
       b.addEventListener('click', () => {

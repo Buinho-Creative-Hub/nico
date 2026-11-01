@@ -61,7 +61,7 @@
       resumo: 'A ribeira levou a ponte: constrói-a com frações, descobre porque a rega falhou, escreve à Dona Aurora e programa a rega.',
       estacoes: [
         { area: 'maos', titulo: 'Aquecer as mãos', atividades: [
-          { id: 'm1-r1', tipo: 'alvos', titulo: 'Recolher a cortiça', pergunta: 'Recolhe 8 pedaços de cortiça para a ponte (clica em cada um).', n: 8, tamanho: [110, 70],
+          { id: 'm1-r1', tipo: 'alvos', titulo: 'Recolher a cortiça', pergunta: 'Recolhe 8 pedaços de cortiça para a ponte (clica em cada um).', n: 8, tamanho: [110, 70], objeto: { varios: 'Pedaços de cortiça', um: 'Pedaço de cortiça', estilo: 'cortica' },
             boasVindas: 'Aquecimento rápido: precisamos de cortiça para a ponte! Clica com calma, não há pressa.',
             pistas: ['Leva a setinha até ao pedaço de cortiça.', 'Um clique com o botão da esquerda.', 'Não há tempo-limite: devagar também conta.'] },
         ] },
@@ -74,10 +74,10 @@
             porque: 'Só os canteiros com número par estão secos.',
             cols: 7, rows: 2, inicio: [0, 0], meta: null, fundo: '#d9c49a',
             itens: [[1, 0, '6'], [2, 0, '9', false], [3, 0, '4'], [4, 0, '7', false], [5, 0, '10'], [6, 0, '3', false]],
-            inicial: [['rep', 6, [['E', 1], ['ap']]]], blocos: ['andarE', 'apanhar', 'repetir', 'se', 'aqui'], maxBlocos: 5,
+            acao: 'regar', inicial: [['rep', 6, [['E', 1], ['ap']]]], blocos: ['andarE', 'apanhar', 'repetir', 'se', 'aqui'], maxBlocos: 5,
             solucao: [['rep', 6, [['E', 1], ['se', 'par', [['ap']]]]]],
-            boasVindas: 'Aqui «apanhar» é regar. Carrega em 👣 Um passo várias vezes: vês o bloco que está a correr a acender.',
-            pistas: ['Vai passo a passo: em que canteiro é que eu rego sem dever?', 'Antes de regar, o Nico tem de perguntar se o número é par.', 'Dentro do repetir: andar 1 → se «o número aqui é par» então regar.'] },
+            boasVindas: 'Carrega em 👣 Um passo várias vezes: vês o bloco que está a correr a acender e quais canteiros eu rego.',
+            pistas: ['Vai passo a passo: em que canteiro é que eu rego sem dever?', 'Antes de regar, o Nico tem de perguntar se o número é par.', 'Dentro do repetir: andar 1 → se «o número aqui é par» então «regar».'] },
         ] },
         { area: 'mat', titulo: 'Construir a ponte', atividades: [
           { id: 'm1-pt1', tipo: 'ponte', transforma: 'ponte', titulo: 'Pontes de cortiça · 1', pergunta: 'A ponte tem de medir 1 inteiro. Junta peças de cortiça até tapar o vão.',
@@ -106,7 +106,7 @@
             animacao: '<span class="of-roda">💧</span> 🥬',
             explicar: 'Escreve no relatório o que estava avariado e como o descobriste.',
             boasVindas: 'Temos um caso! Lê o manual à esquerda — rola até ao fim — e encontra as duas frases que explicam a avaria.' },
-          { id: 'm1-c1', tipo: 'correio', titulo: 'Correio do Nico', para: 'a Dona Aurora, da horta',
+          { id: 'm1-c1', tipo: 'correio', titulo: 'Correio do Nico', para: 'Dona Aurora, da horta', respostaDe: 'da Dona Aurora',
             copia: 'A rega do canteiro 3 já está reparada.',
             rascunho: 'amanha vamos a horta ver as couves', certo: ['Amanhã vamos à horta ver as couves.', 'Amanhã vamos à horta ver as couves!'],
             dicaEdicao: 'Falta: maiúscula no início, o til de «amanhã», o acento de «à» e um ponto final.',

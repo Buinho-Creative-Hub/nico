@@ -459,3 +459,22 @@ body.percurso { overflow: hidden; }
 .pc-loja button[disabled] { opacity: .5; cursor: not-allowed; }
 .pc-loja button.tem { background: #e7f6ef; border-color: var(--certo); }
 .pc-loja small { display: block; font-weight: 400; color: var(--cinza); }
+
+/* revisão do Ambrósio (P1/P2) */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.it-ordem li:focus { outline: 3px solid var(--azul); outline-offset: 2px; }
+.io-setas { display: flex; gap: 4px; margin-left: auto; }
+.io-seta { width: 34px; height: 34px; border: 2px solid #9a9a9a; border-radius: 6px; background: #fff; font-size: 14px; cursor: pointer; }
+.io-seta:hover, .io-seta:focus { border-color: var(--azul); outline: none; background: #eef3ff; }
+.it-ordem li .io-pega { margin-left: 6px; }
+body.pc-blocos .pc-lado { flex-basis: 210px; padding: 10px; }
+body.pc-blocos .pc-masc { height: 120px; margin-top: 8px; }
+body.pc-blocos .pc-balao { font-size: 15px; }
+.cm-esq { flex: 0 0 38%; max-width: 38%; }
+.cm-grelha svg { width: 100%; height: auto; }
+.cm-missao { font-size: 17px; }
+.rt-alvo.cortica { border-radius: 10px; background: repeating-linear-gradient(90deg, #c88a3d 0 9px, #b5772c 9px 11px); border: 2px solid #6b4a22; }
+.rt-alvo.cortica::after { display: none; }
+.of-criterios { display: flex; gap: 14px; justify-content: center; font: 700 16px 'Asap'; }
+.of-criterios span { padding: 3px 10px; border-radius: 12px; background: #eee; }
+.of-criterios span.ok { background: #c8efdc; color: var(--certo); }

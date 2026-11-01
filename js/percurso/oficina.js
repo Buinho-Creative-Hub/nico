@@ -54,15 +54,19 @@
     const svg = svgEl('svg', { viewBox: `0 0 ${W} 330`, class: 'of-ponte', role: 'img', 'aria-label': 'Ribeira com o vão da ponte' });
     const caixa = h('div', { class: 'of-tabuleiro', role: 'listbox', 'aria-label': 'Peças de cortiça (setas para escolher, Enter para pôr)', tabindex: '0' });
     const estado = h('p', { class: 'of-estado' });
+    const criterios = h('div', { class: 'of-criterios', 'aria-live': 'polite' });
+    let vivo = true;
     const btnTestar = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, '▶ O Nico experimenta a ponte');
     const btnTirar = h('button', { type: 'button', class: 'btn btn-texto' }, '↶ Tirar a última peça');
     el.append(h('div', { class: 'pc-enunciado of' },
       h('p', { class: 'pe-pergunta' }, at.pergunta),
       h('p', { class: 'pe-instr' }, (at.restricao && at.restricao.pecas ? `Usa exatamente ${at.restricao.pecas} peças. ` : '') + 'Arrasta as peças para o vão (ou escolhe com as setas e carrega em Enter). Clica numa peça da ponte para a tirar.'),
-      svg, estado, h('div', { class: 'of-linha' }, caixa), h('div', { class: 'of-linha' }, btnTirar, btnTestar)));
+      svg, estado, criterios, h('div', { class: 'of-linha' }, caixa), h('div', { class: 'of-linha' }, btnTirar, btnTestar)));
 
     // cenário fixo: céu, margens, ribeira, régua do vão
-    const den = Math.max(...pecas.map(p => p.f[1]), alvo[1]);
+    const mmc = (a, b) => a / mdc(a, b) * b;
+    let den = pecas.reduce((d, p) => mmc(d, p.f[1]), alvo[1]);
+    if (den * valorNum(alvo) > 24) den = 1;   // marcas comuns só se forem legíveis; senão só 0 e o fim
     let g = `<defs><linearGradient id="ofCeu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff"/><stop offset="1" stop-color="#fff6e0"/></linearGradient></defs>
       <rect width="${W}" height="330" fill="url(#ofCeu)"/>
       <path d="M0 250 Q120 240 ${M0} ${Y + 6} V330 H0Z" fill="#b98b56"/><rect x="0" y="${Y + 6}" width="${M0}" height="12" fill="#8dbb5a"/>
@@ -91,6 +95,7 @@
         for (let k = 8; k < w - 6; k += 14) r.append(svgEl('circle', { cx: x + k, cy: Y + 3, r: 1.6, fill: '#7a4f1d' }));
         const t = svgEl('text', { x: x + w / 2, y: Y - 16, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700 }); t.textContent = p.t; r.append(t);
         r.addEventListener('click', () => tirar(p));
+        r.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tirar(p); } });
         gPecas.append(r);
         x += w;
       });
@@ -105,6 +110,11 @@
         caixa.append(b);
       });
       btnTirar.disabled = !postas.length;
+      // dois critérios separados: a medida e o número de peças
+      const nP = at.restricao && at.restricao.pecas;
+      criterios.innerHTML = '';
+      criterios.append(h('span', { class: c === 0 ? 'ok' : '' }, `Medida: ${c === 0 ? '✓' : c < 0 ? 'falta' : 'passa'}`));
+      if (nP) criterios.append(h('span', { class: postas.length === nP ? 'ok' : '' }, `Peças: ${postas.length}/${nP}`));
     }
     function por(p) { if (feito || p.usada) return; p.usada = true; postas.push(p); som('encaixe'); desenhar(); }
     function tirar(p) { if (feito) return; postas = postas.filter(x => x !== p); p.usada = false; som('apagar'); desenhar(); }
@@ -119,7 +129,7 @@
       else if (ev.key === 'Backspace') { if (postas.length) tirar(postas[postas.length - 1]); ev.preventDefault(); }
     });
 
-    const anda = (x, ms) => new Promise(r => { nico.style.transition = `transform ${ms}ms linear`; nico.style.transform = `translateX(${x}px)`; setTimeout(r, ms + 30); });
+    const anda = (x, ms) => new Promise(r => { if (!vivo) return; nico.style.transition = `transform ${ms}ms linear`; nico.style.transform = `translateX(${x}px)`; setTimeout(r, ms + 30); });
     btnTestar.addEventListener('click', async () => {
       if (feito) return;
       if (!postas.length) { api.dizer('curiosa', 'Primeiro põe peças no vão: arrasta-as do tabuleiro.'); return; }
@@ -148,7 +158,7 @@
     desenhar();
     api.dizer('boas_vindas', at.boasVindas || 'A ribeira levou a ponte! Constrói uma nova com as peças de cortiça. Quando achares que está bem, eu experimento.');
     return {
-      fechar: () => {},
+      fechar: () => { vivo = false; },
       resolver: () => {
         // procura uma combinação que sirva (para os testes): todas as subsequências das peças
         const n = pecas.length;
@@ -179,7 +189,7 @@
             achadas.add(id); s.classList.add('pista'); som('apanhar');
             api.dizer('celebrar', (at.porquePistas && at.porquePistas[id]) || 'Boa pista! Guarda-a no caderno.');
             caderno();
-            if (achadas.size === at.pistas.length) setTimeout(() => { if (fase === 1) irFase(2); }, 900);
+            if (achadas.size === at.pistas.length) { const b = h('button', { type: 'button', class: 'btn btn-azul' }, 'Já tenho as pistas → ordenar a reparação'); b.addEventListener('click', () => irFase(2)); corpo.append(b); b.focus(); }
           } else {
             falhasPistas++; som('apagar'); s.classList.add('nao'); setTimeout(() => s.classList.remove('nao'), 700);
             api.dizer('a_pensar', at.dicaPista || 'Essa frase é verdade, mas ajuda a explicar a avaria? Relê o pedido.');
@@ -256,7 +266,7 @@
     const topo = h('div', { class: 'of-carta-topo' }, h('span', { class: 'of-selo', 'aria-hidden': 'true' }, '✉️'), h('div', null, h('small', null, 'Para:'), h('strong', null, at.para)));
     const corpo = h('div');
     const passosEl = h('div', { class: 'of-fases' });
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta || `Correio do Nico: uma mensagem para ${at.para}.`), passosEl, h('div', { class: 'of-carta-caixa' }, topo, carta), corpo));
+    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta || `Correio do Nico: mensagens para ${at.para}.`), passosEl, h('div', { class: 'of-carta-caixa' }, topo, carta), corpo));
     const textos = {};
     const NOMES = { copia: 'Copiar', edicao: 'Corrigir o rascunho', propria: 'Escrever a tua' };
     function pintarFases() { passosEl.innerHTML = ''; fasesDef.forEach((f, k) => passosEl.append(h('span', { class: k < fase ? 'feita' : k === fase ? 'atual' : '' }, `${k + 1}. ${NOMES[f]}`))); }
@@ -328,7 +338,7 @@
       carta.innerHTML = ''; carta.append(h('p', { class: 'of-manuscrito' }, textos.propria || textos.edicao || textos.copia));
       carta.parentNode.classList.add('enviada'); som('sucesso');
       setTimeout(() => {
-        corpo.append(h('div', { class: 'of-resposta' }, h('strong', null, `Resposta de ${at.para}:`), h('p', null, at.resposta)));
+        corpo.append(h('div', { class: 'of-resposta' }, h('strong', null, `Resposta ${at.respostaDe || 'de ' + at.para}:`), h('p', null, at.resposta)));
         api.concluir({ ok: true, tempo: seg(t0), falhas: enganos, ccm, precisao: total ? Math.round(100 * (total - enganos) / total) : 100, tentativas: tentEdicao || 1, valor: textos.propria || '', aberta: !!at.propria },
           'Mensagem entregue! Olha, já respondeu. 📬');
       }, 900);

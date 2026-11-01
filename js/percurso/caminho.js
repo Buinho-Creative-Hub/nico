@@ -29,6 +29,7 @@
       { type: 'field_dropdown', name: 'DIR', options: [['norte ↑', 'N'], ['sul ↓', 'S'], ['este →', 'E'], ['oeste ←', 'O']] }],
       inputsInline: true, previousStatement: null, nextStatement: null, colour: COR.atores, tooltip: 'O Nico anda pela quadrícula. Norte é para cima no mapa.' },
     { type: 'cm_apanhar', message0: 'apanhar', previousStatement: null, nextStatement: null, colour: COR.atores, tooltip: 'Apanha o que estiver na casa onde o Nico está.' },
+    { type: 'cm_regar', message0: 'regar', previousStatement: null, nextStatement: null, colour: COR.atores, tooltip: 'Rega o canteiro onde o Nico está.' },
     { type: 'cm_aqui', message0: 'o número aqui é %1', args0: [{ type: 'field_dropdown', name: 'T', options: TESTES }], output: 'Boolean', style: 'logica',
       tooltip: 'Verdadeiro se na casa do Nico houver um número assim.' },
   ]);
@@ -41,15 +42,18 @@
     andarE: `<block type="cm_andar"><field name="DIR">E</field>${num(1)}</block>`,
     andarO: `<block type="cm_andar"><field name="DIR">O</field>${num(1)}</block>`,
     apanhar: '<block type="cm_apanhar"></block>',
+    regar: '<block type="cm_regar"></block>',
     repetir: `<block type="mk_repetir">${num(3)}</block>`,
     se: '<block type="mk_se_entao"></block>',
     aqui: '<block type="cm_aqui"><field name="T">m3</field></block>',
   };
-  function xmlProg(p) {
+  // acao: 'regar' troca o bloco «apanhar» pelo bloco «regar» (o verbo do bloco é o que acontece no mapa)
+  function xmlProg(p, acao) {
+    const AP = acao === 'regar' ? 'cm_regar' : 'cm_apanhar';
     const um = (b, resto) => {
       const nx = resto ? `<next>${resto}</next>` : '';
       if (DIRS[b[0]]) return `<block type="cm_andar"><field name="DIR">${b[0]}</field>${num(b[1] || 1)}${nx}</block>`;
-      if (b[0] === 'ap') return `<block type="cm_apanhar">${nx}</block>`;
+      if (b[0] === 'ap') return `<block type="${AP}">${nx}</block>`;
       if (b[0] === 'rep') return `<block type="mk_repetir">${num(b[1])}<statement name="DO">${seq(b[2])}</statement>${nx}</block>`;
       if (b[0] === 'se') return `<block type="mk_se_entao"><value name="C"><block type="cm_aqui"><field name="T">${b[1]}</field></block></value><statement name="SIM">${seq(b[2])}</statement>${nx}</block>`;
       return '';
@@ -85,7 +89,7 @@
             st.c = c; st.r = r; st.passos++;
             rasto.push({ tipo: 'mover', c, r, b: b.id });
           }
-        } else if (b.type === 'cm_apanhar') {
+        } else if (b.type === 'cm_apanhar' || b.type === 'cm_regar') {
           const i = itemEm(st.c, st.r);
           if (i < 0 || st.apanhados.includes(i)) { erro = { tipo: 'nada' }; rasto.push({ tipo: 'nada', c: st.c, r: st.r, b: b.id }); return; }
           st.apanhados.push(i); rasto.push({ tipo: 'apanhar', i, b: b.id, n: st.apanhados.length });
@@ -163,8 +167,8 @@
     if (r.erro) {
       if (r.erro.tipo === 'obst') return ['surpreendida', `Ai! Ia ${NOMES_OBST[r.erro.obst] ? 'bater ' + NOMES_OBST[r.erro.obst] : 'bater'} a ${NOME_DIR[r.erro.dir]}. Conta as casas outra vez.`];
       if (r.erro.tipo === 'fora') return ['surpreendida', `Ups! Para ${NOME_DIR[r.erro.dir]} já não há caminho: ia sair do mapa.`];
-      if (r.erro.tipo === 'nada') return ['a_pensar', 'Mandaste-me apanhar, mas aqui não há nada para apanhar. Onde é que eu estava?'];
-      if (r.erro.tipo === 'errado') return ['a_pensar', `Apanhei o ${r.erro.item}… mas esse não era para apanhar! ${at.porque || 'Lê outra vez a missão.'}`];
+      if (r.erro.tipo === 'nada') return ['a_pensar', at.acao === 'regar' ? 'Mandaste-me regar, mas aqui não há canteiro. Onde é que eu estava?' : 'Mandaste-me apanhar, mas aqui não há nada para apanhar. Onde é que eu estava?'];
+      if (r.erro.tipo === 'errado') return ['a_pensar', at.acao === 'regar' ? `Reguei o canteiro ${r.erro.item}… mas esse não estava seco! ${at.porque || ''}` : `Apanhei o ${r.erro.item}… mas esse não era para apanhar! ${at.porque || 'Lê outra vez a missão.'}`];
       if (r.erro.tipo === 'infinito') return ['calma', 'Estou a andar há tanto tempo… o programa nunca mais acaba! Vê os números dos «repetir».'];
     }
     if (!r.rasto.some(x => x.tipo !== 'inicio') && r.soltos) return ['a_pensar', 'Os blocos têm de estar encaixados dentro do «ao começar», como peças de puzzle.'];
@@ -189,12 +193,15 @@
         h('div', { style: 'display:flex;gap:12px;align-items:flex-start' }, grelha, h('div', { html: ROSA })),
         h('div', { class: 'cm-comandos' }, btnIr, btnRep, nBlocos)),
       h('div', { class: 'cm-blocos' }, areaB)));
-    const caixa = `<xml>${(at.blocos || ['andarN', 'andarS', 'andarE', 'andarO']).map(k => CAIXA[k]).join('')}</xml>`;
+    const caixa = `<xml>${(at.blocos || ['andarN', 'andarS', 'andarE', 'andarO']).map(k => CAIXA[k === 'apanhar' && at.acao === 'regar' ? 'regar' : k]).join('')}</xml>`;
     const ws = Blockly.inject(areaB, {
       renderer: 'makecode', theme: 'makecode', media: 'vendor/media/', toolbox: caixa, trashcan: true, sounds: false,
       zoom: { controls: true, wheel: false, startScale: 0.95, maxScale: 1.6, minScale: 0.6 }, move: { scrollbars: true, drag: true, wheel: true },
     });
-    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(at.inicial ? xmlProg(at.inicial) : xmlProg([])), ws);
+    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xmlProg(at.inicial || [], at.acao)), ws);
+    // enquadrar: o programa inicial tem de se ler todo, sem scroll horizontal (revisão do Ambrósio, P1)
+    const enquadrar = () => { try { const m = ws.getMetrics(), bb = ws.getBlocksBoundingBox(); const w = (bb.right - bb.left) * ws.scale, hh = (bb.bottom - bb.top) * ws.scale; const k = Math.min(1, (m.viewWidth - 40) / Math.max(1, w), (m.viewHeight - 40) / Math.max(1, hh)); if (k < 1) ws.setScale(Math.max(0.55, ws.scale * k)); ws.scrollCenter(); } catch (e) { /* sem métricas ainda */ } };
+    setTimeout(enquadrar, 60);
     const contar = () => {
       const n = ws.getAllBlocks(false).filter(b => !b.isShadow() && b.type !== 'cm_comecar').length;
       nBlocos.textContent = `Blocos: ${n}` + (at.maxBlocos ? ` · consegues com ${at.maxBlocos} ou menos?` : '');
@@ -234,7 +241,7 @@
     async function darPasso(p, lento) {
       if (p.b) ws.highlightBlock(p.b);
       if (p.tipo === 'mover') { nico().style.transform = `translate(${p.c * S}px,${p.r * S}px)`; if (F.Som) F.Som.tocar('clique'); estadoEl.textContent = `O Nico está na casa (${p.c + 1}, ${p.r + 1}).`; }
-      else if (p.tipo === 'apanhar') { const it = grelha.querySelector(`.cm-item[data-i="${p.i}"]`); if (it) it.style.opacity = 0.15; if (F.Som) F.Som.tocar('apanhar'); estadoEl.textContent = `Apanhou ${at.itens[p.i][2]} · já tem ${p.n}.`; }
+      else if (p.tipo === 'apanhar') { const it = grelha.querySelector(`.cm-item[data-i="${p.i}"]`); if (it) it.style.opacity = 0.15; if (F.Som) F.Som.tocar('apanhar'); estadoEl.textContent = at.acao === 'regar' ? `Regou o canteiro ${at.itens[p.i][2]} · ${p.n} ${p.n === 1 ? 'canteiro regado' : 'canteiros regados'}.` : `Apanhou ${at.itens[p.i][2]} · já tem ${p.n}.`; }
       else if (p.tipo === 'teste') estadoEl.textContent = `se o número aqui é ${p.txt} → ${p.v ? 'verdadeiro: faz o que está dentro' : 'falso: salta'}`;
       else if (p.tipo === 'volta') estadoEl.textContent = `repetir: volta ${p.k} de ${p.n}`;
       else if (p.tipo === 'bater' || p.tipo === 'nada') { const n = nico().querySelector('image'); n.classList.remove('cm-toque'); void n.getBoundingClientRect(); n.classList.add('cm-toque'); if (F.Som) F.Som.tocar('apagar'); }

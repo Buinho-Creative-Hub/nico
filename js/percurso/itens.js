@@ -176,34 +176,59 @@
     };
   };
 
+  // ordenar: arrastar com o rato, ou com o teclado (setas no cartão com foco), ou com os botões ▲ ▼ de cada cartão
   TIPOS.ordenar = (el, it, ctx) => {
     let ordem = baralhar(it.itens.map((_, i) => i), it.id || it.pergunta);
     if (ordem.every((x, i) => x === i)) ordem = ordem.slice(1).concat(ordem[0]);
     let mexido = false;
-    const ul = h('ul', { class: 'it-ordem' });
-    const lis = it.itens.map((t, i) => { const li = h('li', { 'data-i': i }, h('span', { class: 'io-num' }), h('span', null, t), h('span', { class: 'io-pega', 'aria-hidden': 'true' }, '⋮⋮')); return li; });
-    const desenhar = () => { ul.innerHTML = ''; ordem.forEach((i, k) => { lis[i].querySelector('.io-num').textContent = k + 1; ul.append(lis[i]); }); };
-    // arrastar para cima e para baixo: o item vai trocando de lugar enquanto se arrasta
-    lis.forEach(li => {
-      let ativo = false;
-      li.addEventListener('pointerdown', ev => { if (el.closest('.bloqueado')) return; ativo = true; li.setPointerCapture(ev.pointerId); li.classList.add('a-arrastar'); });
-      li.addEventListener('pointermove', ev => {
-        if (!ativo) return;
-        const i = Number(li.dataset.i), k = ordem.indexOf(i);
-        const irmaos = [...ul.children];
-        for (let j = 0; j < irmaos.length; j++) {
-          if (j === k) continue;
-          const r = irmaos[j].getBoundingClientRect();
-          if (ev.clientY > r.top + r.height * 0.25 && ev.clientY < r.bottom - r.height * 0.25) {
-            ordem.splice(k, 1); ordem.splice(j, 0, i); mexido = true; desenhar(); ctx.aoMudar(); break;
-          }
-        }
+    const ul = h('ul', { class: 'it-ordem', 'aria-label': 'Lista para ordenar. Em cada cartão usa as setas para cima e para baixo, ou os botões.' });
+    const aviso = h('p', { class: 'sr-only', 'aria-live': 'polite' });
+    const mover = (i, d, foco) => {
+      if (el.closest('.bloqueado')) return;
+      const k = ordem.indexOf(i), j = k + d;
+      if (j < 0 || j >= ordem.length) return;
+      ordem.splice(k, 1); ordem.splice(j, 0, i); mexido = true; desenhar(); ctx.aoMudar();
+      aviso.textContent = `«${it.itens[i]}» está agora na posição ${j + 1} de ${ordem.length}.`;
+      if (foco) lis[i].focus();
+    };
+    const lis = it.itens.map((t, i) => {
+      const cima = h('button', { type: 'button', class: 'io-seta', 'aria-label': `Mover «${t}» para cima` }, '▲');
+      const baixo = h('button', { type: 'button', class: 'io-seta', 'aria-label': `Mover «${t}» para baixo` }, '▼');
+      cima.addEventListener('click', ev => { ev.stopPropagation(); mover(i, -1); cima.focus(); });
+      baixo.addEventListener('click', ev => { ev.stopPropagation(); mover(i, 1); baixo.focus(); });
+      [cima, baixo].forEach(b => b.addEventListener('pointerdown', ev => ev.stopPropagation()));
+      const li = h('li', { 'data-i': i, tabindex: '0', 'aria-label': t }, h('span', { class: 'io-num' }), h('span', null, t),
+        h('span', { class: 'io-setas' }, cima, baixo), h('span', { class: 'io-pega', 'aria-hidden': 'true' }, '⋮⋮'));
+      li.addEventListener('keydown', ev => {
+        if (ev.target !== li) return;
+        if (ev.key === 'ArrowUp') { ev.preventDefault(); mover(i, -1, true); }
+        if (ev.key === 'ArrowDown') { ev.preventDefault(); mover(i, 1, true); }
       });
-      const fim = () => { ativo = false; li.classList.remove('a-arrastar'); };
-      li.addEventListener('pointerup', fim); li.addEventListener('pointercancel', fim);
+      return li;
+    });
+    const desenhar = () => { ul.innerHTML = ''; ordem.forEach((i, k) => { lis[i].querySelector('.io-num').textContent = k + 1; lis[i].setAttribute('aria-label', `${k + 1}. ${it.itens[i]}`); ul.append(lis[i]); }); };
+    // arrastar: segue o rato na janela (mudar o cartão de sítio no DOM perderia a captura do ponteiro)
+    lis.forEach(li => {
+      li.addEventListener('pointerdown', ev => {
+        if (el.closest('.bloqueado') || ev.button > 0) return;
+        ev.preventDefault();
+        const i = Number(li.dataset.i);
+        li.classList.add('a-arrastar');
+        const move = e => {
+          const k = ordem.indexOf(i);
+          const irmaos = [...ul.children];
+          let alvo = k;
+          irmaos.forEach((x, j) => { const r = x.getBoundingClientRect(); if (e.clientY >= r.top && e.clientY <= r.bottom) alvo = j; });
+          const r0 = irmaos[0].getBoundingClientRect(), rN = irmaos[irmaos.length - 1].getBoundingClientRect();
+          if (e.clientY < r0.top) alvo = 0; if (e.clientY > rN.bottom) alvo = irmaos.length - 1;
+          if (alvo !== k) { ordem.splice(k, 1); ordem.splice(alvo, 0, i); mexido = true; desenhar(); ctx.aoMudar(); }
+        };
+        const fim = () => { li.classList.remove('a-arrastar'); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', fim); window.removeEventListener('pointercancel', fim); };
+        window.addEventListener('pointermove', move); window.addEventListener('pointerup', fim); window.addEventListener('pointercancel', fim);
+      });
     });
     desenhar();
-    el.append(ul);
+    el.append(ul, aviso);
     return {
       valor: () => ordem.slice(),
       repor: v => { if (v && v.length === ordem.length) { ordem = v.slice(); mexido = true; desenhar(); } },

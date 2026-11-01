@@ -165,8 +165,10 @@
       nav.append(b);
     });
   }
+  let geracao = 0;   // cada atividade mostrada tem o seu número: callbacks atrasados de uma atividade antiga são ignorados
   function mostrar() {
     fecharAtual();
+    const minha = ++geracao, viva = () => minha === geracao && !$('vSessao').hidden;
     const s = X.sessoes[S.k], est = s.estacoes[S.e], at = est.atividades[S.a], A = AREAS[est.area];
     document.title = 'Nico · ' + s.titulo;
     estacoesTopo();
@@ -185,6 +187,7 @@
     let ajudas = 0;
     F.PC.registarAjuda = n => { ajudas = Math.max(ajudas, n); };
     const concluir = (res, frase) => {
+      if (!viva()) return;   // a criança já mudou de atividade: não há conclusão nem bolotas tardias
       const ja = feitoEm(at.id);
       const reg = Object.assign({ ok: !!res.ok, t: Math.round((performance.now() - t0) / 1000), ajudas }, res);
       // o que o professor precisa de saber: feito sozinho, feito com apoio (pistas ou 2.ª tentativa), ou com a resposta mostrada
@@ -205,10 +208,11 @@
       pts.children[S.a].className = (P.at[at.id].ok ? 'feito' : 'falhado') + ' atual';
     };
     const api = {
-      concluir, dizer: (e, t) => masc.dizer(e, t),
-      msg: (t, tipo) => { $('atMsg').textContent = t; $('atMsg').className = 'pr-msg ' + (tipo || ''); },
+      concluir, viva, dizer: (e, t) => { if (viva()) masc.dizer(e, t); },
+      msg: (t, tipo) => { if (!viva()) return; $('atMsg').textContent = t; $('atMsg').className = 'pr-msg ' + (tipo || ''); },
     };
     let ouvir = () => at.missao || at.pergunta || '';
+    document.body.classList.toggle('pc-blocos', at.tipo === 'caminho');
     if (at.tipo === 'caminho') {
       atual = F.PC.caminho.montar(palco, at, api);
       ouvir = () => at.missao;
@@ -289,8 +293,13 @@
     const linhas = s.estacoes.map(e => { const t = e.atividades.length, f = e.atividades.filter(a => feitoEm(a.id) && feitoEm(a.id).ok).length; return `${AREAS[e.area].nome}: ${f} de ${t}`; });
     const falta = atividadesDe(s).filter(a => !feitoEm(a.id)).length;
     const ins = sessaoFeita(s) && s.insignia ? ` Ganhaste a insígnia «${s.insignia}»! 🏅` : '';
-    janela('celebrar', 'Sessão terminada!', linhas.join(' · ') + (falta ? ` · Ficaram ${falta} por fazer (saltadas).` : '') + ins,
-      [['Voltar ao percurso', 'btn-escuro', mapa], ...(S.k + 1 < X.sessoes.length ? [['Sessão seguinte →', 'btn-azul', () => abrirSessao(S.k + 1)]] : [])]);
+    if (falta) {   // não dizer «terminada» quando ainda há atividades por fazer
+      janela('calma', 'Pausa na missão', linhas.join(' · ') + ` · Ainda ${falta === 1 ? 'falta 1 atividade' : `faltam ${falta} atividades`}.`,
+        [['Voltar ao percurso', 'btn-texto', mapa], ['Continuar o que falta', 'btn-azul', () => abrirSessao(S.k)]]);
+      return;
+    }
+    janela('celebrar', s.rotulo ? 'Missão cumprida!' : 'Sessão terminada!', linhas.join(' · ') + ins,
+      [['Voltar ao percurso', 'btn-escuro', mapa], ...(S.k + 1 < X.sessoes.length ? [['Seguinte →', 'btn-azul', () => abrirSessao(S.k + 1)]] : [])]);
   }
 
   // ------------------------------------------------------------ prova-ensaio
