@@ -86,7 +86,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
   // ------------------------------------------------------------ 2. ecrã: mapa
   console.log('Mapa');
-  ok(await pg.locator('.pc-sessao').count() === 9 && await pg.locator('.pc-trilho .tr-no').count() === 8, 'missão 1 + 6 sessões + prova-ensaio + oficina no mapa e no trilho');
+  ok(await pg.locator('.pc-sessao').count() === 9 && await pg.locator('.pc-mapa-arte .ma-no').count() === 8, 'missão 1 + 6 sessões + prova-ensaio + oficina no mapa e no trilho');
   await foto('01-mapa');
 
   // ------------------------------------------------------------ sessão 1
@@ -293,10 +293,10 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.fill('textarea.of-explica', 'amanhã vamos a horta ver as couves'); await pg.click('text=Verificar a correção');
   ok(/Ainda há \d+ palavra/.test(await pg.textContent('.of-estado')), 'correio: diz quantas palavras faltam corrigir (' + await pg.textContent('.of-estado') + ')');
   await pg.fill('textarea.of-explica', 'Amanhã vamos à horta ver as couves.'); await pg.click('text=Verificar a correção');
-  await pg.waitForSelector('text=✉️ Enviar');
+  await pg.waitForSelector('button:has-text("Enviar")');
   await pg.fill('textarea.of-explica', 'Olá, Dona Aurora! No dia 20 de maio há a Mostra de Invenções do Nico na escola, com pontes e robôs. Venha!');
   await foto('m1-correio');
-  await pg.click('text=✉️ Enviar');
+  await pg.click('button:has-text("Enviar")');
   await pg.waitForSelector('.of-resposta', { timeout: 5000 });
   ok(true, 'correio: cópia → correção → mensagem própria → resposta da Dona Aurora');
   await pg.click('#btnSeguinte');
@@ -304,15 +304,15 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.waitForSelector('#janela:not([hidden])');
   ok((await pg.textContent('#janelaTexto')).includes('Construtor de pontes'), 'missão 1 completa: insígnia «Construtor de pontes»');
   await pg.click('#janelaBotoes .btn');
-  await pg.waitForSelector('.pc-trilho');
-  ok(await pg.evaluate(() => !!window.Faisca.PC.app.progresso().mundo.ponte) && !(await pg.textContent('.pc-trilho')).includes('sem ponte'), 'a ponte construída fica no mapa');
+  await pg.waitForSelector('.pc-mapa-arte');
+  ok(await pg.evaluate(() => !!window.Faisca.PC.app.progresso().mundo.ponte) && (await pg.getAttribute('.pc-mapa-arte > img.ma-fundo', 'src')).includes('mapa-com-ponte'), 'a ponte construída fica no mapa (mapa-com-ponte do Ambrósio)');
   await foto('m1-mapa-com-ponte');
   // oficina: comprar uma decoração
   await pg.click('text=🛠 A oficina do Nico');
   const antes = await pg.evaluate(() => window.Faisca.PC.app.progresso().bolotas);
   await pg.locator('.pc-loja button').first().click();
   const depois = await pg.evaluate(() => window.Faisca.PC.app.progresso());
-  ok(depois.bolotas === antes - 10 && depois.oficina.includes('vaso'), `oficina: o vaso custa 10 bolotas (${antes} → ${depois.bolotas})`);
+  ok(depois.bolotas === antes - 10 && depois.oficina.includes('rosmaninho'), `oficina: o vaso com rosmaninho custa 10 bolotas (${antes} → ${depois.bolotas})`);
   await foto('m1-oficina');
   const reg = await pg.evaluate(() => window.Faisca.PC.app.progresso().at);
   ok(reg['m1-pt1'].estado === 'apoio' && reg['m1-r1'].estado === 'autonomo', `registos separam autónomo/apoio (ponte 1: ${reg['m1-pt1'].estado}, bolotas: ${reg['m1-r1'].estado})`);

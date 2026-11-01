@@ -61,7 +61,7 @@
       resumo: 'A ribeira levou a ponte: constrói-a com frações, descobre porque a rega falhou, escreve à Dona Aurora e programa a rega.',
       estacoes: [
         { area: 'maos', titulo: 'Aquecer as mãos', atividades: [
-          { id: 'm1-r1', tipo: 'alvos', titulo: 'Recolher a cortiça', pergunta: 'Recolhe 8 pedaços de cortiça para a ponte (clica em cada um).', n: 8, tamanho: [110, 70], objeto: { varios: 'Pedaços de cortiça', um: 'Pedaço de cortiça', estilo: 'cortica' },
+          { id: 'm1-r1', tipo: 'alvos', titulo: 'Recolher a cortiça', pergunta: 'A cortiça para a ponte está a boiar na ribeira. Recolhe os 8 pedaços (clica em cada um).', n: 8, tamanho: [110, 70], objeto: { varios: 'Pedaços de cortiça', um: 'Pedaço de cortiça', estilo: 'cortica' }, cena: 'ribeira',
             boasVindas: 'Aquecimento rápido: precisamos de cortiça para a ponte! Clica com calma, não há pressa.',
             pistas: ['Leva a setinha até ao pedaço de cortiça.', 'Um clique com o botão da esquerda.', 'Não há tempo-limite: devagar também conta.'] },
         ] },
@@ -103,7 +103,6 @@
             pistas: ['2.2', '3.2'], ajudas: ['O problema é só no canteiro 3. Procura frases que falem só de um canteiro.', 'Há uma frase sobre tubos esmagados nas avarias frequentes.', 'E no registo da semana, o que aconteceu na terça-feira?'], porquePistas: { '2.2': 'Isso! Um tubo esmagado não deixa a água passar.', '3.2': 'Boa! O trator esmagou o tubo do canteiro 3.' },
             dicaPista: 'Essa frase é verdade, mas explica porque é que SÓ o canteiro 3 ficou sem água?',
             passos: ['Fechar a torneira do depósito.', 'Encontrar o tubo esmagado do canteiro 3.', 'Cortar o bocado estragado e pôr uma peça nova.', 'Abrir a torneira e ver se a água chega ao canteiro 3.'],
-            animacao: '<span class="of-roda">💧</span> 🥬',
             explicar: 'Escreve no relatório o que estava avariado e como o descobriste.',
             boasVindas: 'Temos um caso! Lê o manual à esquerda — rola até ao fim — e encontra as duas frases que explicam a avaria.' },
           { id: 'm1-c1', tipo: 'correio', titulo: 'Correio do Nico', para: 'Dona Aurora, da horta', respostaDe: 'da Dona Aurora',

@@ -49,7 +49,8 @@
   T.ponte = (el, at, api) => {
     const alvo = fr(at.alvo), dec = /[,.]/.test(String(at.alvo)) || (at.pecas || []).some(p => /[,.]/.test(p));
     const pecas = at.pecas.map((t, i) => ({ i, t, f: fr(t), usada: false }));
-    const W = 900, M0 = 150, VAO = 560, esc = VAO / valorNum(alvo), Y = 170;
+    // cenário do Ambrósio (img/percurso/ribeira, 900×330): margens em x≈175 e x≈688, chão em y=166 (LEIA-ME do pacote de arte)
+    const W = 900, M0 = 175, VAO = 513, esc = VAO / valorNum(alvo), Y = 166, ALT = 22;
     let postas = [], sel = 0, tent = 0, feito = false; const t0 = performance.now();
     const svg = svgEl('svg', { viewBox: `0 0 ${W} 330`, class: 'of-ponte', role: 'img', 'aria-label': 'Ribeira com o vão da ponte' });
     const caixa = h('div', { class: 'of-tabuleiro', role: 'listbox', 'aria-label': 'Peças de cortiça (setas para escolher, Enter para pôr)', tabindex: '0' });
@@ -67,13 +68,8 @@
     const mmc = (a, b) => a / mdc(a, b) * b;
     let den = pecas.reduce((d, p) => mmc(d, p.f[1]), alvo[1]);
     if (den * valorNum(alvo) > 24) den = 1;   // marcas comuns só se forem legíveis; senão só 0 e o fim
-    let g = `<defs><linearGradient id="ofCeu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff"/><stop offset="1" stop-color="#fff6e0"/></linearGradient></defs>
-      <rect width="${W}" height="330" fill="url(#ofCeu)"/>
-      <path d="M0 250 Q120 240 ${M0} ${Y + 6} V330 H0Z" fill="#b98b56"/><rect x="0" y="${Y + 6}" width="${M0}" height="12" fill="#8dbb5a"/>
-      <path d="M${M0 + VAO} ${Y + 6} Q${M0 + VAO + 40} 240 ${W} 250 V330 H${M0 + VAO}Z" fill="#b98b56"/><rect x="${M0 + VAO}" y="${Y + 6}" width="${W - M0 - VAO}" height="12" fill="#8dbb5a"/>
-      <path d="M${M0} 270 Q${M0 + VAO / 2} 255 ${M0 + VAO} 270 V330 H${M0}Z" fill="#5aa9e6"/>
-      <path d="M${M0 + 40} 290 q20 -8 40 0 t40 0 M${M0 + 300} 300 q20 -8 40 0 t40 0" stroke="#d8efff" stroke-width="3" fill="none"/>
-      <g transform="translate(${M0 + VAO + 120},${Y - 70})"><rect x="0" y="20" width="100" height="56" fill="#fff" stroke="#555"/><path d="M-6 22 50 -8 106 22z" fill="#c4553a"/><rect x="40" y="46" width="20" height="30" fill="#6b4a22"/></g>`;
+    let g = `<image href="img/percurso/ribeira.webp" x="0" y="0" width="${W}" height="330" preserveAspectRatio="none"/>
+      <rect x="${M0 - 14}" y="${Y + 34}" width="${VAO + 28}" height="52" rx="6" fill="#fff" fill-opacity=".82"/>`;
     // régua: marcas em cada 1/den do vão
     const passos = Math.round(valorNum(alvo) * den);
     if (passos <= 24) for (let k = 0; k <= passos; k++) { const x = M0 + (k / den) * esc; g += `<line x1="${x}" x2="${x}" y1="${Y + 40}" y2="${Y + (k % den === 0 ? 58 : 50)}" stroke="#111" stroke-width="${k % den === 0 ? 2.5 : 1.2}"/>`; }
@@ -81,7 +77,10 @@
       <text x="${M0}" y="${Y + 78}" text-anchor="middle" font-size="16" font-weight="700">0</text>
       <text x="${M0 + VAO}" y="${Y + 78}" text-anchor="middle" font-size="16" font-weight="700">${escrever(alvo, dec, at.unidade).replace('um ', '1 ')}</text>`;
     svg.innerHTML = g;
-    const gPecas = svgEl('g', {}), nico = svgEl('image', { href: 'img/nico/01_boas_vindas.png', x: M0 - 110, y: Y - 92, width: 80, height: 96 });
+    // Nico do Ambrósio: âncora dos pés em (128, 312) numa tela 256×320; apresentado com 96 de altura
+    const NH = 96, NW = NH * 256 / 320, NX0 = M0 - 70;
+    const gPecas = svgEl('g', {}), nico = svgEl('image', { href: 'img/percurso/nico-parado.webp', x: NX0 - 128 * NH / 320, y: Y - 312 * NH / 320, width: NW, height: NH });
+    const pose = n => nico.setAttribute('href', 'img/percurso/nico-' + n + '.webp');
     svg.append(gPecas, nico);
 
     function total() { return postas.reduce((t, p) => soma(t, p.f), [0, 1]); }
@@ -91,9 +90,10 @@
       postas.forEach(p => {
         const w = valorNum(p.f) * esc, passa = x + w > M0 + VAO + 0.5;
         const r = svgEl('g', { class: 'of-peca-posta', tabindex: '0', role: 'button', 'aria-label': 'Tirar a peça ' + p.t });
-        r.append(svgEl('rect', { x, y: Y - 8, width: w - 2, height: 22, rx: 4, fill: passa ? '#f3b0a5' : '#c88a3d', stroke: '#111', 'stroke-width': 2 }));
-        for (let k = 8; k < w - 6; k += 14) r.append(svgEl('circle', { cx: x + k, cy: Y + 3, r: 1.6, fill: '#7a4f1d' }));
-        const t = svgEl('text', { x: x + w / 2, y: Y - 16, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700 }); t.textContent = p.t; r.append(t);
+        // textura de cortiça do Ambrósio esticada no comprimento exato da peça (sem pontas arredondadas, para não criar falsos intervalos)
+        r.append(svgEl('image', { href: 'img/percurso/cortica-meio.webp', x, y: Y - 2, width: w, height: ALT, preserveAspectRatio: 'none' }));
+        r.append(svgEl('rect', { x, y: Y - 2, width: w, height: ALT, fill: passa ? '#e03131' : 'none', 'fill-opacity': passa ? 0.35 : 0, stroke: '#4a2f12', 'stroke-width': 1.5 }));
+        const t = svgEl('text', { x: x + w / 2, y: Y - 10, 'text-anchor': 'middle', 'font-size': 16, 'font-weight': 700, stroke: '#fff', 'stroke-width': 4, 'paint-order': 'stroke' }); t.textContent = p.t; r.append(t);
         r.addEventListener('click', () => tirar(p));
         r.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tirar(p); } });
         gPecas.append(r);
@@ -129,7 +129,14 @@
       else if (ev.key === 'Backspace') { if (postas.length) tirar(postas[postas.length - 1]); ev.preventDefault(); }
     });
 
-    const anda = (x, ms) => new Promise(r => { if (!vivo) return; nico.style.transition = `transform ${ms}ms linear`; nico.style.transform = `translateX(${x}px)`; setTimeout(r, ms + 30); });
+    // andar: as 4 poses do Ambrósio a ~8 imagens por segundo; parado no fim (com «menos movimento», só desliza)
+    const poucoMovimento = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const anda = (x, ms) => new Promise(r => {
+      if (!vivo) return;
+      let f = 0; const passo = poucoMovimento ? null : setInterval(() => { if (vivo) pose('anda-' + (f++ % 4 + 1)); }, 125);
+      nico.style.transition = `transform ${ms}ms linear`; nico.style.transform = `translateX(${x}px)`;
+      setTimeout(() => { clearInterval(passo); if (vivo) pose('parado'); r(); }, ms + 30);
+    });
     btnTestar.addEventListener('click', async () => {
       if (feito) return;
       if (!postas.length) { api.dizer('curiosa', 'Primeiro põe peças no vão: arrasta-as do tabuleiro.'); return; }
@@ -139,19 +146,22 @@
       await anda(70, 400);
       if (c === 0 && (!n || postas.length === n)) {
         await anda(70 + VAO + 60, 1400);
-        feito = true; som('sucesso');
+        feito = true; som('sucesso'); pose('festa');
         api.concluir({ ok: true, tentativas: tent, tempo: seg(t0), solucao: postas.map(p => p.t) },
           at.sucesso || `A ponte tem ${escrever(alvo, dec, at.unidade)}: ${postas.map(p => p.t).join(' + ')}. Passei! 🌉`);
         return;
       }
       if (c < 0) {
         await anda(70 + larg, 900);
+        pose('pensa');
         api.dizer('a_pensar', `Parei aqui: ainda falta ${escrever(menos(alvo, tot), dec, at.unidade)} para chegar à outra margem.`);
       } else if (c > 0) {
+        pose('pensa');
         api.dizer('surpreendida', `A ponte ficou maior do que o vão: passa ${escrever(menos(tot, alvo), dec, at.unidade)}. Troca ou tira uma peça.`);
       } else {
         api.dizer('a_pensar', `A medida está certa, mas a missão pede ${n} peças e usaste ${postas.length}. Consegues de outra maneira?`);
       }
+      await new Promise(r => setTimeout(r, 900));
       await anda(0, 500);
       btnTestar.disabled = false;
     });
@@ -204,7 +214,7 @@
     const painel = h('div', { class: 'of-caso' });
     const cad = h('ol', { class: 'of-caderno' });
     const corpo = h('div');
-    painel.append(h('div', { class: 'of-pedido' }, h('strong', null, '📋 O caso: '), at.pedido), h('div', { class: 'of-fases' }), corpo);
+    painel.append(h('div', { class: 'of-pedido' }, h('img', { src: 'img/percurso/detetive-caso.webp', alt: '' }), h('div', null, h('strong', null, 'O caso: '), at.pedido)), h('div', { class: 'of-fases' }), corpo);
     el.append(h('div', { class: 'pc-duplo of-detetive' }, h('div', { class: 'pd-texto' }, manual), h('div', { class: 'pd-perg' }, h('div', { class: 'pc-enunciado' }, painel))));
     function caderno() { cad.innerHTML = ''; [...achadas].forEach(id => { const [i, j] = id.split('.').map(Number); cad.append(h('li', null, at.manual.seccoes[i - 1].frases[j - 1])); }); }
     function fases() {
@@ -228,7 +238,7 @@
         });
         corpo.append(b);
       } else {
-        const anim = h('div', { class: 'of-repara', html: at.animacao || '<span class="of-roda">⚙️</span>' });
+        const anim = h('div');
         const ta = h('textarea', { class: 'of-explica', placeholder: 'Escreve aqui…', 'aria-label': 'A tua explicação' });
         const lista = h('ul', { class: 'it-lista' });
         const crit = F.PC.itens.criteriosExtensa({ min: at.minExplica || 8 });
@@ -263,7 +273,7 @@
     const t0 = performance.now(); let fase = 0, enganos = 0, tentEdicao = 0, total = 0, tCopia = null, ccm = 0;
     const fasesDef = [at.copia ? 'copia' : null, at.rascunho ? 'edicao' : null, at.propria ? 'propria' : null].filter(Boolean);
     const carta = h('div', { class: 'of-carta' });
-    const topo = h('div', { class: 'of-carta-topo' }, h('span', { class: 'of-selo', 'aria-hidden': 'true' }, '✉️'), h('div', null, h('small', null, 'Para:'), h('strong', null, at.para)));
+    const topo = h('div', { class: 'of-carta-topo' }, h('span', { class: 'of-selo', 'aria-hidden': 'true' }, h('img', { src: 'img/percurso/correio-selo.webp', alt: '' })), h('div', null, h('small', null, 'Para:'), h('strong', null, at.para)), h('img', { class: 'of-envelope', src: 'img/percurso/correio-envelope.webp', alt: '' }));
     const corpo = h('div');
     const passosEl = h('div', { class: 'of-fases' });
     el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta || `Correio do Nico: mensagens para ${at.para}.`), passosEl, h('div', { class: 'of-carta-caixa' }, topo, carta), corpo));
@@ -323,7 +333,7 @@
         const crit = F.PC.itens.criteriosExtensa({ min: at.propria.min || 12, palavrasChave: at.propria.palavrasChave });
         const pintar = () => { lista.innerHTML = ''; crit.forEach(([n, fn]) => lista.append(h('li', { class: fn(ta.value) ? 'ok' : '' }, n))); };
         ta.addEventListener('input', pintar); pintar();
-        const b = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, '✉️ Enviar');
+        const b = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Enviar');
         b.addEventListener('click', () => {
           if (!crit.every(([, fn]) => fn(ta.value))) { api.dizer('dica', 'Antes de enviar, relê a mensagem e vê a lista: o que falta?'); return; }
           textos.propria = ta.value; b.disabled = true; ta.readOnly = true; seguinte();

@@ -12,10 +12,11 @@
   const h = F.PC.itens.h;
   const masc = F.PC.masc;
   const AREAS = {
-    maos: { nome: 'Rato e teclado', cor: 'var(--maos)', icone: '🖱️' },
-    prog: { nome: 'Programar', cor: 'var(--prog)', icone: '🧩' },
-    mat: { nome: 'Matemática', cor: 'var(--mat)', icone: '🔢' },
-    port: { nome: 'Português', cor: 'var(--port)', icone: '📖' },
+    // ícones das estações: arte do Ambrósio (img/percurso/estacao-*)
+    maos: { nome: 'Rato e teclado', cor: 'var(--maos)', img: 'estacao-maos' },
+    prog: { nome: 'Programar', cor: 'var(--prog)', img: 'estacao-programar' },
+    mat: { nome: 'Matemática', cor: 'var(--mat)', img: 'estacao-pontes' },
+    port: { nome: 'Português', cor: 'var(--port)', img: 'estacao-portugues' },
   };
   F.PC.AREAS = AREAS;
 
@@ -31,7 +32,7 @@
   const feitoEm = id => P.at[id];
 
   // ------------------------------------------------------------ bolotas (moedas do percurso), sequências e insígnias
-  const BOLOTA = '<svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="10" ry="11" fill="#e9b44c" stroke="#111" stroke-width="2"/><path d="M5 13c2-6 20-6 22 0z" fill="#8a5a1f" stroke="#111" stroke-width="2"/><path d="M16 7V3" stroke="#111" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  const BOLOTA = '<img src="img/percurso/moeda-bolota.webp" alt="">';
   function pintarBolotas(salto) {
     let b = $('bolotas');
     if (!b) { b = h('span', { class: 'pc-bolotas', id: 'bolotas', title: 'Bolotas ganhas no percurso' }); document.querySelector('.ligacao').prepend(b); }
@@ -95,51 +96,33 @@
   const rotulo = k => X.sessoes[k].rotulo || 'Sessão ' + (X.sessoes.slice(0, k + 1).filter(s => !s.rotulo).length);
   const curto = k => X.sessoes[k].rotulo ? X.sessoes[k].rotulo.replace('Missão ', 'M') : String(X.sessoes.slice(0, k + 1).filter(s => !s.rotulo).length);
 
-  // mapa-trilho: o caminho do Nico pelas sessões (provisório, até chegar a ilustração do Ambrósio)
-  const NOS = [[80, 250], [225, 150], [370, 235], [515, 125], [660, 230], [805, 130], [950, 225], [1095, 135]];
-  const MARCOS = ['🌉', '🧭', '🌳', '💧', '🔧', '🥕', '🏰', '🏁'];
+  // mapa da campanha: arte do Ambrósio (img/percurso/mapa-sem-ponte / mapa-com-ponte, 1536×1024) com botões por cima.
+  // Pontos: os do LEIA-ME do pacote. A sessão 3 (água) e a sessão 6 (Portugal) ainda não têm sítio próprio no mapa:
+  // ficam provisoriamente no Ateliê e no Correio até o Ambrósio as situar.
+  const SITIOS = { m1: [805, 515], s1: [265, 200], s2: [300, 440], s3: [1245, 790], s4: [275, 775], s5: [1260, 460], s6: [1280, 235], prova: [1220, 70] };
   function trilho() {
     const L = $('listaSessoes');
-    const etapas = [...X.sessoes.map((s, k) => ({ s, k })), ...(X.prova ? [{ prova: true }] : [])];
     const atualK = X.sessoes.findIndex(s => !sessaoFeita(s));
-    let d = `M${NOS[0][0]} ${NOS[0][1]}`;
-    for (let i = 1; i < etapas.length; i++) { const [x0, y0] = NOS[i - 1], [x1, y1] = NOS[i]; d += ` C${x0 + 80} ${y0} ${x1 - 80} ${y1} ${x1} ${y1}`; }
-    let g = '<defs><linearGradient id="trCeu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ad8ff"/><stop offset="1" stop-color="#fff4d6"/></linearGradient></defs>' +
-      '<rect width="1180" height="340" rx="14" fill="url(#trCeu)"/>' +
-      '<path d="M0 230 Q150 180 300 215 T600 200 T900 210 T1180 190 V340 H0Z" fill="#b9c98a"/><path d="M0 280 Q200 250 420 275 T820 265 T1180 270 V340 H0Z" fill="#8dbb5a"/>' +
-      '<circle cx="1110" cy="50" r="26" fill="#ffd24d"/>';
-    [[180, 228], [520, 210], [690, 268], [1010, 252], [350, 290]].forEach(([x, y]) => { g += `<g transform="translate(${x},${y})"><rect x="-4" y="0" width="8" height="22" fill="#6b4a22"/><circle cx="0" cy="-6" r="16" fill="#4f7d3a"/><circle cx="-12" cy="2" r="10" fill="#5f8f3e"/><circle cx="12" cy="2" r="10" fill="#5f8f3e"/></g>`; });
-    g += `<path d="${d}" fill="none" stroke="#f4efe3" stroke-width="22" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#c9a36b" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round"/>`;
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 1180 340'); svg.setAttribute('class', 'pc-trilho'); svg.setAttribute('role', 'list');
-    svg.innerHTML = g;
-    etapas.forEach((e, i) => {
-      const [x, y] = NOS[i];
+    const ponte = !!(P.mundo || {}).ponte;
+    const caixa = h('div', { class: 'pc-mapa-arte', role: 'list', 'aria-label': 'Mapa da Mostra de Invenções' },
+      h('img', { class: 'ma-fundo', src: `img/percurso/mapa-${ponte ? 'com' : 'sem'}-ponte.webp`, alt: ponte ? 'Mapa: a ponte da ribeira já está construída' : 'Mapa: a ribeira ainda não tem ponte' }));
+    const pos = ([x, y]) => ({ left: (100 * x / 1536) + '%', top: (100 * y / 1024) + '%' });
+    const etapas = [...X.sessoes.map((s, k) => ({ s, k, id: s.id })), ...(X.prova ? [{ prova: true, id: 'prova' }] : [])];
+    etapas.forEach(e => {
+      const sitio = SITIOS[e.id]; if (!sitio) return;
       const feita = e.prova ? P.provas.length > 0 : sessaoFeita(e.s);
       const aqui = e.prova ? atualK < 0 : e.k === atualK;
-      const no = document.createElementNS(svgNS, 'g');
-      no.setAttribute('class', 'tr-no'); no.setAttribute('tabindex', '0'); no.setAttribute('role', 'listitem');
-      no.setAttribute('aria-label', e.prova ? X.prova.titulo : `${rotulo(e.k)}: ${e.s.titulo}` + (feita ? ' (feita)' : ''));
-      const cor = feita ? '#0e9f6e' : aqui ? '#ffc850' : '#ffffff';
-      no.innerHTML = `<circle class="tr-circ" cx="${x}" cy="${y}" r="34" fill="${cor}" stroke="#111" stroke-width="4"/>` +
-        `<text x="${x}" y="${y + 9}" text-anchor="middle" font-size="26" font-weight="700" fill="${feita ? '#fff' : '#111'}">${e.prova ? '★' : curto(e.k)}</text>` +
-        `<text x="${x + 26}" y="${y - 22}" font-size="22">${MARCOS[i]}</text>` +
-        `<text x="${x}" y="${y + 60}" text-anchor="middle" font-size="15" font-weight="700" fill="#111">${(e.prova ? 'Prova-ensaio' : e.s.titulo).replace(/&/g, '&amp;').slice(0, 30)}</text>` +
-        (feita && !e.prova && e.s.insignia ? `<text x="${x}" y="${y + 78}" text-anchor="middle" font-size="13" fill="#8a5a1f">🏅 ${e.s.insignia}</text>` : '') +
-        (aqui ? `<image href="img/nico/01_boas_vindas.png" x="${x - 38}" y="${y - 118}" width="76" height="84"/>` : '');
-      const abrir = () => e.prova ? abrirProva() : abrirSessao(e.k);
-      no.addEventListener('click', abrir);
-      no.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abrir(); } });
-      svg.append(no);
+      const b = h('button', { type: 'button', class: 'ma-no' + (feita ? ' feita' : '') + (aqui ? ' aqui' : ''), role: 'listitem',
+        'aria-label': (e.prova ? X.prova.titulo : `${rotulo(e.k)}: ${e.s.titulo}`) + (feita ? ' (feita)' : '') },
+        h('b', null, feita ? '✓' : e.prova ? '★' : curto(e.k)), e.prova ? 'Prova-ensaio' : e.s.titulo,
+        feita && !e.prova && e.s.id === 'm1' ? h('img', { class: 'ma-ins', src: 'img/percurso/insignia-construtor-pontes.webp', alt: 'Insígnia Construtor de pontes' }) : null);
+      Object.assign(b.style, pos(sitio));
+      b.addEventListener('click', () => e.prova ? abrirProva() : abrirSessao(e.k));
+      caixa.append(b);
+      if (aqui) { const n = h('img', { class: 'ma-nico', src: 'img/percurso/nico-parado.webp', alt: '' }); Object.assign(n.style, pos([sitio[0], sitio[1] - 24])); caixa.append(n); }
     });
-    // o que a turma já construiu fica no mapa: a ribeira entre a missão 1 e a sessão seguinte e a sua ponte
-    const rib = document.createElementNS(svgNS, 'g');
-    rib.innerHTML = '<path d="M140 340 C160 280 120 230 165 190 S150 120 170 70" fill="none" stroke="#5aa9e6" stroke-width="16" stroke-linecap="round" opacity=".9"/>' +
-      ((P.mundo || {}).ponte ? '<g transform="translate(140,196) rotate(-12)"><rect x="0" y="0" width="52" height="12" rx="3" fill="#c88a3d" stroke="#111" stroke-width="2"/><path d="M4 0v-8M48 0v-8M4 -8H48" stroke="#6b4a22" stroke-width="3"/></g>' : '<text x="182" y="206" font-size="13" fill="#1a4fd1" font-weight="700">sem ponte!</text>');
-    svg.insertBefore(rib, svg.querySelector('.tr-no'));
-    L.parentNode.insertBefore(svg, L);
-    const prev = L.parentNode.querySelectorAll('.pc-trilho'); if (prev.length > 1) prev[0].remove();
+    const velho = L.parentNode.querySelector('.pc-mapa-arte'); if (velho) velho.remove();
+    L.parentNode.insertBefore(caixa, L);
   }
 
   // ------------------------------------------------------------ sessão
@@ -160,7 +143,7 @@
     s.estacoes.forEach((e, i) => {
       const feita = e.atividades.every(a => feitoEm(a.id));
       const b = h('button', { type: 'button', class: 'pc-est' + (i === S.e ? ' atual' : '') + (feita ? ' feita' : ''), title: AREAS[e.area].nome },
-        h('i', null, feita ? '✓' : AREAS[e.area].icone), h('span', null, e.titulo || AREAS[e.area].nome));
+        h('i', { class: feita ? '' : 'icone' }, feita ? '✓' : h('img', { src: `img/percurso/${AREAS[e.area].img}.webp`, alt: '' })), h('span', null, e.titulo || AREAS[e.area].nome));
       b.addEventListener('click', () => { S.e = i; S.a = 0; mostrar(); });
       nav.append(b);
     });
@@ -281,7 +264,7 @@
     if (S.a + 1 < est.atividades.length) { S.a++; mostrar(); return; }
     if (S.e + 1 < s.estacoes.length) {
       const prox = s.estacoes[S.e + 1];
-      janela('celebrar', `${AREAS[est.area].nome}: feito!`, `A seguir: ${AREAS[prox.area].icone} ${prox.titulo || AREAS[prox.area].nome}.`,
+      janela('celebrar', `${AREAS[est.area].nome}: feito!`, `A seguir: ${prox.titulo || AREAS[prox.area].nome}.`,
         [['Continuar', 'btn-escuro', () => { S.e++; S.a = 0; mostrar(); }]]);
       return;
     }
@@ -298,7 +281,7 @@
         [['Voltar ao percurso', 'btn-texto', mapa], ['Continuar o que falta', 'btn-azul', () => abrirSessao(S.k)]]);
       return;
     }
-    janela('celebrar', s.rotulo ? 'Missão cumprida!' : 'Sessão terminada!', linhas.join(' · ') + ins,
+    janela(s.id === 'm1' ? 'insignia' : 'celebrar', s.rotulo ? 'Missão cumprida!' : 'Sessão terminada!', linhas.join(' · ') + ins,
       [['Voltar ao percurso', 'btn-escuro', mapa], ...(S.k + 1 < X.sessoes.length ? [['Seguinte →', 'btn-azul', () => abrirSessao(S.k + 1)]] : [])]);
   }
 
@@ -393,43 +376,43 @@
   }
 
   // ------------------------------------------------------------ oficina do Nico (bolotas → decoração, sem vantagens)
+  // decorações: arte do Ambrósio (img/percurso/decor-*), pousadas sobre a oficina dele (oficina-nico). Posições em % da cena.
   const LOJA = [
-    ['vaso', 'Vaso com rosmaninho', 10, '<g transform="translate(90,250)"><path d="M0 0h50l-8 50H8z" fill="#c4553a" stroke="#111" stroke-width="2"/><path d="M25 0c-4-30 4-40 0-60M25 0c10-25 20-30 25-45M25 0c-12-20-22-26-28-40" stroke="#4f7d3a" stroke-width="4" fill="none"/></g>'],
-    ['bandeirolas', 'Bandeirolas da Mostra', 15, '<path d="M60 40 Q480 120 900 40" fill="none" stroke="#555" stroke-width="2"/>' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<path d="M${100 + i * 90} ${48 + Math.sin(i / 8 * Math.PI) * 52}l18 32l18 -32z" fill="${['#ff5050', '#ffc850', '#2364ff', '#0e9f6e'][i % 4]}"/>`).join('')],
-    ['quadro', 'Quadro de ideias', 20, '<g transform="translate(380,110)"><rect width="200" height="120" fill="#2f4f3f" stroke="#6b4a22" stroke-width="8"/><path d="M20 30h80M20 55h120M20 80h60" stroke="#fff" stroke-width="3" opacity=".8"/><circle cx="160" cy="80" r="18" fill="none" stroke="#ffc850" stroke-width="3"/></g>'],
-    ['radio', 'Rádio antigo', 25, '<g transform="translate(700,215)"><rect width="110" height="70" rx="10" fill="#8a5a1f" stroke="#111" stroke-width="2"/><circle cx="35" cy="35" r="20" fill="#e9dcc0" stroke="#111"/><rect x="66" y="20" width="32" height="8" fill="#111"/><rect x="66" y="38" width="32" height="8" fill="#111"/></g>'],
-    ['bicicleta', 'Bicicleta reparada', 30, '<g transform="translate(220,300)" stroke="#111" stroke-width="4" fill="none"><circle cx="0" cy="0" r="30"/><circle cx="110" cy="0" r="30"/><path d="M0 0 40 -40h50L110 0M40 -40 55 0h-55M90 -40v-15h15"/></g>'],
-    ['impressora', 'Impressora 3D', 40, '<g transform="translate(560,240)"><rect width="110" height="90" fill="#eee" stroke="#111" stroke-width="3"/><rect x="10" y="10" width="90" height="60" fill="#cfe6ff"/><rect x="45" y="22" width="20" height="12" fill="#ff5050"/><rect x="30" y="56" width="50" height="8" fill="#2364ff"/></g>'],
+    ['rosmaninho', 'Vaso com rosmaninho', 10, { left: '30%', top: '50%', width: '11%' }],
+    ['bandeirolas', 'Bandeirolas da Mostra', 15, { left: '28%', top: '-14%', width: '44%' }],
+    ['quadro', 'Quadro de ideias', 20, { left: '42%', top: '16%', width: '16%' }],
+    ['radio', 'Rádio antigo', 25, { left: '60%', top: '55%', width: '12%' }],
+    ['bicicleta', 'Bicicleta reparada', 30, { left: '2%', top: '60%', width: '22%' }],
+    ['impressora-3d', 'Impressora 3D', 40, { left: '45%', top: '48%', width: '13%' }],
   ];
   function oficina() {
     vista('vOficina'); $('estacoes').innerHTML = ''; pintarBolotas();
     const tem = new Set(P.oficina || []);
-    const cena = '<svg viewBox="0 0 960 380"><rect width="960" height="380" fill="#f4efe3"/><rect y="300" width="960" height="80" fill="#c9a36b"/><rect x="0" y="292" width="960" height="10" fill="#8a6d4a"/>' +
-      '<rect x="760" y="60" width="140" height="110" fill="#bfe6ff" stroke="#6b4a22" stroke-width="8"/><path d="M830 60v110M760 115h140" stroke="#6b4a22" stroke-width="5"/>' +
-      '<rect x="300" y="250" width="380" height="16" fill="#8b6b4a"/><rect x="320" y="266" width="12" height="34" fill="#6b4a22"/><rect x="648" y="266" width="12" height="34" fill="#6b4a22"/>' +
-      LOJA.filter(([id]) => tem.has(id)).map(i => i[3]).join('') +
-      '<image href="img/nico/07_a_inventar.png" x="420" y="140" width="130" height="150"/></svg>';
+    const cena = h('div', { class: 'of-cena', role: 'img', 'aria-label': 'Oficina do Nico' });
+    LOJA.filter(([id]) => tem.has(id)).forEach(([id, nome, , st]) => { const i = h('img', { src: `img/percurso/decor-${id}.webp`, alt: nome }); Object.assign(i.style, st); cena.append(i); });
+    const nico = h('img', { src: 'img/percurso/nico-sentado.webp', alt: 'Nico' }); Object.assign(nico.style, { left: '70%', top: '50%', width: '16%' }); cena.append(nico);
     const loja = h('div', { class: 'pc-loja' });
     LOJA.forEach(([id, nome, preco]) => {
-      const b = h('button', { type: 'button', class: tem.has(id) ? 'tem' : '', disabled: !tem.has(id) && (P.bolotas || 0) < preco ? true : null }, nome, h('small', null, tem.has(id) ? 'Já está na oficina ✓' : `${preco} bolotas`));
+      const b = h('button', { type: 'button', class: tem.has(id) ? 'tem' : '', disabled: !tem.has(id) && (P.bolotas || 0) < preco ? true : null }, h('img', { src: `img/percurso/decor-${id}.webp`, alt: '', style: 'width:56px;height:56px;object-fit:contain;display:block' }), nome, h('small', null, tem.has(id) ? 'Já está na oficina ✓' : `${preco} bolotas`));
       b.addEventListener('click', () => { if (tem.has(id) || (P.bolotas || 0) < preco) return; P.bolotas -= preco; P.oficina = [...tem, id]; gravar(); if (F.Som) F.Som.tocar('nivel'); oficina(); });
       loja.append(b);
     });
     const v = $('vOficina'); v.innerHTML = '';
     v.append(h('div', { class: 'pc-mapa' }, h('div', { class: 'pc-oficina' }, h('h1', null, 'A oficina do Nico'),
       h('p', null, 'É aqui que o Nico prepara a Mostra de Invenções. Ganhas bolotas por cada atividade que acabas (uma vez por atividade) e podes usá-las para decorar.'),
-      h('div', { html: cena }), loja, h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: mapa }, '← Voltar ao percurso')))));
+      cena, loja, h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: mapa }, '← Voltar ao percurso')))));
     masc.dizer('celebrar', tem.size ? 'Está a ficar linda, a nossa oficina!' : 'Ainda está vazia… escolhe o primeiro enfeite!');
   }
 
   // ------------------------------------------------------------ janela e vistas
   function janela(estado, titulo, texto, botoes) {
-    $('janelaImg').src = masc.img(estado);
+    $('janelaImg').src = estado === 'insignia' ? 'img/percurso/insignia-construtor-pontes.webp' : masc.img(estado);
+    $('janelaImg').className = estado === 'insignia' ? 'insignia' : '';
     $('janelaTitulo').textContent = titulo; $('janelaTexto').textContent = texto;
     const bx = $('janelaBotoes'); bx.innerHTML = '';
     botoes.forEach(([t, cls, f]) => { const b = h('button', { type: 'button', class: 'btn btn-grande ' + cls }, t); b.onclick = () => { $('janela').hidden = true; f(); }; bx.append(b); });
     $('janela').hidden = false;
-    if (estado === 'celebrar' && F.Som) F.Som.tocar('nivel');
+    if ((estado === 'celebrar' || estado === 'insignia') && F.Som) F.Som.tocar('nivel');
     setTimeout(() => bx.lastChild && bx.lastChild.focus(), 30);
   }
   function vista(id) {

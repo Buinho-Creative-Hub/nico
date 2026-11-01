@@ -31,12 +31,13 @@
     tentar(0);
     return (imgs[k] = r);
   }
+  // poses do Nico do Ambrósio (img/percurso/nico-*). O pacote não tem salto nem tropeção: usa-se «anda-2» e «pensa».
   const ARTE = {
-    parado: () => imagem(['img/percurso/nico-parado.png', 'img/nico/01_boas_vindas.png']),
-    corre: () => imagem(['img/percurso/nico-corre-1.png', 'img/nico/06_a_celebrar.png']),
-    salta: () => imagem(['img/percurso/nico-salta-sobe.png', 'img/nico/06_a_celebrar.png']),
-    tropeca: () => imagem(['img/percurso/nico-tropeca.png', 'img/nico/04_surpreendido.png']),
-    festa: () => imagem(['img/percurso/nico-festa.png', 'img/nico/06_a_celebrar.png']),
+    parado: () => imagem(['img/percurso/nico-parado.webp']),
+    corre: () => imagem(['img/percurso/nico-anda-' + (1 + Math.floor(performance.now() / 125) % 4) + '.webp']),
+    salta: () => imagem(['img/percurso/nico-anda-2.webp']),
+    tropeca: () => imagem(['img/percurso/nico-pensa.webp']),
+    festa: () => imagem(['img/percurso/nico-festa.webp']),
   };
   F.PC.ARTE = ARTE;
 

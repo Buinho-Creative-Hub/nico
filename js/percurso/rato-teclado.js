@@ -25,16 +25,19 @@
     let feitos = 0, falhas = 0, t0 = null, fim = false;
     const nome = at.objeto || { varios: 'Bolotas', um: 'Bolota', estilo: '' };   // o que se apanha tem o mesmo nome no enunciado, no contador e no botão
     const info = h('p', { class: 'rt-info' }, nome.varios + ': ', h('b', null, '0'), ' de ' + n, '  ·  Falhaste: ', h('b', null, '0'));
-    const zona = h('div', { class: 'rt-zona', 'aria-label': 'Zona de jogo' });
+    const zona = h('div', { class: 'rt-zona' + (at.cena ? ' cena-' + at.cena : ''), 'aria-label': 'Zona de jogo' });
+    if (at.cena) zona.append(h('img', { class: 'rt-nico', src: 'img/percurso/nico-parado.webp', alt: '' }));
     el.append(h('div', { class: 'pc-enunciado' }, h('p', { class: 'pe-pergunta' }, at.pergunta || `Clica em cada bolota que aparecer. São ${n}.`), info, zona));
-    zona.addEventListener('pointerdown', ev => { if (ev.target === zona && t0 && !fim) { falhas++; info.querySelectorAll('b')[1].textContent = falhas; } });
+    zona.addEventListener('pointerdown', ev => { if ((ev.target === zona || ev.target.classList.contains('rt-nico')) && t0 && !fim) { falhas++; info.querySelectorAll('b')[1].textContent = falhas; } });
     function nova() {
       const w = zona.clientWidth || 900, hh = zona.clientHeight || 480;
       const tam = Math.round(t1 + (t2 - t1) * (feitos / Math.max(1, n - 1)));
       const b = h('button', { type: 'button', class: 'rt-alvo' + (nome.estilo ? ' ' + nome.estilo : ''), 'aria-label': nome.um });
       b.style.width = tam + 'px'; b.style.height = (nome.estilo === 'cortica' ? Math.round(tam * 0.6) : tam) + 'px';
-      b.style.left = Math.round(10 + Math.random() * (w - tam - 20)) + 'px';
-      b.style.top = Math.round(10 + Math.random() * (hh - tam - 20)) + 'px';
+      // na ribeira, a cortiça boia na água (metade de baixo do cenário), longe do Nico
+      const zonaY = at.cena === 'ribeira' ? [0.5, 0.92] : [0, 1], zonaX = at.cena === 'ribeira' ? [0.2, 1] : [0, 1];
+      b.style.left = Math.round(w * zonaX[0] + 10 + Math.random() * (w * (zonaX[1] - zonaX[0]) - tam - 20)) + 'px';
+      b.style.top = Math.round(hh * zonaY[0] + Math.random() * Math.max(10, hh * (zonaY[1] - zonaY[0]) - tam * 0.6)) + 'px';
       b.addEventListener('click', () => {
         if (!t0) t0 = performance.now();
         feitos++; som('apanhar');
