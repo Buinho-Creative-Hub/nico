@@ -2,7 +2,7 @@
  *
  * Blocos com o aspecto do MakeCode Arcade (como o palco): «ao começar», «andar N casas para norte/sul/este/oeste»,
  * «apanhar», e os blocos do Nico «repetir N vezes» e «se … então» com «o número aqui é par/múltiplo de…».
- * Os pontos cardeais ligam ao Estudo do Meio (orientação, rosa-dos-ventos); os números a apanhar à Matemática.
+ * Os pontos cardeais ligam ao Estudo do Meio (orientação, rosa dos ventos); os números a apanhar à Matemática.
  *
  * Validação pelo comportamento: corre o programa, e o desafio fica feito se o Nico chegar à meta e apanhar
  * exatamente o que se pede, sem bater em nada. Menos blocos (≤ maxBlocos) dá 3 estrelas, como no code.org.
@@ -150,7 +150,7 @@
     g += `<g class="cm-nico" style="transform:translate(${c0 * S}px,${r0 * S}px)"><image href="${M}" x="4" y="0" width="56" height="62" preserveAspectRatio="xMidYMax meet"/></g>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" font-family="Asap, sans-serif">${g}</svg>`;
   }
-  const ROSA = '<svg viewBox="0 0 96 96" width="88" aria-label="Rosa-dos-ventos: norte para cima"><circle cx="48" cy="48" r="30" fill="#fff" stroke="#111" stroke-width="2"/>' +
+  const ROSA = '<svg viewBox="0 0 96 96" width="88" aria-label="Rosa dos ventos: norte para cima"><circle cx="48" cy="48" r="30" fill="#fff" stroke="#111" stroke-width="2"/>' +
     '<path d="M48 20 54 48 48 76 42 48z" fill="#111"/><path d="M48 20 54 48 42 48z" fill="#ff5050"/><path d="M20 48 48 42 76 48 48 54z" fill="#9a9a9a"/>' +
     '<text x="48" y="14" text-anchor="middle" font-size="13" font-weight="700">N</text><text x="48" y="94" text-anchor="middle" font-size="13" font-weight="700">S</text>' +
     '<text x="88" y="52" text-anchor="middle" font-size="13" font-weight="700">E</text><text x="8" y="52" text-anchor="middle" font-size="13" font-weight="700">O</text></svg>';

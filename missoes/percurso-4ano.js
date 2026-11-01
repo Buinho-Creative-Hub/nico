@@ -18,7 +18,7 @@
 
   // ------------------------------------------------------------ pistas que se repetem
   const PC_SEQ = ['Conta as casas entre o Nico e a bandeira. Quantas são, e para que lado?',
-    'Norte é para cima, sul para baixo, este para a direita e oeste para a esquerda — como na rosa-dos-ventos.',
+    'Norte é para cima, sul para baixo, este para a direita e oeste para a esquerda — como na rosa dos ventos.',
     'Arrasta um bloco «andar» para dentro do «ao começar» e muda o número de casas.'];
   const PC_REP = ['Há alguma parte do caminho que se repete sempre igual?',
     'Encontra o bocadinho que se repete e conta quantas vezes aparece.',
@@ -55,7 +55,7 @@
   const sessoes = [
     // -------------------------------------------------------------------------------------------- 1
     {
-      id: 's1', titulo: 'Norte, sul, este e oeste', resumo: 'Orientar-se pelo Sol e pela rosa-dos-ventos · números grandes · nomes próprios.',
+      id: 's1', titulo: 'Norte, sul, este e oeste', resumo: 'Orientar-se pelo Sol e pela rosa dos ventos · números grandes · nomes próprios.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's1-r1', tipo: 'alvos', titulo: 'Apanha as bolotas', n: 12, tamanho: [100, 60],
@@ -68,7 +68,7 @@
           { id: 's1-p1', tipo: 'caminho', titulo: 'A caminho da escola', missao: 'Leva o Nico até à escola. A escola fica 3 casas para este.',
             cols: 6, rows: 4, inicio: [1, 2], meta: [4, 2], nomeMeta: 'Escola', obst: [[0, 0, 'arvore'], [5, 3, 'arvore'], [2, 0, 'casa']],
             blocos: ['andarE', 'andarN', 'andarS', 'andarO'], maxBlocos: 1, solucao: [['E', 3]], pistas: PC_SEQ,
-            boasVindas: 'Para onde fica o este? Olha para a rosa-dos-ventos ao lado do mapa.' },
+            boasVindas: 'Para onde fica o este? Olha para a rosa dos ventos ao lado do mapa.' },
           { id: 's1-p2', tipo: 'caminho', titulo: 'Primeiro norte, depois este', missao: 'Os sobreiros tapam o caminho a direito. Vai primeiro para norte e depois para este até à escola.',
             cols: 5, rows: 4, inicio: [0, 3], meta: [3, 0], nomeMeta: 'Escola', obst: [[1, 3, 'arvore'], [2, 3, 'arvore'], [3, 3, 'pedra'], [1, 2, 'arvore'], [2, 1, 'pedra']],
             blocos: ['andarN', 'andarS', 'andarE', 'andarO'], maxBlocos: 2, solucao: [['N', 3], ['E', 3]], pistas: PC_SEQ },
@@ -102,20 +102,20 @@
           titulo: 'Como encontrar o norte', fonte: 'Texto escrito para o Nico (Buinho Educativo).',
           paragrafos: [
             'Imagina que estás no meio do montado, perto de Messejana, e não sabes para que lado fica a aldeia. Como podes orientar-te sem telemóvel?',
-            'O Sol é uma grande ajuda. De manhã, nasce do lado do nascente, que é o este. Ao fim do dia, põe-se do lado do poente, que é o oeste. Em Portugal, por volta do meio-dia, o Sol está do lado sul.',
+            'O Sol é uma grande ajuda. De manhã, nasce do lado do nascente, que é o este. Ao fim do dia, põe-se do lado do poente, que é o oeste. Em Portugal, a meio do dia, o Sol está do lado sul.',
             'Se apontares o braço direito para o lado onde o Sol nasce, ficas virado para norte. Atrás de ti fica o sul e, à tua esquerda, o oeste.',
-            'Outra ajuda é a bússola. A sua agulha é um pequeno íman que aponta sempre para norte. Os mapas também têm uma rosa-dos-ventos, que mostra onde ficam os quatro pontos cardeais: norte, sul, este e oeste.',
+            'Outra ajuda é a bússola. A sua agulha é um pequeno íman que aponta sempre para norte. Os mapas também têm uma rosa dos ventos, que mostra onde ficam os quatro pontos cardeais: norte, sul, este e oeste.',
             'Os pastores e os agricultores do Alentejo aprenderam a orientar-se pelo Sol e pelas estrelas muito antes de existirem bússolas ou GPS.',
           ] },
           atividades: [
             { id: 's1-l1', tipo: 'escolha', pergunta: 'Segundo o texto, de que lado nasce o Sol?', opcoes: ['Do lado norte.', 'Do lado sul.', 'Do lado do nascente, o este.', 'Do lado do poente.'], certa: 2, pistas: LEITURA },
             { id: 's1-l2', tipo: 'vf', pergunta: 'Indica se cada afirmação é verdadeira ou falsa, de acordo com o texto.',
-              afirmacoes: [['Ao meio-dia, em Portugal, o Sol está do lado sul.', true], ['A agulha da bússola aponta sempre para oeste.', false], ['A rosa-dos-ventos mostra os pontos cardeais.', true], ['Os pastores só se orientavam com o GPS.', false]], pistas: LEITURA },
+              afirmacoes: [['A meio do dia, em Portugal, o Sol está do lado sul.', true], ['A agulha da bússola aponta sempre para oeste.', false], ['A rosa dos ventos mostra os pontos cardeais.', true], ['Os pastores só se orientavam com o GPS.', false]], pistas: LEITURA },
             { id: 's1-l3', tipo: 'palavras', pergunta: 'Clica nos dois nomes próprios da frase.', texto: 'O Rui e a avó caminharam pelo montado até Messejana.', certas: ['Rui', 'Messejana'],
               explica: 'Os nomes próprios dão nome a uma pessoa ou lugar concretos e escrevem-se com maiúscula.',
               pistas: ['Os nomes próprios dão nome a uma pessoa ou a um lugar.', 'Os nomes próprios começam por letra maiúscula (mesmo no meio da frase).', 'Há uma pessoa e uma aldeia nesta frase.'] },
             { id: 's1-l4', tipo: 'arrastar', pergunta: 'Completa as frases com palavras do texto.', frase: 'O Sol põe-se a {0}. A bússola tem uma {1} que aponta para {2}.',
-              certas: ['oeste', 'agulha', 'norte'], extra: ['este', 'sul', 'seta'], pistas: ['Lê o 2.º e o 4.º parágrafos.', 'O poente é o…', 'A bússola tem uma agulha que é um pequeno íman.'] },
+              certas: ['oeste', 'agulha', 'norte'], extra: ['este', 'sul', 'roda'], pistas: ['Lê o 2.º e o 4.º parágrafos.', 'O poente é o…', 'A bússola tem uma agulha que é um pequeno íman.'] },
             { id: 's1-l5', tipo: 'extensa', pergunta: 'Explica a um amigo como pode encontrar o norte usando o Sol.', instr: 'Escreve pelo menos duas frases.', min: 15, palavrasChave: ['norte'],
               pistas: ['Lê outra vez o 3.º parágrafo.', 'Começa por dizer para onde se aponta o braço direito.', 'Não te esqueças: maiúscula no início e ponto final no fim.'] },
           ] },
@@ -130,7 +130,7 @@
             cestos: [{ id: 'animal', nome: 'Animais', cor: '#c4553a' }, { id: 'planta', nome: 'Plantas', cor: '#3f7d3a' }],
             objetos: [['sobreiro', 'planta'], ['azinheira', 'planta'], ['porco preto', 'animal'], ['cegonha', 'animal'], ['esteva', 'planta'], ['javali', 'animal'], ['rosmaninho', 'planta'], ['abelha', 'animal']],
             pistas: ['Carrega na palavra e não largues o botão.', 'Com o botão carregado, leva a palavra até ao cesto.', 'Em cima do cesto, larga o botão.'] },
-          { id: 's2-r2', tipo: 'teclado', titulo: 'A fila de cima', linhas: ['ruas', 'trigo', 'sobreiro', 'porco preto', 'o porco come bolotas'],
+          { id: 's2-r2', tipo: 'teclado', titulo: 'A fila de cima', linhas: ['ruas', 'trigo', 'sobreiro', 'pato', 'o pato tira a palha'],
             boasVindas: 'Hoje usamos também a fila de cima. Depois de cada tecla, o dedo volta para casa.',
             pistas: ['Os dedos voltam sempre às teclas de casa.', 'Para o R e o T usa o indicador esquerdo; para o U e o I, o indicador e o médio direitos.', 'O espaço é com o polegar.'] },
         ] },
@@ -199,7 +199,7 @@
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's3-r1', tipo: 'duplo', titulo: 'Duplo clique', palavra: 'ALQUEVA',
             pistas: ['Um clique só faz a caixa abanar.', 'São dois cliques seguidos, bem rápidos.', 'Não mexas o rato entre os dois cliques.'] },
-          { id: 's3-r2', tipo: 'teclado', titulo: 'Maiúsculas', linhas: ['Ana', 'Rui', 'Beja', 'Messejana', 'O Rio Guadiana', 'A barragem do Alqueva'],
+          { id: 's3-r2', tipo: 'teclado', titulo: 'Maiúsculas', linhas: ['Ana', 'Rui', 'Beja', 'Messejana', 'O rio Guadiana', 'A barragem do Alqueva'],
             boasVindas: 'Nomes de pessoas e de terras começam com maiúscula. Segura no Shift ⇧ com o mindinho da outra mão.',
             pistas: ['A maiúscula faz-se com o Shift ⇧.', 'Segura o Shift, carrega na letra, e larga os dois.', 'Usa o Shift do lado contrário ao da letra.'] },
         ] },
@@ -247,7 +247,7 @@
             { id: 's3-l1', tipo: 'ordenar', pergunta: 'Põe as etapas da viagem da Gota pela ordem do texto.', instr: 'Arrasta as frases para cima ou para baixo.',
               itens: ['A Gota está no lago do Alqueva.', 'O Sol aquece a água e a Gota evapora-se.', 'As gotinhas juntam-se e formam uma nuvem.', 'A nuvem fica pesada e cai a chuva.', 'A água é tratada e chega às torneiras.'], pistas: LEITURA },
             { id: 's3-l2', tipo: 'arrastar', pergunta: 'Completa com as palavras do texto.',
-              frase: 'Quando a água passa a vapor, chama-se {0}. Quando o vapor forma nuvens, chama-se {1}. A chuva, o granizo e a neve são formas de {2}.',
+              frase: 'A passagem da água a vapor chama-se {0}. A formação das nuvens chama-se {1}. A chuva, o granizo e a neve são formas de {2}.',
               certas: ['evaporação', 'condensação', 'precipitação'], extra: ['infiltração'], pistas: ['Cada etapa tem o seu nome no fim do parágrafo.', 'Lê os parágrafos 2, 3 e 4.'] },
             { id: 's3-l3', tipo: 'escolha', pergunta: 'Quem está a contar esta história?', opcoes: ['O Sol.', 'Uma gota de água.', 'O rio Guadiana.', 'Uma nuvem.'], certa: 1,
               pistas: ['Quem diz «Olá! Sou…»?', 'O narrador fala de si próprio: «eu fico tão leve».'] },
@@ -270,7 +270,7 @@
             pistas: ['De que material é feito?', 'Plástico e metal: amarelo. Papel e cartão: azul. Vidro: verde.', 'Os pacotes de leite vão para o amarelo.'] },
           { id: 's4-r2', tipo: 'teclado', titulo: 'Acentos e cedilha', linhas: ['á é ó', 'ã õ ç', 'mãe pão', 'reparação', 'Está tudo à mão!'],
             boasVindas: 'No teclado português, os acentos escrevem-se ANTES da letra: primeiro o acento, larga, depois a letra.',
-            pistas: ['O acento agudo ´ está ao lado do P.', 'O til ~ está ao lado do Ç (e do º).', 'Para o «à» segura o Shift ⇧ e carrega na tecla do acento.'] },
+            pistas: ['O acento agudo ´ está duas teclas à direita do P, depois do +.', 'O til ~ está à direita do º (a seguir ao Ç e ao º).', 'Para o «à» segura o Shift ⇧ e carrega na tecla do acento.'] },
         ] },
         { area: 'prog', titulo: 'Programar', atividades: [
           { id: 's4-p1', tipo: 'caminho', titulo: 'A gambiarra do Nico', missao: 'O Nico fez uma gambiarra: o programa devia apanhar as 3 tampinhas, mas bate numa pedra. Repara o programa!',
@@ -494,7 +494,7 @@
         'O lince-ibérico é um felino que só existe na Península Ibérica. Tem o pelo cor de areia com manchas escuras, a cauda curta e uns tufos de pelo preto nas pontas das orelhas, que parecem pincéis.',
         'Alimenta-se sobretudo de coelho-bravo. Por isso, quando os coelhos começaram a desaparecer por causa de doenças, o lince também ficou em perigo.',
         'Há poucos anos, era um dos felinos mais ameaçados do mundo. Para o salvar, criaram-se centros de reprodução, como o de Silves, no Algarve, e protegeram-se os sítios onde vive.',
-        'Desde 2015, vários linces foram libertados no Vale do Guadiana, perto de Mértola. Hoje já nascem crias em liberdade no Alentejo, e cada nascimento é uma boa notícia!',
+        'Desde o final de 2014, vários linces foram libertados no Vale do Guadiana, perto de Mértola. Hoje já nascem crias em liberdade no Alentejo, e cada nascimento é uma boa notícia!',
       ] },
     },
     itens: [
