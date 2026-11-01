@@ -55,7 +55,7 @@
   const sessoes = [
     // -------------------------------------------------------------------------------------------- 1
     {
-      id: 's1', titulo: 'Norte, sul, este e oeste', resumo: 'Orientar-se pelo Sol e pela rosa dos ventos · números grandes · nomes próprios.',
+      id: 's1', insignia: 'Orientador de Messejana', titulo: 'Norte, sul, este e oeste', resumo: 'Orientar-se pelo Sol e pela rosa dos ventos · números grandes · nomes próprios.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's1-r1', tipo: 'alvos', titulo: 'Apanha as bolotas', n: 12, tamanho: [100, 60],
@@ -63,6 +63,8 @@
           { id: 's1-r2', tipo: 'teclado', titulo: 'As teclas de casa', linhas: ['asdf jklç', 'fdsa çlkj', 'sala', 'fala', 'sala da fada', 'a fada fala'],
             boasVindas: 'Põe os dedos nas «teclas de casa»: A S D F com a mão esquerda, J K L Ç com a direita. Os indicadores sentem um risquinho no F e no J.',
             pistas: ['Os teus dedos estão nas teclas de casa?', 'Cada dedo tem as suas teclas — vê as cores por baixo das teclas no ecrã.', 'A tecla amarela no teclado do ecrã é a próxima. Procura-a no teu teclado.'] },
+          { id: 's1-j3', tipo: 'rebentar', titulo: 'Rebenta os balões', pergunta: 'Escreve a palavra de um balão para o rebentar. Só com as teclas de casa!',
+            palavras: ['sala', 'fada', 'asas', 'falas', 'salada', 'sal'], pistas: ['Os dedos nas teclas de casa: A S D F e J K L Ç.', 'Escreve a palavra inteira, sem espaços.', 'Se te enganares, apaga com ⌫.'] },
         ] },
         { area: 'prog', titulo: 'Programar', atividades: [
           { id: 's1-p1', tipo: 'caminho', titulo: 'A caminho da escola', missao: 'Leva o Nico até à escola. A escola fica 3 casas para este.',
@@ -85,9 +87,12 @@
           { id: 's1-m2', tipo: 'curta', pergunta: 'Escreve com algarismos: cento e quatro mil e sessenta.', numero: 104060, largura: '220px',
             explica: 'Cento e quatro mil = 104 000; mais sessenta = 104 060.',
             pistas: ['Quantos milhares? «Cento e quatro mil».', 'Escreve 104 e depois três algarismos para o resto.', 'Sessenta nas três últimas casas fica 060.'] },
-          { id: 's1-m3', tipo: 'ordenar', pergunta: 'Ordena os números do menor para o maior.', instr: 'Arrasta os cartões para cima ou para baixo.',
-            itens: ['9 870', '10 078', '10 780', '17 008', '70 108'],
-            pistas: ['Começa por ver quantos algarismos tem cada número.', 'Com o mesmo número de algarismos, compara da esquerda para a direita.', 'O único número com 4 algarismos é o mais pequeno.'] },
+          { id: 's1-j1', tipo: 'ligar', modo: 'sequencia', figura: 'casa', titulo: 'Liga os pontos', pergunta: 'Liga os números do menor para o maior e descobre o desenho.',
+            valores: ['9 870', '10 078', '10 780', '17 008', '38 507', '70 108'], dicaErro: 'Compara os números: quantos algarismos têm? Qual é o menor que ainda não ligaste?',
+            pistas: ['Começa no ponto amarelo: é o número mais pequeno.', 'Com o mesmo número de algarismos, compara da esquerda para a direita.', 'O número com 4 algarismos é o primeiro; o 70 108 é o último.'] },
+          { id: 's1-j2', tipo: 'plataforma', tema: 'messejana', titulo: 'Corrida dos números grandes', pergunta: 'Apanha só os números maiores do que 50 000!',
+            fichas: [['52 300', true], ['49 999', false], ['50 001', true], ['5 000', false], ['105 000', true], ['45 500', false]], porque: 'Compara com 50 000: tem de ser maior.',
+            pistas: ['Antes de saltar, lê o número da bolota.', '50 000 são cinquenta mil. 49 999 é um bocadinho menos!', '5 000 são só cinco mil.'] },
           { id: 's1-m4', tipo: 'escolha', pergunta: 'No número 456 302, qual é o valor do algarismo 6?', opcoes: ['6', '600', '6 000', '60 000'], certa: 2,
             explica: 'O 6 está na casa das unidades de milhar: vale 6 000.',
             pistas: ['Em que casa está o 6? Conta a partir da direita: unidades, dezenas, centenas…', 'Depois das centenas vêm as unidades de milhar.', 'O 6 está nas unidades de milhar.'] },
@@ -123,7 +128,7 @@
     },
     // -------------------------------------------------------------------------------------------- 2
     {
-      id: 's2', titulo: 'O montado e a cortiça', resumo: 'Seres vivos do montado · multiplicação e tabuadas · adjetivos e sinónimos.',
+      id: 's2', insignia: 'Guardião do montado', titulo: 'O montado e a cortiça', resumo: 'Seres vivos do montado · multiplicação e tabuadas · adjetivos e sinónimos.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's2-r1', tipo: 'separar', titulo: 'Animal ou planta?', pergunta: 'Arrasta cada ser vivo do montado para o cesto certo.',
@@ -160,8 +165,12 @@
             pistas: ['É uma multiplicação: 6 vezes 45.', 'Decompõe: 6 × 40 e 6 × 5.', '240 + 30 = ?'] },
           { id: 's2-m3', tipo: 'curta', pergunta: 'Calcula: 23 × 100', antes: '23 × 100 =', numero: 2300, largura: '140px',
             pistas: ['Multiplicar por 100 faz o número crescer duas casas.', 'Cada algarismo passa duas casas para a esquerda.', 'Acrescentam-se dois zeros.'] },
-          { id: 's2-m4', tipo: 'arrastar', pergunta: 'Liga cada multiplicação ao seu resultado.', linhas: [['4 × 25', '100'], ['12 × 5', '60'], ['9 × 9', '81'], ['15 × 3', '45']], extra: ['72', '90'],
-            pistas: ['Faz uma conta de cada vez.', '4 × 25 é como 4 moedas de 25 cêntimos.', '15 × 3 = 10 × 3 + 5 × 3.'] },
+          { id: 's2-j1', tipo: 'memoria', titulo: 'Memória das tabuadas', pergunta: 'Encontra os pares: cada multiplicação com o seu resultado.',
+            pares: [['4 × 25', '100'], ['12 × 5', '60'], ['9 × 9', '81'], ['15 × 3', '45'], ['7 × 6', '42'], ['8 × 8', '64']],
+            pistas: ['Vira uma multiplicação e faz a conta de cabeça.', 'Depois procura a carta com o resultado.', 'Lembra-te de onde viste cada número!'] },
+          { id: 's2-j2', tipo: 'plataforma', tema: 'montado', titulo: 'Bolotas da tabuada do 7', pergunta: 'Apanha as bolotas da tabuada do 7 e salta por cima das outras!',
+            fichas: [['14', true], ['21', true], ['24', false], ['35', true], ['40', false], ['49', true], ['54', false], ['63', true]], porque: 'Tabuada do 7: 7, 14, 21, 28, 35, 42, 49, 56, 63.',
+            pistas: ['Diz a tabuada do 7 em voz alta antes de começar.', '7, 14, 21, 28, 35, 42, 49, 56, 63, 70.', '24, 40 e 54 não estão na tabuada do 7: salta por cima!'] },
           { id: 's2-m5', tipo: 'escolha', pergunta: 'Na feira de Castro Verde, um queijo custa 7 €. A Ana comprou 4 queijos e pagou com uma nota de 50 €. Quanto recebeu de troco?',
             opcoes: ['22 €', '28 €', '43 €', '32 €'], certa: 0, explica: '4 × 7 = 28 €; 50 − 28 = 22 €.',
             pistas: ['São duas contas: quanto custaram os queijos, e depois o troco.', 'Os 4 queijos custaram 4 × 7 = 28 €.', 'O troco é 50 − 28.'] },
@@ -180,9 +189,9 @@
           atividades: [
             { id: 's2-l1', tipo: 'escolha', pergunta: 'De quanto em quanto tempo se pode tirar a cortiça?', opcoes: ['Todos os anos.', 'De nove em nove anos.', 'De vinte e cinco em vinte e cinco anos.', 'Só uma vez na vida da árvore.'], certa: 1, pistas: LEITURA },
             { id: 's2-l2', tipo: 'escolha', pergunta: 'Porque se pinta um algarismo no tronco do sobreiro?', opcoes: ['Para enfeitar o montado.', 'Para saber o ano em que a cortiça foi tirada.', 'Para contar as bolotas.', 'Para mostrar a idade da árvore.'], certa: 1, pistas: LEITURA },
-            { id: 's2-l3', tipo: 'palavras', pergunta: 'Clica nos três adjetivos da frase.', texto: 'A casca grossa e leve do sobreiro antigo chama-se cortiça.', certas: ['grossa', 'leve', 'antigo'],
-              explica: 'Os adjetivos dizem como são os nomes: a casca é grossa e leve; o sobreiro é antigo.',
-              pistas: ['Os adjetivos dizem como é alguma coisa.', 'Como é a casca? Como é o sobreiro?', 'Dois adjetivos falam da casca e um fala do sobreiro.'] },
+            { id: 's2-j3', tipo: 'apanhar', titulo: 'Apanha os adjetivos', pergunta: 'Apanha só os adjetivos — as palavras que dizem como é alguma coisa!',
+              certos: ['grossa', 'leve', 'antigo', 'verde', 'alto', 'rugoso'], errados: ['sobreiro', 'cortiça', 'tirar', 'porco', 'crescer', 'bolota'], porque: 'Os adjetivos dizem como é: grossa, leve, verde… «sobreiro» e «bolota» são nomes, «tirar» e «crescer» são verbos.',
+              pistas: ['Pergunta: «como é?» Se a palavra responde, é um adjetivo.', 'Um sobreiro antigo, uma casca grossa…', 'Nomes (coisas) e verbos (ações) não se apanham.'] },
             { id: 's2-l4', tipo: 'arrastar', pergunta: 'Liga cada palavra do texto ao seu sinónimo.', linhas: [['devagar', 'lentamente'], ['ferir', 'magoar'], ['grossa', 'espessa'], ['experiência', 'prática']], extra: ['depressa', 'fina'],
               pistas: ['Um sinónimo quer dizer o mesmo.', 'Experimenta trocar a palavra na frase do texto: continua a fazer sentido?', '«Depressa» e «fina» querem dizer o contrário — são antónimos.'] },
             { id: 's2-l5', tipo: 'vf', pergunta: 'Verdadeiro ou falso, de acordo com o texto?',
@@ -194,7 +203,7 @@
     },
     // -------------------------------------------------------------------------------------------- 3
     {
-      id: 's3', titulo: 'A água: do Alqueva à torneira', resumo: 'O ciclo da água · divisão e gráficos de barras · tempos verbais.',
+      id: 's3', insignia: 'Amigo da água', titulo: 'A água: do Alqueva à torneira', resumo: 'O ciclo da água · divisão e gráficos de barras · tempos verbais.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's3-r1', tipo: 'duplo', titulo: 'Duplo clique', palavra: 'ALQUEVA',
@@ -202,6 +211,8 @@
           { id: 's3-r2', tipo: 'teclado', titulo: 'Maiúsculas', linhas: ['Ana', 'Rui', 'Beja', 'Messejana', 'O rio Guadiana', 'A barragem do Alqueva'],
             boasVindas: 'Nomes de pessoas e de terras começam com maiúscula. Segura no Shift ⇧ com o mindinho da outra mão.',
             pistas: ['A maiúscula faz-se com o Shift ⇧.', 'Segura o Shift, carrega na letra, e larga os dois.', 'Usa o Shift do lado contrário ao da letra.'] },
+          { id: 's3-j1', tipo: 'rebentar', titulo: 'Balões com maiúscula', pergunta: 'Rebenta os balões! São nomes próprios: começam com maiúscula.',
+            palavras: ['Beja', 'Mértola', 'Alqueva', 'Guadiana', 'Messejana', 'Portugal'], pistas: ['Segura no Shift ⇧ para a primeira letra.', 'Mértola leva acento agudo no «é»: primeiro ´, depois e.', 'Escreve a palavra inteira e ela rebenta sozinha.'] },
         ] },
         { area: 'prog', titulo: 'Programar', atividades: [
           { id: 's3-p1', tipo: 'caminho', titulo: 'A subir a encosta', missao: 'Sobe a encosta em escada: norte, este, norte, este… até à bandeira. Consegues com 3 blocos?',
@@ -227,6 +238,9 @@
             opcoes: ['8 pacotes e sobram 2 bolachas.', '9 pacotes e sobram 4 bolachas.', '8 pacotes e sobram 6 bolachas.', '7 pacotes e sobram 8 bolachas.'], certa: 0,
             explica: '6 × 8 = 48 e 50 − 48 = 2. O resto (2) tem de ser menor do que 6.',
             pistas: ['Quantas vezes cabe o 6 no 50?', '6 × 8 = 48 e 6 × 9 = 54 (passa de 50).', 'Sobra 50 − 48.'] },
+          { id: 's3-j2', tipo: 'plataforma', tema: 'alqueva', titulo: 'As gotas do 8', pergunta: 'Apanha as divisões cujo resultado é 8!',
+            fichas: [['64 : 8', true], ['48 : 8', false], ['56 : 7', true], ['40 : 4', false], ['72 : 9', true], ['32 : 4', true], ['45 : 5', false]], porque: 'Faz a conta: o resultado tem de ser 8.',
+            pistas: ['Antes de apanhar, faz a divisão de cabeça.', 'Pensa ao contrário: 8 × 8 = 64, 7 × 8 = 56…', '48 : 8 = 6, 40 : 4 = 10 e 45 : 5 = 9 — esses não!'] },
           { id: 's3-m4', tipo: 'curta', pergunta: 'Observa o gráfico. Quantos litros se gastaram ao todo no duche e na rega?', figura: AGUA, numero: 100, depois: 'litros', largura: '120px',
             pistas: ['Lê o valor de cada barra no eixo da esquerda.', 'Duche: 60 litros. Rega: 40 litros.', '60 + 40 = ?'] },
           { id: 's3-m5', tipo: 'escolha', pergunta: 'Em que atividade se gastou menos água?', figura: AGUA, opcoes: ['Duche', 'Cozinha', 'Sanita', 'Roupa'], certa: 3,
@@ -251,8 +265,9 @@
               certas: ['evaporação', 'condensação', 'precipitação'], extra: ['infiltração'], pistas: ['Cada etapa tem o seu nome no fim do parágrafo.', 'Lê os parágrafos 2, 3 e 4.'] },
             { id: 's3-l3', tipo: 'escolha', pergunta: 'Quem está a contar esta história?', opcoes: ['O Sol.', 'Uma gota de água.', 'O rio Guadiana.', 'Uma nuvem.'], certa: 1,
               pistas: ['Quem diz «Olá! Sou…»?', 'O narrador fala de si próprio: «eu fico tão leve».'] },
-            { id: 's3-l4', tipo: 'arrastar', pergunta: 'Em que tempo está cada forma verbal?', linhas: [['eu subo', 'presente'], ['eu dei', 'pretérito perfeito'], ['eu cairei', 'futuro']],
-              pistas: ['Presente: agora. Pretérito: já aconteceu. Futuro: ainda vai acontecer.', 'Experimenta pôr «ontem», «hoje» ou «amanhã» antes de cada forma verbal.', '«Amanhã eu cairei» — é o futuro.'] },
+            { id: 's3-j3', tipo: 'ligar', modo: 'pares', titulo: 'Liga os tempos verbais', pergunta: 'Liga cada forma verbal ao seu tempo.', comTexto: false,
+              pares: [['eu subo', 'presente'], ['eu dei', 'pretérito perfeito'], ['eu cairei', 'futuro'], ['nós formámos', 'pretérito perfeito'], ['tu evaporas', 'presente']],
+              pistas: ['Presente: agora. Pretérito: já aconteceu. Futuro: vai acontecer.', 'Experimenta pôr «ontem», «hoje» ou «amanhã» antes.', '«Amanhã eu cairei» — futuro.'] },
             { id: 's3-l5', tipo: 'extensa', pergunta: 'Escreve duas coisas que podes fazer em casa para poupar água.', min: 12, palavrasChave: ['água'],
               pistas: ['O texto dá uma ideia no último parágrafo.', 'Pensa no banho, na loiça, na rega…', 'Começa: «Para poupar água, eu posso…»'] },
           ] },
@@ -260,7 +275,7 @@
     },
     // -------------------------------------------------------------------------------------------- 4
     {
-      id: 's4', titulo: 'Reciclar e reparar no FabLab', resumo: 'Resíduos e ecopontos · frações, decimais e dinheiro · textos de instruções.',
+      id: 's4', insignia: 'Mestre da reparação', titulo: 'Reciclar e reparar no FabLab', resumo: 'Resíduos e ecopontos · frações, decimais e dinheiro · textos de instruções.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's4-r1', tipo: 'separar', titulo: 'Para que ecoponto?', pergunta: 'Arrasta cada resíduo para o ecoponto certo.',
@@ -271,6 +286,8 @@
           { id: 's4-r2', tipo: 'teclado', titulo: 'Acentos e cedilha', linhas: ['á é ó', 'ã õ ç', 'mãe pão', 'reparação', 'Está tudo à mão!'],
             boasVindas: 'No teclado português, os acentos escrevem-se ANTES da letra: primeiro o acento, larga, depois a letra.',
             pistas: ['O acento agudo ´ está duas teclas à direita do P, depois do +.', 'O til ~ está à direita do º (a seguir ao Ç e ao º).', 'Para o «à» segura o Shift ⇧ e carrega na tecla do acento.'] },
+          { id: 's4-j1', tipo: 'rebentar', titulo: 'Balões com acentos', pergunta: 'Rebenta os balões! Atenção aos acentos e ao til.',
+            palavras: ['mão', 'pão', 'avó', 'café', 'lâmpada', 'reparação'], pistas: ['Primeiro o acento, larga, depois a letra.', 'O ^ é Shift + a tecla do ~.', 'Reparação: ç e ã!'] },
         ] },
         { area: 'prog', titulo: 'Programar', atividades: [
           { id: 's4-p1', tipo: 'caminho', titulo: 'A gambiarra do Nico', missao: 'O Nico fez uma gambiarra: o programa devia apanhar as 3 tampinhas, mas bate numa pedra. Repara o programa!',
@@ -299,8 +316,12 @@
           { id: 's4-m3', tipo: 'escolha', pergunta: 'Qual destas frações é a maior?', opcoes: ['1/2', '1/3', '1/4', '1/8'], certa: 0,
             explica: 'Com o mesmo numerador, quanto menos partes, maiores são: metade é maior do que um terço, um quarto ou um oitavo.',
             pistas: ['Imagina uma piza dividida em 2, 3, 4 ou 8 fatias iguais.', 'Quanto mais fatias, mais pequena é cada uma.'] },
-          { id: 's4-m4', tipo: 'ordenar', pergunta: 'Ordena os preços do mais barato para o mais caro.', itens: ['0,95 €', '1,09 €', '1,50 €', '10,05 €'],
-            pistas: ['Compara primeiro os euros (antes da vírgula).', 'Com os mesmos euros, compara os cêntimos.', '1,09 € são 1 euro e 9 cêntimos; 1,50 € são 1 euro e 50 cêntimos.'] },
+          { id: 's4-j2', tipo: 'ligar', modo: 'sequencia', figura: 'peixe', titulo: 'Liga os preços', pergunta: 'Liga os preços do mais barato para o mais caro.',
+            valores: ['0,95 €', '1,09 €', '1,50 €', '2,05 €', '5,90 €', '10,05 €'], dicaErro: 'Compara primeiro os euros e depois os cêntimos.',
+            pistas: ['O ponto amarelo é o mais barato.', '1,09 € é menos do que 1,50 €: 9 cêntimos é menos do que 50.', 'O mais caro tem 10 euros.'] },
+          { id: 's4-j3', tipo: 'plataforma', tema: 'fablab', titulo: 'Metades no FabLab', pergunta: 'Apanha as frações que valem metade!',
+            fichas: [['1/2', true], ['1/3', false], ['2/4', true], ['3/4', false], ['3/6', true], ['2/5', false], ['4/8', true]], porque: 'Vale metade quando o número de cima é metade do de baixo: 2/4, 3/6, 4/8.',
+            pistas: ['Metade = o de cima é metade do de baixo.', '2 é metade de 4; 3 é metade de 6.', '1/3, 3/4 e 2/5 não são metade: salta!'] },
           { id: 's4-m5', tipo: 'curta', pergunta: 'No repair café, uma câmara de ar custa 3,75 € e um pneu custa 8,50 €. Quanto custam os dois juntos?', numero: 12.25, depois: '€', largura: '140px',
             explica: '3,75 + 8,50 = 12,25 €.', pistas: ['É uma adição.', 'Soma os euros (3 + 8) e os cêntimos (75 + 50).', '75 + 50 = 125 cêntimos = 1 euro e 25 cêntimos.'] },
           { id: 's4-m6', tipo: 'escolha', pergunta: 'A Rita pagou 6,40 € com uma nota de 10 €. Quanto recebeu de troco?', opcoes: ['3,60 €', '4,60 €', '3,40 €', '16,40 €'], certa: 0,
@@ -334,7 +355,7 @@
     },
     // -------------------------------------------------------------------------------------------- 5
     {
-      id: 's5', titulo: 'O corpo e a alimentação', resumo: 'A Roda dos Alimentos · horas, medidas, perímetro e área · tipos de frase.',
+      id: 's5', insignia: 'Chef saudável', titulo: 'O corpo e a alimentação', resumo: 'A Roda dos Alimentos · horas, medidas, perímetro e área · tipos de frase.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's5-r1', tipo: 'rolar', titulo: 'Rolar o texto', pergunta: 'O que comeu o Nico ao jantar? Desce no texto e clica no nome desse legume.', alvo: 'brócolos',
@@ -353,6 +374,8 @@
           { id: 's5-r2', tipo: 'teclado', titulo: 'Pontuação', linhas: ['Olá, Nico!', 'Tens fome?', 'Sim, quero sopa.', 'Come fruta: é saudável!'],
             boasVindas: 'Hoje: vírgula, ponto, ponto de interrogação e de exclamação. Alguns precisam do Shift ⇧.',
             pistas: ['A vírgula e o ponto estão na fila de baixo, à direita.', 'O ponto de interrogação ? é Shift + a tecla ao lado do 0.', 'O ponto de exclamação ! é Shift + 1. Os dois pontos : são Shift + ponto.'] },
+          { id: 's5-j1', tipo: 'rebentar', titulo: 'Balões da cantina', pergunta: 'Rebenta os balões escrevendo as palavras.',
+            palavras: ['sopa', 'fruta', 'água', 'legumes', 'saudável', 'pão'], pistas: ['Água e saudável levam acento agudo.', 'Pão leva til no «ã».', 'Escreve a palavra toda.'] },
         ] },
         { area: 'prog', titulo: 'Programar', atividades: [
           { id: 's5-p1', tipo: 'caminho', titulo: 'Só os pares', missao: 'Anda até ao fim da fila e apanha só os números pares. Usa o «se».', porque: 'Os números pares acabam em 0, 2, 4, 6 ou 8.',
@@ -376,6 +399,9 @@
             pistas: ['O ponteiro pequeno mostra as horas; o grande, os minutos.', 'O ponteiro pequeno passou o 10.', 'O ponteiro grande está no 4: 4 × 5 = 20 minutos.'] },
           { id: 's5-m2', tipo: 'curta', pergunta: 'O almoço na cantina começa às 12h30 e dura 45 minutos. A que horas acaba?', aceitar: ['13h15', '13:15', '13h15m', '13 h 15', '13h 15', '13 horas e 15 minutos', '1h15'], largura: '160px', instr: 'Escreve assim: 00h00',
             explica: '12h30 + 30 min = 13h00; + 15 min = 13h15.', pistas: ['Junta primeiro 30 minutos: chegas à hora certa.', '12h30 + 30 min = 13h00.', 'Ainda faltam 15 minutos.'] },
+          { id: 's5-j2', tipo: 'memoria', titulo: 'Memória das horas', pergunta: 'Encontra os pares: cada hora com a forma como se diz.',
+            pares: [['10h20', 'dez e vinte'], ['13h15', 'uma e um quarto'], ['9h30', 'nove e meia'], ['18h45', 'um quarto para as sete'], ['7h05', 'sete e cinco'], ['12h00', 'meio-dia']],
+            pistas: ['15 minutos é um quarto de hora; 30 minutos é meia hora.', '18h45 é um quarto para as 19h, ou seja, para as sete da tarde.', '13h15 é uma da tarde e um quarto.'] },
           { id: 's5-m3', tipo: 'escolha', pergunta: 'Quantos centímetros tem um metro e meio?', opcoes: ['15 cm', '105 cm', '150 cm', '1 500 cm'], certa: 2,
             pistas: ['1 metro tem 100 centímetros.', 'Meio metro é metade de 100 cm.', '100 + 50 = ?'] },
           { id: 's5-m4', tipo: 'curta', pergunta: 'Cada quadradinho tem 1 cm de lado. Qual é o perímetro do retângulo pintado?', figura: { tipo: 'svg', svg: RETANGULO }, numero: 20, depois: 'cm', largura: '110px',
@@ -404,6 +430,9 @@
               pistas: ['Um antónimo quer dizer o contrário.', 'O contrário de lento é…'] },
             { id: 's5-l5', tipo: 'escolha', pergunta: 'Que tipo de frase é «Já comeste a fruta?»?', opcoes: ['Declarativa', 'Interrogativa', 'Exclamativa', 'Imperativa'], certa: 1,
               pistas: ['Olha para o sinal no fim da frase.', 'Quem diz esta frase está a fazer uma pergunta.'] },
+            { id: 's5-j3', tipo: 'apanhar', titulo: 'Apanha os hortícolas', pergunta: 'Apanha só os hortícolas (legumes e verduras) da Roda dos Alimentos!',
+              certos: ['cenoura', 'alface', 'brócolos', 'couve', 'tomate', 'abóbora'], errados: ['maçã', 'pão', 'queijo', 'arroz', 'banana', 'ovo'], porque: 'Os hortícolas são legumes e verduras. A maçã e a banana são fruta; o pão e o arroz são cereais.',
+              pistas: ['Hortícolas crescem na horta: legumes e verduras.', 'A fruta tem um grupo só seu.', 'O pão, o arroz, o queijo e o ovo são de outros grupos.'] },
             { id: 's5-l6', tipo: 'extensa', pergunta: 'Escreve o menu de um almoço saudável e explica porque é saudável.', instr: 'Pelo menos duas frases.', min: 18,
               pistas: ['Escolhe sopa, prato e sobremesa.', 'Usa alimentos de vários grupos da Roda.', 'Explica com «porque…».'] },
           ] },
@@ -411,7 +440,7 @@
     },
     // -------------------------------------------------------------------------------------------- 6
     {
-      id: 's6', titulo: 'Portugal no mapa e na história', resumo: 'Rios, serras e o primeiro rei · ângulos, simetria e dados · cronologia.',
+      id: 's6', insignia: 'Cronista do reino', titulo: 'Portugal no mapa e na história', resumo: 'Rios, serras e o primeiro rei · ângulos, simetria e dados · cronologia.',
       estacoes: [
         { area: 'maos', titulo: 'Rato e teclado', atividades: [
           { id: 's6-r1', tipo: 'separar', titulo: 'Rio ou serra?', pergunta: 'Arrasta cada nome para o sítio certo: é um rio ou uma serra de Portugal?',
@@ -446,6 +475,9 @@
           { id: 's6-m1', tipo: 'escolha', pergunta: 'Qual destes ângulos é obtuso?', figura: { tipo: 'svg', svg: ANGULOS }, opcoes: ['O ângulo A', 'O ângulo B', 'O ângulo C'], certa: 2,
             explica: 'A é reto (90°), B é agudo (menor do que um reto) e C é obtuso (maior do que um reto).',
             pistas: ['Um ângulo reto é como o canto de uma folha.', 'O obtuso é mais aberto do que o reto.', 'Qual é o mais aberto dos três?'] },
+          { id: 's6-j1', tipo: 'plataforma', tema: 'castelo', titulo: 'Letras ao espelho', pergunta: 'Apanha as letras com eixo de simetria vertical!',
+            fichas: [['A', true], ['F', false], ['H', true], ['M', true], ['R', false], ['T', true], ['J', false], ['U', true]], porque: 'Imagina um espelho a meio da letra, de cima para baixo: os dois lados ficam iguais?',
+            pistas: ['Imagina a letra dobrada ao meio, de cima para baixo.', 'A, H, M, T e U ficam iguais dos dois lados.', 'F, R e J não: salta por cima.'] },
           { id: 's6-m2', tipo: 'varias', pergunta: 'Quais destas letras têm um eixo de simetria vertical?', instr: 'Imagina um espelho a meio da letra, de cima para baixo.', opcoes: ['A', 'F', 'M', 'R', 'T'], certas: [0, 2, 4],
             pistas: ['Dobra a letra ao meio (de cima para baixo): os dois lados ficam iguais?', 'O F e o R não ficam iguais.', 'São três.'] },
           { id: 's6-m3', tipo: 'escolha', pergunta: 'Quantas faces tem um cubo?', opcoes: ['4', '6', '8', '12'], certa: 1,
@@ -471,6 +503,8 @@
           atividades: [
             { id: 's6-l1', tipo: 'ordenar', pergunta: 'Ordena os acontecimentos do mais antigo para o mais recente.', instr: 'Arrasta para cima ou para baixo.',
               itens: ['Batalha de São Mamede', 'Tratado de Zamora', 'Conquista de Lisboa', 'O Papa reconhece Portugal como reino'], pistas: ['Procura o ano de cada acontecimento no texto.', '1128, 1143, 1147 e 1179.'] },
+            { id: 's6-j2', tipo: 'ligar', modo: 'pares', titulo: 'Liga os anos', pergunta: 'Liga cada acontecimento ao seu ano.',
+              pares: [['Batalha de São Mamede', '1128'], ['Tratado de Zamora', '1143'], ['Conquista de Lisboa', '1147'], ['O Papa reconhece o reino', '1179']], pistas: LEITURA },
             { id: 's6-l2', tipo: 'escolha', pergunta: 'Quem governava o Condado Portucalense antes de D. Afonso Henriques?', opcoes: ['D. Teresa, a sua mãe.', 'O rei de Leão.', 'O Papa.', 'Os cruzados.'], certa: 0, pistas: LEITURA },
             { id: 's6-l3', tipo: 'curta', pergunta: 'Em que ano foi conquistada Lisboa?', numero: 1147, largura: '140px', pistas: LEITURA },
             { id: 's6-l4', tipo: 'escolha', pergunta: 'Em que século foi conquistada Lisboa?', opcoes: ['Século XI', 'Século XII', 'Século XIII', 'Século XIV'], certa: 1,

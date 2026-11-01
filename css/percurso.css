@@ -351,3 +351,58 @@ body.percurso { overflow: hidden; }
   .tc-tecla { width: 30px; height: 36px; font-size: 13px; }
   .tc-tecla.larga { width: 54px; } .tc-tecla.espaco { width: 180px; }
 }
+
+/* ---------------------------------------------------------------- mini-jogos */
+.jg .pe-pergunta { font-size: 24px; }
+.jg-placar { display: flex; gap: 22px; justify-content: center; align-items: center; font: 700 19px 'Asap'; margin: 0 0 10px; }
+.jg-vidas { color: #e03131; font-size: 24px; letter-spacing: 3px; }
+.jg-botoes { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+.jg-tecla { min-width: 90px; font-size: 20px; touch-action: none; user-select: none; }
+.jg-ligar { width: 100%; max-width: 760px; display: block; margin: 0 auto; background: #fffdf7; border: 3px solid #111; border-radius: 10px; touch-action: none; user-select: none; }
+.jg-ponto { cursor: pointer; }
+.jg-ponto circle { fill: #fff; stroke: #111; stroke-width: 3; transition: r 120ms; }
+.jg-ponto:hover circle { r: 16; }
+.jg-ponto text { font: 700 17px 'Asap', sans-serif; fill: #111; pointer-events: none; paint-order: stroke; stroke: #fffdf7; stroke-width: 5px; }
+.jg-ponto.feito circle { fill: #7b2fd1; }
+.jg-ponto.atual circle { fill: #ffc850; r: 17; }
+.jg-linha { stroke: #7b2fd1; stroke-width: 5; stroke-linecap: round; }
+.jg-linha.errada { stroke: #e03131; stroke-dasharray: 8 6; }
+.jg-fantasma { stroke: #2364ff; stroke-width: 4; stroke-dasharray: 6 6; pointer-events: none; }
+.jg-revela { opacity: 0; animation: jg-revela 900ms ease-out forwards; stroke: #111; stroke-width: 2; }
+@keyframes jg-revela { to { opacity: .85; } }
+.jg-apanhar { cursor: none; }
+.jg-cesto { position: absolute; bottom: 4px; width: 120px; height: 110px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; }
+.jg-cesto img { height: 110px; }
+.jg-cai { position: absolute; width: 120px; text-align: center; padding: 10px 6px; background: #fff; border: 3px solid #111; border-radius: 30px; font: 700 18px 'Asap'; box-shadow: 0 4px 0 rgba(0,0,0,.2); pointer-events: none; }
+.jg-memoria { display: grid; gap: 12px; justify-content: center; }
+.jg-carta { position: relative; height: 104px; border: 3px solid #111; border-radius: 10px; background: #2364ff; cursor: pointer; font: 700 20px 'Asap'; padding: 6px; perspective: 600px; }
+.jg-carta .jg-face { display: none; }
+.jg-carta .jg-costas { position: absolute; inset: 6px; border-radius: 6px; background: url('../img/nico/01_boas_vindas.png') center / auto 86% no-repeat, radial-gradient(circle at 50% 60%, #ffd86b 0 34%, #2b3a8f 35%); }
+.jg-carta.virada { background: #fff; animation: jg-vira 220ms; }
+.jg-carta.virada .jg-face { display: block; }
+.jg-carta.virada .jg-costas { display: none; }
+.jg-carta.par { background: #e7f6ef; border-color: var(--certo); cursor: default; }
+@keyframes jg-vira { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
+.jg-baloes { background: linear-gradient(#bfe6ff, #eef9ff); }
+.jg-balao { position: absolute; min-width: 110px; padding: 18px 14px 26px; border-radius: 50% 50% 46% 46%; color: #fff; text-align: center; font: 700 22px 'Asap'; text-shadow: 0 1px 2px rgba(0,0,0,.4); box-shadow: inset -8px -10px 0 rgba(0,0,0,.12); transform: translateX(-50%); }
+.jg-balao::after { content: ''; position: absolute; left: 50%; bottom: -34px; width: 2px; height: 34px; background: #555; }
+.jg-balao.pum { animation: jg-pum 300ms forwards; }
+@keyframes jg-pum { to { transform: translateX(-50%) scale(1.6); opacity: 0; } }
+.tc-entrada.erro { border-color: var(--errado); background: #fdecec; }
+
+/* ---------------------------------------------------------------- gamificação: bolotas, mapa-trilho, insígnias */
+.pc-bolotas { display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 20px; background: #2a2a2a; color: #ffc850; font: 700 18px 'Asap'; }
+.pc-bolotas svg { width: 28px; height: 28px; }
+.pc-bolotas.salto { animation: jg-salto 500ms; }
+@keyframes jg-salto { 40% { transform: scale(1.3); } }
+.pc-ganho { position: fixed; z-index: 140; font: 700 26px 'Asap'; color: #8a5a1f; pointer-events: none; animation: jg-ganho 1100ms ease-out forwards; text-shadow: 0 2px 0 #fff; }
+@keyframes jg-ganho { to { transform: translateY(-80px); opacity: 0; } }
+.pc-trilho { width: 100%; max-width: 1180px; display: block; margin: 0 auto; }
+.pc-trilho .tr-no { cursor: pointer; }
+.pc-trilho .tr-no:hover .tr-circ, .pc-trilho .tr-no:focus .tr-circ { stroke: #2364ff; stroke-width: 7; }
+.pc-trilho .tr-no:focus { outline: none; }
+.pc-trilho text { font-family: 'Asap', sans-serif; }
+.pc-insignias { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 6px 0 0; }
+.pc-insignia { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; background: #fff; border: 2px solid #ddd; font-size: 15px; color: #9a9a9a; }
+.pc-insignia.ganha { border-color: #ffc850; color: #111; background: #fff8e1; font-weight: 700; }
+.pc-combo { font: 700 16px 'Asap'; color: #d6336c; }

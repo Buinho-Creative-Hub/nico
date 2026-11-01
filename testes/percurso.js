@@ -50,6 +50,16 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
         out.push([a.id, s.ok && s.estrelas === 3 && !i.ok, `solução ${s.ok ? 'ok' : JSON.stringify(s.erro) + ' faltam ' + s.faltam + ' meta ' + s.naMeta} · ${s.blocos} blocos (máx ${a.maxBlocos}) · inicial falha: ${!i.ok}`]);
       } else if (F.PC.rt.tipos.includes(a.tipo)) {
         out.push([a.id, true, a.tipo]);
+      } else if (F.PC.jogos.tipos.includes(a.tipo)) {
+        const n = t => Number(String(t).replace(/[\s€]/g, '').replace(',', '.'));
+        let bom = true, m = a.tipo;
+        if (a.tipo === 'plataforma') { bom = a.fichas.some(f => f[1]) && a.fichas.some(f => !f[1]); m += ` ${a.fichas.filter(f => f[1]).length} certas / ${a.fichas.length}`; }
+        if (a.tipo === 'ligar' && a.modo === 'sequencia') { const v = a.valores.map(n); bom = v.every((x, i) => !i || x > v[i - 1]); m += ' por ordem crescente: ' + bom; }
+        if (a.tipo === 'ligar' && a.modo === 'pares') bom = new Set(a.pares.map(p => p[0])).size === a.pares.length;
+        if (a.tipo === 'memoria') bom = new Set(a.pares.flat()).size === a.pares.length * 2;
+        if (a.tipo === 'apanhar') bom = a.certos.length > 0 && a.errados.every(e => !a.certos.includes(e));
+        if (a.tipo === 'rebentar') bom = new Set(a.palavras).size === a.palavras.length;
+        out.push([a.id, bom, m]);
       } else {
         const c = F.PC.itens.corrigir(a, certo(a)), w = F.PC.itens.corrigir(a, errado(a));
         let extra = '';
@@ -66,7 +76,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
   // ------------------------------------------------------------ 2. ecrã: mapa
   console.log('Mapa');
-  ok(await pg.locator('.pc-sessao').count() === 7, '6 sessões + prova-ensaio no mapa');
+  ok(await pg.locator('.pc-sessao').count() === 7 && await pg.locator('.pc-trilho .tr-no').count() === 7, '6 sessões + prova-ensaio no mapa e no trilho');
   await foto('01-mapa');
 
   // ------------------------------------------------------------ sessão 1
@@ -85,6 +95,15 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   for (const l of linhas) { await pg.keyboard.type(l, { delay: 5 }); await pg.waitForTimeout(30); }
   await pg.waitForSelector('#btnSeguinte:not([hidden])');
   ok(true, 'teclado: escrever as linhas conclui a atividade');
+  await pg.click('#btnSeguinte');
+  // rebentar balões: escrever a palavra de cada balão que aparece
+  await pg.waitForSelector('.jg-baloes');
+  for (let k = 0; k < 40 && !(await pg.locator('#btnSeguinte:not([hidden])').count()); k++) {
+    const b = await pg.$$eval('.jg-balao:not(.pum)', l => l.map(x => x.textContent));
+    if (b.length) { await pg.click('.tc-entrada'); await pg.keyboard.type(b[0], { delay: 10 }); if (k === 1) await foto('03b-baloes'); }
+    else await pg.waitForTimeout(500);
+  }
+  ok(await pg.locator('#btnSeguinte:not([hidden])').count() === 1, 'balões: escrever as palavras rebenta-os todos');
   await pg.click('#btnSeguinte');            // janela: fim da estação
   await pg.waitForSelector('#janela:not([hidden])');
   await pg.click('#janelaBotoes .btn');
@@ -118,19 +137,28 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.fill('.it-curta input', '104 060'); await pg.click('#btnVerificar');
   ok((await pg.textContent('#atMsg')).includes('Certo'), 'curta: aceita «104 060»');
   await pg.click('#btnSeguinte');
-  // m3 ordenar com o rato: arrastar até ficar por ordem
-  await foto('06-ordenar');
-  for (let volta = 0; volta < 10; volta++) {
-    const ordem = await pg.$$eval('.it-ordem li', l => l.map(x => Number(x.dataset.i)));
-    const errado = ordem.findIndex((x, k) => x !== k);
-    if (errado < 0) break;
-    const de = pg.locator('.it-ordem li').nth(ordem.indexOf(errado)), para = pg.locator('.it-ordem li').nth(errado);
-    const a = await de.boundingBox(), b = await para.boundingBox();
-    await pg.mouse.move(a.x + 40, a.y + a.height / 2); await pg.mouse.down();
-    await pg.mouse.move(b.x + 40, b.y + b.height / 2, { steps: 12 }); await pg.mouse.up();
+  // ligar pontos: arrastar do ponto atual até ao seguinte
+  await pg.waitForSelector('.jg-ligar');
+  const nPontos = await pg.locator('.jg-ponto').count();
+  for (let k = 1; k < nPontos; k++) {
+    const a = await pg.locator('.jg-ponto').nth(k - 1).locator('circle').boundingBox(), b = await pg.locator('.jg-ponto').nth(k).locator('circle').boundingBox();
+    await pg.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await pg.mouse.down();
+    await pg.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 }); await pg.mouse.up();
   }
-  await pg.click('#btnVerificar');
-  ok((await pg.textContent('#atMsg')).includes('Certo'), 'ordenar: arrastar com o rato até ficar por ordem');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  await foto('06-ligar');
+  ok(true, 'ligar pontos: arrastar linhas pela ordem revela o desenho');
+  await pg.click('#btnSeguinte');
+  // plataforma: o Nico anda com as setas e salta com o espaço
+  await pg.waitForSelector('.jg canvas');
+  const x0 = await pg.evaluate(() => window.Faisca.PC.app.atual().estado().x);
+  await pg.keyboard.down('ArrowRight'); await pg.waitForTimeout(500); await pg.keyboard.press(' '); await pg.waitForTimeout(400); await pg.keyboard.up('ArrowRight');
+  const e1 = await pg.evaluate(() => window.Faisca.PC.app.atual().estado());
+  await foto('06b-plataforma');
+  ok(e1.x > x0 + 60, `plataforma: as setas mexem o Nico (${Math.round(x0)} → ${Math.round(e1.x)})`);
+  await pg.evaluate(() => window.Faisca.PC.app.atual().resolver());
+  await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok(true, 'plataforma: apanhar as certas e chegar à bandeira conclui');
   await pg.click('#btnSeguinte');
   // m4 escolha
   await pg.locator('.it-opcao').nth(2).click(); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
@@ -171,7 +199,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   ok((await pg.textContent('#janelaTitulo')).includes('Sessão terminada'), 'fim da sessão');
   await foto('10-fim-sessao');
   const prog = await pg.evaluate(() => window.Faisca.PC.app.progresso());
-  ok(prog.feitos === 16, `progresso guardado: ${prog.feitos} atividades feitas na sessão 1`);
+  ok(prog.feitos === 18 && prog.bolotas > 30, `progresso guardado: ${prog.feitos} atividades feitas na sessão 1 · ${prog.bolotas} bolotas · insígnias ${JSON.stringify(prog.insignias)}`);
   await pg.click('#janelaBotoes .btn');   // voltar ao percurso
 
   // ------------------------------------------------------------ outras sessões abrem sem erros (cada atividade)
@@ -182,6 +210,14 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     const n = await pg.evaluate(k => window.Faisca.MISSOES['percurso-4'].sessoes[k].estacoes.flatMap(e => e.atividades).length, s - 1);
     for (let k = 0; k < n; k++) {
       if (k === 2 || k === 9) await foto(`s${s}-${k}`);
+      const jogo = await pg.evaluate(() => { const a = window.Faisca.PC.app.atual(); return !!(a && a.resolver); });
+      if (jogo) {
+        await pg.waitForTimeout(700);
+        await foto(`s${s}-${k}-jogo`);
+        await pg.evaluate(() => window.Faisca.PC.app.atual().resolver());
+        await pg.waitForTimeout(300);
+        ok(await pg.locator('#btnSeguinte:not([hidden])').count() === 1, `sessão ${s}: jogo «${await pg.textContent('#atTitulo')}» conclui`);
+      }
       await pg.evaluate(() => window.Faisca.PC.app.seguinte());
       if (await pg.locator('#janela:not([hidden])').count()) await pg.click('#janelaBotoes .btn:last-child');
     }

@@ -48,6 +48,25 @@ imita o tipo de tarefas e os gestos.
 | 5 | O corpo e a alimentação | rolar texto comprido · pontuação | se … então: pares, múltiplos de 3 e de 4 | horas e durações, metro/cm, perímetro, área, capacidade | «A Roda dos Alimentos» · antónimos, tipos de frase |
 | 6 | Portugal no mapa e na história | rio ou serra (arrastar) · frases completas | desafio final: repetir + se, gambiarra, muralhas | ângulos, simetria, cubo, moda, probabilidade | «O primeiro rei de Portugal» · cronologia, séculos, pronomes |
 
+## 2.1 Jogos e gamificação (desde 1 Nov 2026, tarde — pedido do Carlos: «algo que não seja só clicar na resposta certa»)
+
+- **Avatar fixo: o Nico** (a Gabi não entra neste módulo).
+- **Mini-jogos** (`js/percurso/jogos.js`), 2 a 4 por sessão:
+  - `plataforma`: o Nico corre (setas) e salta (espaço), apanha as fichas certas (múltiplos, frações que valem metade,
+    letras simétricas…) e salta por cima das erradas. Tem 3 corações e chega à bandeira no fim.
+  - `ligar`: ligar pontos com o rato. Em modo `sequencia` liga-se por ordem crescente e revela-se um desenho; em modo
+    `pares` liga-se cada coisa ao seu par (tempos verbais, anos dos acontecimentos).
+  - `apanhar`: palavras a cair que se apanham com o cesto do Nico (adjetivos, hortícolas).
+  - `memoria`: jogo da memória (tabuadas, horas).
+  - `rebentar`: balões a subir que rebentam quando se escreve a palavra (teclas de casa, maiúsculas, acentos).
+- **Bolotas**: cada atividade bem feita dá bolotas. Uma pergunta certa à 1.ª vale 3 e à 2.ª vale 1; um jogo vale
+  4 (+2 sem perder corações); um puzzle vale 2 + as estrelas. Três certas seguidas à primeira dão +2 de bónus. Ao
+  fazer uma sessão inteira ganha-se a **insígnia** dessa sessão.
+- **Mapa-trilho**: o caminho do Nico pelas 6 sessões e a prova-ensaio.
+- Grafismo provisório em código; as ilustrações finais estão pedidas ao Ambrósio
+  (`buinho-os/handoffs/2026-11-01_pacheco_ambrosio_percurso-4ano-ilustracao.md`) e entram sozinhas quando existirem
+  em `img/percurso/` (`F.PC.ARTE`).
+
 ## 3. A sessão na sala (60 min)
 
 1. **5 min** — o professor projeta o tema e a mascote diz o objetivo. Os alunos entram na turma (código + nome +

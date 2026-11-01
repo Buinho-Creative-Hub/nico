@@ -22,13 +22,41 @@
   // ------------------------------------------------------------ progresso
   const CHAVE = F.chaveMissao(X);
   let P = ler();
-  function ler() { try { return Object.assign({ feitos: 0, at: {}, provas: [] }, JSON.parse(localStorage.getItem(CHAVE)) || {}); } catch (e) { return { feitos: 0, at: {}, provas: [] }; } }
+  function ler() { try { return Object.assign({ feitos: 0, at: {}, provas: [], bolotas: 0 }, JSON.parse(localStorage.getItem(CHAVE)) || {}); } catch (e) { return { feitos: 0, at: {}, provas: [], bolotas: 0 }; } }
   function gravar() {
     P.feitos = Object.keys(P.at).length;
     try { localStorage.setItem(CHAVE, JSON.stringify(P)); } catch (e) { /* sem armazenamento: segue sem gravar */ }
     if (F.Turma) F.Turma.mudou(CHAVE);
   }
   const feitoEm = id => P.at[id];
+
+  // ------------------------------------------------------------ bolotas (moedas do percurso), sequências e insígnias
+  const BOLOTA = '<svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="10" ry="11" fill="#e9b44c" stroke="#111" stroke-width="2"/><path d="M5 13c2-6 20-6 22 0z" fill="#8a5a1f" stroke="#111" stroke-width="2"/><path d="M16 7V3" stroke="#111" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  let combo = 0;
+  function pintarBolotas(salto) {
+    let b = $('bolotas');
+    if (!b) { b = h('span', { class: 'pc-bolotas', id: 'bolotas', title: 'Bolotas ganhas no percurso' }); document.querySelector('.ligacao').prepend(b); }
+    b.innerHTML = BOLOTA + '<span>' + (P.bolotas || 0) + '</span>';
+    if (salto) { b.classList.remove('salto'); void b.offsetWidth; b.classList.add('salto'); }
+  }
+  function ganhar(n, onde) {
+    if (n <= 0) return;
+    P.bolotas = (P.bolotas || 0) + n;
+    pintarBolotas(true);
+    const r = (onde || $('bolotas')).getBoundingClientRect();
+    const e = h('span', { class: 'pc-ganho' }, '+' + n + ' 🌰'); e.style.left = (r.left + r.width / 2 - 20) + 'px'; e.style.top = (r.top - 10) + 'px';
+    document.body.append(e); setTimeout(() => e.remove(), 1200);
+  }
+  // quanto vale uma atividade (só na primeira vez que fica bem feita)
+  function valor(at, res) {
+    if (!res.ok) return 0;
+    if (at.tipo === 'caminho') return 2 + (res.estrelas || 0);
+    if (F.PC.jogos.tipos.includes(at.tipo)) return 4 + (res.vidas === 3 ? 2 : 0);
+    if (F.PC.rt.tipos.includes(at.tipo)) return 4;
+    if (res.aberta) return 4;
+    return res.tentativas === 1 ? 3 : 1;
+  }
+  const sessaoFeita = s => atividadesDe(s).every(a => feitoEm(a.id));
 
   // ------------------------------------------------------------ mapa
   function mapa() {
@@ -37,6 +65,8 @@
     $('mapaMasc').src = masc.img('boas_vindas');
     document.title = 'Nico · Percurso 4.º ano';
     const L = $('listaSessoes'); L.innerHTML = '';
+    pintarBolotas();
+    trilho();
     X.sessoes.forEach((s, k) => {
       const ats = atividadesDe(s), feitas = ats.filter(a => feitoEm(a.id)).length;
       const b = h('button', { type: 'button', class: 'pc-sessao' + (feitas === ats.length ? ' feita' : '') },
@@ -63,6 +93,48 @@
     masc.dizer('boas_vindas', X.boasVindas);
   }
   const atividadesDe = s => s.estacoes.flatMap(e => e.atividades);
+
+  // mapa-trilho: o caminho do Nico pelas sessões (provisório, até chegar a ilustração do Ambrósio)
+  const NOS = [[90, 250], [260, 150], [430, 235], [600, 120], [770, 225], [930, 125], [1090, 215]];
+  const MARCOS = ['🧭', '🌳', '💧', '🔧', '🥕', '🏰', '🏁'];
+  function trilho() {
+    const L = $('listaSessoes');
+    const etapas = [...X.sessoes.map((s, k) => ({ s, k })), ...(X.prova ? [{ prova: true }] : [])];
+    const atualK = X.sessoes.findIndex(s => !sessaoFeita(s));
+    let d = `M${NOS[0][0]} ${NOS[0][1]}`;
+    for (let i = 1; i < etapas.length; i++) { const [x0, y0] = NOS[i - 1], [x1, y1] = NOS[i]; d += ` C${x0 + 80} ${y0} ${x1 - 80} ${y1} ${x1} ${y1}`; }
+    let g = '<defs><linearGradient id="trCeu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ad8ff"/><stop offset="1" stop-color="#fff4d6"/></linearGradient></defs>' +
+      '<rect width="1180" height="340" rx="14" fill="url(#trCeu)"/>' +
+      '<path d="M0 230 Q150 180 300 215 T600 200 T900 210 T1180 190 V340 H0Z" fill="#b9c98a"/><path d="M0 280 Q200 250 420 275 T820 265 T1180 270 V340 H0Z" fill="#8dbb5a"/>' +
+      '<circle cx="1110" cy="50" r="26" fill="#ffd24d"/>';
+    [[180, 228], [520, 210], [690, 268], [1010, 252], [350, 290]].forEach(([x, y]) => { g += `<g transform="translate(${x},${y})"><rect x="-4" y="0" width="8" height="22" fill="#6b4a22"/><circle cx="0" cy="-6" r="16" fill="#4f7d3a"/><circle cx="-12" cy="2" r="10" fill="#5f8f3e"/><circle cx="12" cy="2" r="10" fill="#5f8f3e"/></g>`; });
+    g += `<path d="${d}" fill="none" stroke="#f4efe3" stroke-width="22" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#c9a36b" stroke-width="4" stroke-dasharray="2 12" stroke-linecap="round"/>`;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 1180 340'); svg.setAttribute('class', 'pc-trilho'); svg.setAttribute('role', 'list');
+    svg.innerHTML = g;
+    etapas.forEach((e, i) => {
+      const [x, y] = NOS[i];
+      const feita = e.prova ? P.provas.length > 0 : sessaoFeita(e.s);
+      const aqui = e.prova ? atualK < 0 : e.k === atualK;
+      const no = document.createElementNS(svgNS, 'g');
+      no.setAttribute('class', 'tr-no'); no.setAttribute('tabindex', '0'); no.setAttribute('role', 'listitem');
+      no.setAttribute('aria-label', e.prova ? X.prova.titulo : `Sessão ${e.k + 1}: ${e.s.titulo}` + (feita ? ' (feita)' : ''));
+      const cor = feita ? '#0e9f6e' : aqui ? '#ffc850' : '#ffffff';
+      no.innerHTML = `<circle class="tr-circ" cx="${x}" cy="${y}" r="34" fill="${cor}" stroke="#111" stroke-width="4"/>` +
+        `<text x="${x}" y="${y + 9}" text-anchor="middle" font-size="26" font-weight="700" fill="${feita ? '#fff' : '#111'}">${e.prova ? '★' : e.k + 1}</text>` +
+        `<text x="${x + 26}" y="${y - 22}" font-size="22">${MARCOS[i]}</text>` +
+        `<text x="${x}" y="${y + 60}" text-anchor="middle" font-size="15" font-weight="700" fill="#111">${(e.prova ? 'Prova-ensaio' : e.s.titulo).replace(/&/g, '&amp;').slice(0, 30)}</text>` +
+        (feita && !e.prova && e.s.insignia ? `<text x="${x}" y="${y + 78}" text-anchor="middle" font-size="13" fill="#8a5a1f">🏅 ${e.s.insignia}</text>` : '') +
+        (aqui ? `<image href="img/nico/01_boas_vindas.png" x="${x - 38}" y="${y - 118}" width="76" height="84"/>` : '');
+      const abrir = () => e.prova ? abrirProva() : abrirSessao(e.k);
+      no.addEventListener('click', abrir);
+      no.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abrir(); } });
+      svg.append(no);
+    });
+    L.parentNode.insertBefore(svg, L);
+    const prev = L.parentNode.querySelectorAll('.pc-trilho'); if (prev.length > 1) prev[0].remove();
+  }
 
   // ------------------------------------------------------------ sessão
   let S = null;      // { k, e, a } sessão, estação, atividade
@@ -112,7 +184,14 @@
       delete reg.valor;
       if (res.valor !== undefined) reg.v = res.valor;
       // fica o melhor resultado (não se perde um «certo» por repetir)
-      if (!ja || (!ja.ok && reg.ok) || (ja.ok && reg.ok && (reg.estrelas || 0) > (ja.estrelas || 0))) { P.at[at.id] = reg; gravar(); }
+      const antes = ja ? valor(at, ja) : 0, agora = valor(at, reg);
+      if (!ja || (!ja.ok && reg.ok) || (ja.ok && reg.ok && (reg.estrelas || 0) > (ja.estrelas || 0))) { P.at[at.id] = reg; if (agora > antes) ganhar(agora - antes); gravar(); }
+      // sequência de respostas certas à primeira
+      if (reg.tentativas !== undefined && !reg.aberta) {
+        combo = reg.ok && reg.tentativas === 1 ? combo + 1 : 0;
+        if (combo >= 3 && combo % 3 === 0) { P.bolotas = (P.bolotas || 0) + 2; gravar(); pintarBolotas(true); frase = `Sequência de ${combo} certas à primeira! +2 bolotas de bónus 🔥`; }
+      }
+      if (S && sessaoFeita(X.sessoes[S.k]) && !(P.insignias || []).includes(X.sessoes[S.k].id)) { P.insignias = [...(P.insignias || []), X.sessoes[S.k].id]; gravar(); }
       if (res.ok && F.Som) F.Som.tocar('sucesso');
       if (frase !== null) masc.dizer(res.ok ? 'celebrar' : 'calma', frase || (res.ok ? elogio() : 'Não faz mal. Vê a resposta certa e a explicação — para a próxima já sabes.'));
       $('atMsg').textContent = res.ok ? (res.aberta ? 'Texto guardado ✓' : 'Certo! ✓') : 'Vê a resposta certa.';
@@ -129,6 +208,9 @@
     if (at.tipo === 'caminho') {
       atual = F.PC.caminho.montar(palco, at, api);
       ouvir = () => at.missao;
+    } else if (F.PC.jogos.tipos.includes(at.tipo)) {
+      atual = F.PC.jogos.montar(palco, at, api);
+      ouvir = () => at.pergunta || '';
     } else if (F.PC.rt.tipos.includes(at.tipo)) {
       F.PC.rt.montar(palco, at, api);
       ouvir = () => at.pergunta || '';
@@ -199,7 +281,8 @@
     const s = X.sessoes[S.k];
     const linhas = s.estacoes.map(e => { const t = e.atividades.length, f = e.atividades.filter(a => feitoEm(a.id) && feitoEm(a.id).ok).length; return `${AREAS[e.area].nome}: ${f} de ${t}`; });
     const falta = atividadesDe(s).filter(a => !feitoEm(a.id)).length;
-    janela('celebrar', 'Sessão terminada!', linhas.join(' · ') + (falta ? ` · Ficaram ${falta} por fazer (saltadas).` : ''),
+    const ins = sessaoFeita(s) && s.insignia ? ` Ganhaste a insígnia «${s.insignia}»! 🏅` : '';
+    janela('celebrar', 'Sessão terminada!', linhas.join(' · ') + (falta ? ` · Ficaram ${falta} por fazer (saltadas).` : '') + ins,
       [['Voltar ao percurso', 'btn-escuro', mapa], ...(S.k + 1 < X.sessoes.length ? [['Sessão seguinte →', 'btn-azul', () => abrirSessao(S.k + 1)]] : [])]);
   }
 
