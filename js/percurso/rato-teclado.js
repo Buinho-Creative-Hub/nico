@@ -234,11 +234,21 @@
       conta.append('Linha ', h('b', null, String(k + 1)), ' de ' + linhas.length, '  ·  Enganos: ', h('b', null, String(erros)));
     }
     inp.addEventListener('paste', ev => ev.preventDefault());
-    inp.addEventListener('input', () => {
-      const v = inp.value, L = linhas[k];
+    inp.addEventListener('compositionend', ev => {
+      const L = linhas[k].normalize('NFC'), d = (ev.data || '').normalize('NFC'), fimPos = inp.selectionStart || inp.value.length;
+      for (let i = 0; i < d.length; i++) { total++; if (d[i] !== L[fimPos - d.length + i]) erros++; }
+    });
+    // precisão: conta cada carácter inserido (insertText; os acentos das teclas mortas chegam já compostos) na
+    // posição onde entrou — funciona também com seleção substituída, edição a meio e Unicode normalizado
+    inp.addEventListener('input', ev => {
+      const v = inp.value.normalize('NFC'), L = linhas[k].normalize('NFC');
+      if (v !== inp.value) inp.value = v;
       if (!t0 && v) t0 = performance.now();
-      if (v.length > anterior.length) {          // escreveu (não apagou): conta enganos
-        for (let i = anterior.length; i < v.length; i++) { total++; if (v[i] !== L[i]) { erros++; som('apagar'); } }
+      if (ev.inputType === 'insertText' && ev.data) {
+        const fimPos = inp.selectionStart || v.length, d = ev.data.normalize('NFC');
+        for (let i = 0; i < d.length; i++) { const pos = fimPos - d.length + i; total++; if (d[i] !== L[pos]) { erros++; som('apagar'); } }
+      } else if (ev.inputType === 'insertCompositionText' || ev.inputType === 'insertFromComposition') {
+        /* conta no fim da composição (compositionend) */
       }
       anterior = v;
       if (v === L) {
@@ -250,7 +260,7 @@
           const prec = total ? Math.round(100 * (total - erros) / total) : 100;
           inp.disabled = true; alvo.textContent = 'Feito! 🎉'; dica.textContent = `${ppm} palavras por minuto · ${prec}% de teclas certas à primeira.`;
           Object.values(teclas).forEach(t => t.classList.remove('proxima'));
-          api.concluir({ ok: true, tempo: s, falhas: erros, ppm, precisao: prec });
+          api.concluir({ ok: true, tempo: s, falhas: erros, ppm, precisao: prec, ccm: s ? Math.round(Math.max(0, total - erros) / (s / 60)) : 0, tarefa: 'copia' });
           return;
         }
       }

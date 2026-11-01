@@ -32,7 +32,6 @@
 
   // ------------------------------------------------------------ bolotas (moedas do percurso), sequências e insígnias
   const BOLOTA = '<svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="19" rx="10" ry="11" fill="#e9b44c" stroke="#111" stroke-width="2"/><path d="M5 13c2-6 20-6 22 0z" fill="#8a5a1f" stroke="#111" stroke-width="2"/><path d="M16 7V3" stroke="#111" stroke-width="2.5" stroke-linecap="round"/></svg>';
-  let combo = 0;
   function pintarBolotas(salto) {
     let b = $('bolotas');
     if (!b) { b = h('span', { class: 'pc-bolotas', id: 'bolotas', title: 'Bolotas ganhas no percurso' }); document.querySelector('.ligacao').prepend(b); }
@@ -47,15 +46,9 @@
     const e = h('span', { class: 'pc-ganho' }, '+' + n + ' 🌰'); e.style.left = (r.left + r.width / 2 - 20) + 'px'; e.style.top = (r.top - 10) + 'px';
     document.body.append(e); setTimeout(() => e.remove(), 1200);
   }
-  // quanto vale uma atividade (só na primeira vez que fica bem feita)
-  function valor(at, res) {
-    if (!res.ok) return 0;
-    if (at.tipo === 'caminho') return 2 + (res.estrelas || 0);
-    if (F.PC.jogos.tipos.includes(at.tipo)) return 4 + (res.vidas === 3 ? 2 : 0);
-    if (F.PC.rt.tipos.includes(at.tipo)) return 4;
-    if (res.aberta) return 4;
-    return res.tentativas === 1 ? 3 : 1;
-  }
+  // bolotas: recompensa fixa pela primeira conclusão (também com apoio). Repetir serve para aprender, não para juntar moedas.
+  // As bolotas só compram decoração para a oficina do Nico — nunca pistas, temas ou vantagens (revisão do Ambrósio, 1 Nov).
+  function valor(at, res) { return res ? (at.missao || ['ponte', 'detetive', 'correio'].includes(at.tipo) ? 5 : 3) : 0; }
   const sessaoFeita = s => atividadesDe(s).every(a => feitoEm(a.id));
 
   // ------------------------------------------------------------ mapa
@@ -70,7 +63,7 @@
     X.sessoes.forEach((s, k) => {
       const ats = atividadesDe(s), feitas = ats.filter(a => feitoEm(a.id)).length;
       const b = h('button', { type: 'button', class: 'pc-sessao' + (feitas === ats.length ? ' feita' : '') },
-        h('span', { class: 'ps-num' }, 'Sessão ' + (k + 1)),
+        h('span', { class: 'ps-num' }, rotulo(k)),
         h('strong', null, s.titulo),
         h('span', { class: 'ps-tema' }, s.resumo),
         h('span', { class: 'ps-areas' }, s.estacoes.map(e => {
@@ -90,13 +83,21 @@
       b.addEventListener('click', () => abrirProva());
       L.append(b);
     }
+    const bOf = h('button', { type: 'button', class: 'pc-sessao treino' }, h('span', { class: 'ps-num' }, 'Bolotas'), h('strong', null, '🛠 A oficina do Nico'),
+      h('span', { class: 'ps-tema' }, 'Usa as bolotas para decorar a oficina onde o Nico prepara a Mostra. Só decoração: não compra pistas nem respostas.'),
+      h('span', { class: 'ps-estado' }, `Tens ${P.bolotas || 0} bolotas`));
+    bOf.addEventListener('click', oficina);
+    L.append(bOf);
     masc.dizer('boas_vindas', X.boasVindas);
   }
   const atividadesDe = s => s.estacoes.flatMap(e => e.atividades);
+  // «Missão 1» (fatia vertical da Mostra de Invenções) ou «Sessão N» (as sessões numeradas sem contar as missões)
+  const rotulo = k => X.sessoes[k].rotulo || 'Sessão ' + (X.sessoes.slice(0, k + 1).filter(s => !s.rotulo).length);
+  const curto = k => X.sessoes[k].rotulo ? X.sessoes[k].rotulo.replace('Missão ', 'M') : String(X.sessoes.slice(0, k + 1).filter(s => !s.rotulo).length);
 
   // mapa-trilho: o caminho do Nico pelas sessões (provisório, até chegar a ilustração do Ambrósio)
-  const NOS = [[90, 250], [260, 150], [430, 235], [600, 120], [770, 225], [930, 125], [1090, 215]];
-  const MARCOS = ['🧭', '🌳', '💧', '🔧', '🥕', '🏰', '🏁'];
+  const NOS = [[80, 250], [225, 150], [370, 235], [515, 125], [660, 230], [805, 130], [950, 225], [1095, 135]];
+  const MARCOS = ['🌉', '🧭', '🌳', '💧', '🔧', '🥕', '🏰', '🏁'];
   function trilho() {
     const L = $('listaSessoes');
     const etapas = [...X.sessoes.map((s, k) => ({ s, k })), ...(X.prova ? [{ prova: true }] : [])];
@@ -119,10 +120,10 @@
       const aqui = e.prova ? atualK < 0 : e.k === atualK;
       const no = document.createElementNS(svgNS, 'g');
       no.setAttribute('class', 'tr-no'); no.setAttribute('tabindex', '0'); no.setAttribute('role', 'listitem');
-      no.setAttribute('aria-label', e.prova ? X.prova.titulo : `Sessão ${e.k + 1}: ${e.s.titulo}` + (feita ? ' (feita)' : ''));
+      no.setAttribute('aria-label', e.prova ? X.prova.titulo : `${rotulo(e.k)}: ${e.s.titulo}` + (feita ? ' (feita)' : ''));
       const cor = feita ? '#0e9f6e' : aqui ? '#ffc850' : '#ffffff';
       no.innerHTML = `<circle class="tr-circ" cx="${x}" cy="${y}" r="34" fill="${cor}" stroke="#111" stroke-width="4"/>` +
-        `<text x="${x}" y="${y + 9}" text-anchor="middle" font-size="26" font-weight="700" fill="${feita ? '#fff' : '#111'}">${e.prova ? '★' : e.k + 1}</text>` +
+        `<text x="${x}" y="${y + 9}" text-anchor="middle" font-size="26" font-weight="700" fill="${feita ? '#fff' : '#111'}">${e.prova ? '★' : curto(e.k)}</text>` +
         `<text x="${x + 26}" y="${y - 22}" font-size="22">${MARCOS[i]}</text>` +
         `<text x="${x}" y="${y + 60}" text-anchor="middle" font-size="15" font-weight="700" fill="#111">${(e.prova ? 'Prova-ensaio' : e.s.titulo).replace(/&/g, '&amp;').slice(0, 30)}</text>` +
         (feita && !e.prova && e.s.insignia ? `<text x="${x}" y="${y + 78}" text-anchor="middle" font-size="13" fill="#8a5a1f">🏅 ${e.s.insignia}</text>` : '') +
@@ -132,6 +133,11 @@
       no.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); abrir(); } });
       svg.append(no);
     });
+    // o que a turma já construiu fica no mapa: a ribeira entre a missão 1 e a sessão seguinte e a sua ponte
+    const rib = document.createElementNS(svgNS, 'g');
+    rib.innerHTML = '<path d="M140 340 C160 280 120 230 165 190 S150 120 170 70" fill="none" stroke="#5aa9e6" stroke-width="16" stroke-linecap="round" opacity=".9"/>' +
+      ((P.mundo || {}).ponte ? '<g transform="translate(140,196) rotate(-12)"><rect x="0" y="0" width="52" height="12" rx="3" fill="#c88a3d" stroke="#111" stroke-width="2"/><path d="M4 0v-8M48 0v-8M4 -8H48" stroke="#6b4a22" stroke-width="3"/></g>' : '<text x="182" y="206" font-size="13" fill="#1a4fd1" font-weight="700">sem ponte!</text>');
+    svg.insertBefore(rib, svg.querySelector('.tr-no'));
     L.parentNode.insertBefore(svg, L);
     const prev = L.parentNode.querySelectorAll('.pc-trilho'); if (prev.length > 1) prev[0].remove();
   }
@@ -173,7 +179,7 @@
     $('btnSeguinte').hidden = true;
     $('btnVerificar').hidden = true;
     $('btnSaltar').hidden = false;
-    masc.pistas(at.pistas || []);
+    masc.pistas(at.ajudas || (at.tipo === 'detetive' ? [] : at.pistas) || []);
     const palco = $('atPalco'); palco.innerHTML = '';
     const t0 = performance.now();
     let ajudas = 0;
@@ -181,16 +187,14 @@
     const concluir = (res, frase) => {
       const ja = feitoEm(at.id);
       const reg = Object.assign({ ok: !!res.ok, t: Math.round((performance.now() - t0) / 1000), ajudas }, res);
+      // o que o professor precisa de saber: feito sozinho, feito com apoio (pistas ou 2.ª tentativa), ou com a resposta mostrada
+      reg.estado = !res.ok ? 'mostrada' : (ajudas > 0 || (res.tentativas || 1) > 1) ? 'apoio' : 'autonomo';
       delete reg.valor;
       if (res.valor !== undefined) reg.v = res.valor;
       // fica o melhor resultado (não se perde um «certo» por repetir)
-      const antes = ja ? valor(at, ja) : 0, agora = valor(at, reg);
+      const antes = ja ? valor(at, ja) : 0, agora = valor(at, reg);   // só a 1.ª conclusão conta
       if (!ja || (!ja.ok && reg.ok) || (ja.ok && reg.ok && (reg.estrelas || 0) > (ja.estrelas || 0))) { P.at[at.id] = reg; if (agora > antes) ganhar(agora - antes); gravar(); }
-      // sequência de respostas certas à primeira
-      if (reg.tentativas !== undefined && !reg.aberta) {
-        combo = reg.ok && reg.tentativas === 1 ? combo + 1 : 0;
-        if (combo >= 3 && combo % 3 === 0) { P.bolotas = (P.bolotas || 0) + 2; gravar(); pintarBolotas(true); frase = `Sequência de ${combo} certas à primeira! +2 bolotas de bónus 🔥`; }
-      }
+      if (res.ok && at.transforma) { P.mundo = Object.assign({}, P.mundo, { [at.transforma]: true }); gravar(); }
       if (S && sessaoFeita(X.sessoes[S.k]) && !(P.insignias || []).includes(X.sessoes[S.k].id)) { P.insignias = [...(P.insignias || []), X.sessoes[S.k].id]; gravar(); }
       if (res.ok && F.Som) F.Som.tocar('sucesso');
       if (frase !== null) masc.dizer(res.ok ? 'celebrar' : 'calma', frase || (res.ok ? elogio() : 'Não faz mal. Vê a resposta certa e a explicação — para a próxima já sabes.'));
@@ -208,6 +212,9 @@
     if (at.tipo === 'caminho') {
       atual = F.PC.caminho.montar(palco, at, api);
       ouvir = () => at.missao;
+    } else if (F.PC.oficina.tipos.includes(at.tipo)) {
+      atual = F.PC.oficina.montar(palco, at, api);
+      ouvir = () => at.pergunta || at.pedido || '';
     } else if (F.PC.jogos.tipos.includes(at.tipo)) {
       atual = F.PC.jogos.montar(palco, at, api);
       ouvir = () => at.pergunta || '';
@@ -376,6 +383,36 @@
     caixa._fechar = () => clearInterval(tick);
   }
 
+  // ------------------------------------------------------------ oficina do Nico (bolotas → decoração, sem vantagens)
+  const LOJA = [
+    ['vaso', 'Vaso com rosmaninho', 10, '<g transform="translate(90,250)"><path d="M0 0h50l-8 50H8z" fill="#c4553a" stroke="#111" stroke-width="2"/><path d="M25 0c-4-30 4-40 0-60M25 0c10-25 20-30 25-45M25 0c-12-20-22-26-28-40" stroke="#4f7d3a" stroke-width="4" fill="none"/></g>'],
+    ['bandeirolas', 'Bandeirolas da Mostra', 15, '<path d="M60 40 Q480 120 900 40" fill="none" stroke="#555" stroke-width="2"/>' + [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<path d="M${100 + i * 90} ${48 + Math.sin(i / 8 * Math.PI) * 52}l18 32l18 -32z" fill="${['#ff5050', '#ffc850', '#2364ff', '#0e9f6e'][i % 4]}"/>`).join('')],
+    ['quadro', 'Quadro de ideias', 20, '<g transform="translate(380,110)"><rect width="200" height="120" fill="#2f4f3f" stroke="#6b4a22" stroke-width="8"/><path d="M20 30h80M20 55h120M20 80h60" stroke="#fff" stroke-width="3" opacity=".8"/><circle cx="160" cy="80" r="18" fill="none" stroke="#ffc850" stroke-width="3"/></g>'],
+    ['radio', 'Rádio antigo', 25, '<g transform="translate(700,215)"><rect width="110" height="70" rx="10" fill="#8a5a1f" stroke="#111" stroke-width="2"/><circle cx="35" cy="35" r="20" fill="#e9dcc0" stroke="#111"/><rect x="66" y="20" width="32" height="8" fill="#111"/><rect x="66" y="38" width="32" height="8" fill="#111"/></g>'],
+    ['bicicleta', 'Bicicleta reparada', 30, '<g transform="translate(220,300)" stroke="#111" stroke-width="4" fill="none"><circle cx="0" cy="0" r="30"/><circle cx="110" cy="0" r="30"/><path d="M0 0 40 -40h50L110 0M40 -40 55 0h-55M90 -40v-15h15"/></g>'],
+    ['impressora', 'Impressora 3D', 40, '<g transform="translate(560,240)"><rect width="110" height="90" fill="#eee" stroke="#111" stroke-width="3"/><rect x="10" y="10" width="90" height="60" fill="#cfe6ff"/><rect x="45" y="22" width="20" height="12" fill="#ff5050"/><rect x="30" y="56" width="50" height="8" fill="#2364ff"/></g>'],
+  ];
+  function oficina() {
+    vista('vOficina'); $('estacoes').innerHTML = ''; pintarBolotas();
+    const tem = new Set(P.oficina || []);
+    const cena = '<svg viewBox="0 0 960 380"><rect width="960" height="380" fill="#f4efe3"/><rect y="300" width="960" height="80" fill="#c9a36b"/><rect x="0" y="292" width="960" height="10" fill="#8a6d4a"/>' +
+      '<rect x="760" y="60" width="140" height="110" fill="#bfe6ff" stroke="#6b4a22" stroke-width="8"/><path d="M830 60v110M760 115h140" stroke="#6b4a22" stroke-width="5"/>' +
+      '<rect x="300" y="250" width="380" height="16" fill="#8b6b4a"/><rect x="320" y="266" width="12" height="34" fill="#6b4a22"/><rect x="648" y="266" width="12" height="34" fill="#6b4a22"/>' +
+      LOJA.filter(([id]) => tem.has(id)).map(i => i[3]).join('') +
+      '<image href="img/nico/07_a_inventar.png" x="420" y="140" width="130" height="150"/></svg>';
+    const loja = h('div', { class: 'pc-loja' });
+    LOJA.forEach(([id, nome, preco]) => {
+      const b = h('button', { type: 'button', class: tem.has(id) ? 'tem' : '', disabled: !tem.has(id) && (P.bolotas || 0) < preco ? true : null }, nome, h('small', null, tem.has(id) ? 'Já está na oficina ✓' : `${preco} bolotas`));
+      b.addEventListener('click', () => { if (tem.has(id) || (P.bolotas || 0) < preco) return; P.bolotas -= preco; P.oficina = [...tem, id]; gravar(); if (F.Som) F.Som.tocar('nivel'); oficina(); });
+      loja.append(b);
+    });
+    const v = $('vOficina'); v.innerHTML = '';
+    v.append(h('div', { class: 'pc-mapa' }, h('div', { class: 'pc-oficina' }, h('h1', null, 'A oficina do Nico'),
+      h('p', null, 'É aqui que o Nico prepara a Mostra de Invenções. Ganhas bolotas por cada atividade que acabas (uma vez por atividade) e podes usá-las para decorar.'),
+      h('div', { html: cena }), loja, h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: mapa }, '← Voltar ao percurso')))));
+    masc.dizer('celebrar', tem.size ? 'Está a ficar linda, a nossa oficina!' : 'Ainda está vazia… escolhe o primeiro enfeite!');
+  }
+
   // ------------------------------------------------------------ janela e vistas
   function janela(estado, titulo, texto, botoes) {
     $('janelaImg').src = masc.img(estado);
@@ -387,7 +424,7 @@
     setTimeout(() => bx.lastChild && bx.lastChild.focus(), 30);
   }
   function vista(id) {
-    ['vMapa', 'vSessao', 'vProva'].forEach(v => { $(v).hidden = v !== id; });
+    ['vMapa', 'vSessao', 'vProva', 'vOficina'].forEach(v => { $(v).hidden = v !== id; });
     const p = $('prova'); if (id !== 'vProva' && p._fechar) { p._fechar(); p._fechar = null; }
     if (id !== 'vSessao') fecharAtual();
   }

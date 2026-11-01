@@ -50,6 +50,16 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
         out.push([a.id, s.ok && s.estrelas === 3 && !i.ok, `solução ${s.ok ? 'ok' : JSON.stringify(s.erro) + ' faltam ' + s.faltam + ' meta ' + s.naMeta} · ${s.blocos} blocos (máx ${a.maxBlocos}) · inicial falha: ${!i.ok}`]);
       } else if (F.PC.rt.tipos.includes(a.tipo)) {
         out.push([a.id, true, a.tipo]);
+      } else if (F.PC.oficina.tipos.includes(a.tipo)) {
+        const O = F.PC.oficina; let bom = true, m = a.tipo;
+        if (a.tipo === 'ponte') {
+          const p = a.pecas.map(O.fr), alvo = O.fr(a.alvo), n = p.length, sol = [];
+          for (let k = 1; k < (1 << n); k++) { const e = p.filter((_, i) => k & (1 << i)); if (a.restricao && a.restricao.pecas && e.length !== a.restricao.pecas) continue; if (O.cmp(e.reduce(O.soma, [0, 1]), alvo) === 0) sol.push(a.pecas.filter((_, i) => k & (1 << i)).join('+')); }
+          bom = sol.length > 0; m += ' soluções: ' + [...new Set(sol)].join(' | ');
+        }
+        if (a.tipo === 'detetive') { bom = a.pistas.every(id => { const [i, j] = id.split('.').map(Number); return a.manual.seccoes[i - 1] && a.manual.seccoes[i - 1].frases[j - 1]; }) && a.ajudas && a.ajudas.length === 3; m += ' pistas ok: ' + bom; }
+        if (a.tipo === 'correio') bom = !a.rascunho || (a.certo && a.certo.length > 0 && !a.certo.includes(a.rascunho));
+        out.push([a.id, bom, m]);
       } else if (F.PC.jogos.tipos.includes(a.tipo)) {
         const n = t => Number(String(t).replace(/[\s€]/g, '').replace(',', '.'));
         let bom = true, m = a.tipo;
@@ -76,12 +86,12 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
   // ------------------------------------------------------------ 2. ecrã: mapa
   console.log('Mapa');
-  ok(await pg.locator('.pc-sessao').count() === 7 && await pg.locator('.pc-trilho .tr-no').count() === 7, '6 sessões + prova-ensaio no mapa e no trilho');
+  ok(await pg.locator('.pc-sessao').count() === 9 && await pg.locator('.pc-trilho .tr-no').count() === 8, 'missão 1 + 6 sessões + prova-ensaio + oficina no mapa e no trilho');
   await foto('01-mapa');
 
   // ------------------------------------------------------------ sessão 1
   console.log('Sessão 1');
-  await pg.locator('.pc-sessao').first().click();
+  await pg.locator('.pc-sessao').nth(1).click();
   await pg.waitForSelector('.rt-alvo');
   await foto('02-alvos');
   for (let i = 0; i < 12; i++) { await pg.locator('.rt-alvo').click(); }
@@ -90,7 +100,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.click('#btnSeguinte');
   await pg.waitForSelector('.tc-entrada');
   await foto('03-teclado');
-  const linhas = await pg.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes[0].estacoes[0].atividades[1].linhas);
+  const linhas = await pg.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes[1].estacoes[0].atividades[1].linhas);
   await pg.click('.tc-entrada');
   for (const l of linhas) { await pg.keyboard.type(l, { delay: 5 }); await pg.waitForTimeout(30); }
   await pg.waitForSelector('#btnSeguinte:not([hidden])');
@@ -114,7 +124,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   for (let k = 0; k < 3; k++) {
     await pg.evaluate(() => {
       const F = window.Faisca, a = F.PC.app.atual(), X = F.MISSOES['percurso-4'];
-      const at = document.title && X.sessoes[0].estacoes[1].atividades.find(x => x.titulo === document.querySelector('#atTitulo').textContent);
+      const at = document.title && X.sessoes[1].estacoes[1].atividades.find(x => x.titulo === document.querySelector('#atTitulo').textContent);
       a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml(at.solucao)), a.ws);
     });
     await pg.waitForTimeout(100);
@@ -199,12 +209,114 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   ok((await pg.textContent('#janelaTitulo')).includes('Sessão terminada'), 'fim da sessão');
   await foto('10-fim-sessao');
   const prog = await pg.evaluate(() => window.Faisca.PC.app.progresso());
-  ok(prog.feitos === 18 && prog.bolotas > 30, `progresso guardado: ${prog.feitos} atividades feitas na sessão 1 · ${prog.bolotas} bolotas · insígnias ${JSON.stringify(prog.insignias)}`);
+  ok(prog.feitos === 18 && prog.bolotas >= 50, `progresso guardado: ${prog.feitos} atividades feitas na sessão 1 · ${prog.bolotas} bolotas · insígnias ${JSON.stringify(prog.insignias)}`);
   await pg.click('#janelaBotoes .btn');   // voltar ao percurso
+
+  // ------------------------------------------------------------ Missão 1 (Mostra de Invenções) de ponta a ponta
+  console.log('Missão 1 · A ponte da ribeira');
+  await pg.goto(url('percurso.html', '?s=1'));
+  await pg.waitForSelector('.rt-alvo');
+  for (let i = 0; i < 8; i++) await pg.locator('.rt-alvo').click();
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await pg.click('#btnSeguinte');
+  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
+  // prever: sem previsão não corre; com previsão corre o programa inicial (falha), depois a solução
+  await pg.waitForSelector('.cm-grelha svg');
+  await pg.click('.cm-comandos .btn-azul');
+  ok((await pg.textContent('#balao')).includes('onde achas'), 'caminho com previsão: pede para prever antes de correr');
+  const g = await pg.locator('.cm-grelha svg').boundingBox();
+  await pg.mouse.click(g.x + g.width * (3.5 / 6), g.y + g.height * (1.5 / 4));   // casa (4, 2): onde o programa inicial o deixa
+  await pg.click('.cm-comandos .btn-azul');
+  await pg.waitForFunction(() => /previste bem/i.test(document.querySelector('#balao').textContent), null, { timeout: 15000 });
+  ok(true, 'previsão certa reconhecida (o programa inicial pára onde se previu)');
+  await foto('m1-prever');
+  await pg.evaluate(() => { const F = window.Faisca, a = F.PC.app.atual(); a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml([['N', 3], ['E', 5]])), a.ws); });
+  await pg.waitForTimeout(100); await pg.click('.cm-comandos .btn-azul');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 15000 }); await pg.click('#btnSeguinte');
+  // passo a passo: o bloco a correr fica destacado e o estado do «se» aparece
+  await pg.waitForSelector('.cm-grelha svg');
+  await pg.evaluate(() => { const F = window.Faisca, a = F.PC.app.atual(); a.ws.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(F.PC.caminho.xml([['rep', 6, [['E', 1], ['se', 'par', [['ap']]]]]])), a.ws); });
+  await pg.waitForTimeout(150);
+  let viuSe = false;
+  for (let k = 0; k < 60 && !(await pg.locator('#btnSeguinte:not([hidden])').count()); k++) {
+    await pg.click('button:has-text("Um passo")');
+    if (/se o número aqui é/.test(await pg.textContent('.cm-estado'))) viuSe = true;
+    if (k === 4) await foto('m1-passo');
+  }
+  ok(viuSe && await pg.locator('#btnSeguinte:not([hidden])').count() === 1, 'passo a passo: mostra o «se» a decidir e conclui');
+  await pg.click('#btnSeguinte');
+  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
+  // ponte 1: errar primeiro (falta) e depois acertar com cliques nas peças
+  await pg.waitForSelector('.of-ponte');
+  await pg.locator('.of-peca', { hasText: /^1\/2$/ }).click();
+  await pg.click('text=O Nico experimenta a ponte');
+  await pg.waitForFunction(() => /ainda falta/i.test(document.querySelector('#balao').textContent), null, { timeout: 8000 });
+  ok(/um meio|1\/2/.test(await pg.textContent('#balao')), 'ponte: diz quanto falta («' + (await pg.textContent('#balao')).trim().slice(0, 60) + '»)');
+  await pg.waitForTimeout(700);
+  await pg.locator('.of-peca', { hasText: /^1\/4$/ }).first().click();
+  await pg.locator('.of-peca', { hasText: /^1\/4$/ }).first().click();
+  await foto('m1-ponte');
+  await pg.click('text=O Nico experimenta a ponte');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 });
+  ok(true, 'ponte: 1/2 + 1/4 + 1/4 atravessa');
+  await pg.click('#btnSeguinte');
+  for (let k = 0; k < 2; k++) { await pg.waitForSelector('.of-ponte'); await pg.evaluate(() => window.Faisca.PC.app.atual().resolver()); await pg.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 10000 }); await pg.click('#btnSeguinte'); }
+  ok(true, 'pontes 2 e 3 (com restrição de peças) resolvem-se');
+  await pg.locator('.it-opcao').nth(1).click(); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
+  await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
+  // detetive: pista errada, pistas certas, ordem, relatório
+  await pg.waitForSelector('.of-manual');
+  await pg.locator('.of-frase[data-id="1.1"]').click();
+  ok((await pg.textContent('#balao')).includes('SÓ o canteiro 3'), 'detetive: pista errada dá explicação');
+  await pg.locator('.of-frase[data-id="2.2"]').click(); await pg.locator('.of-frase[data-id="3.2"]').click();
+  await pg.waitForSelector('.it-ordem', { timeout: 5000 });
+  await foto('m1-detetive');
+  for (let volta = 0; volta < 10; volta++) {
+    const ordem = await pg.$$eval('.it-ordem li', l => l.map(x => Number(x.dataset.i)));
+    const e = ordem.findIndex((x, k) => x !== k); if (e < 0) break;
+    const a = await pg.locator('.it-ordem li').nth(ordem.indexOf(e)).boundingBox(), b = await pg.locator('.it-ordem li').nth(e).boundingBox();
+    await pg.mouse.move(a.x + 40, a.y + a.height / 2); await pg.mouse.down(); await pg.mouse.move(b.x + 40, b.y + b.height / 2, { steps: 12 }); await pg.mouse.up();
+  }
+  await pg.click('text=Confirmar a ordem');
+  await pg.waitForSelector('.of-explica');
+  await pg.fill('.of-explica', 'O trator esmagou o tubo do canteiro 3 e a água não passava.');
+  await pg.click('text=Entregar o relatório');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok(true, 'detetive: pistas → ordem → relatório conclui');
+  await pg.click('#btnSeguinte');
+  // correio: copiar, corrigir, escrever, enviar
+  await pg.waitForSelector('.of-carta-caixa');
+  await pg.click('.tc-entrada'); await pg.keyboard.type('A rega do canteiro 3 já está reparada.', { delay: 5 });
+  await pg.waitForSelector('textarea.of-explica');
+  await pg.fill('textarea.of-explica', 'amanhã vamos a horta ver as couves'); await pg.click('text=Verificar a correção');
+  ok(/Ainda há \d+ palavra/.test(await pg.textContent('.of-estado')), 'correio: diz quantas palavras faltam corrigir (' + await pg.textContent('.of-estado') + ')');
+  await pg.fill('textarea.of-explica', 'Amanhã vamos à horta ver as couves.'); await pg.click('text=Verificar a correção');
+  await pg.waitForSelector('text=✉️ Enviar');
+  await pg.fill('textarea.of-explica', 'Olá, Dona Aurora! No dia 20 de maio há a Mostra de Invenções do Nico na escola, com pontes e robôs. Venha!');
+  await foto('m1-correio');
+  await pg.click('text=✉️ Enviar');
+  await pg.waitForSelector('.of-resposta', { timeout: 5000 });
+  ok(true, 'correio: cópia → correção → mensagem própria → resposta da Dona Aurora');
+  await pg.click('#btnSeguinte');
+  await pg.fill('.it-curta input', 'passou'); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
+  await pg.waitForSelector('#janela:not([hidden])');
+  ok((await pg.textContent('#janelaTexto')).includes('Construtor de pontes'), 'missão 1 completa: insígnia «Construtor de pontes»');
+  await pg.click('#janelaBotoes .btn');
+  await pg.waitForSelector('.pc-trilho');
+  ok(await pg.evaluate(() => !!window.Faisca.PC.app.progresso().mundo.ponte) && !(await pg.textContent('.pc-trilho')).includes('sem ponte'), 'a ponte construída fica no mapa');
+  await foto('m1-mapa-com-ponte');
+  // oficina: comprar uma decoração
+  await pg.click('text=🛠 A oficina do Nico');
+  const antes = await pg.evaluate(() => window.Faisca.PC.app.progresso().bolotas);
+  await pg.locator('.pc-loja button').first().click();
+  const depois = await pg.evaluate(() => window.Faisca.PC.app.progresso());
+  ok(depois.bolotas === antes - 10 && depois.oficina.includes('vaso'), `oficina: o vaso custa 10 bolotas (${antes} → ${depois.bolotas})`);
+  await foto('m1-oficina');
+  const reg = await pg.evaluate(() => window.Faisca.PC.app.progresso().at);
+  ok(reg['m1-pt1'].estado === 'apoio' && reg['m1-r1'].estado === 'autonomo', `registos separam autónomo/apoio (ponte 1: ${reg['m1-pt1'].estado}, bolotas: ${reg['m1-r1'].estado})`);
 
   // ------------------------------------------------------------ outras sessões abrem sem erros (cada atividade)
   console.log('Sessões 2–6 (abrir cada atividade)');
-  for (let s = 2; s <= 6; s++) {
+  for (let s = 3; s <= 7; s++) {
     await pg.goto(url('percurso.html', '?s=' + s));
     await pg.waitForSelector('#vSessao:not([hidden])');
     const n = await pg.evaluate(k => window.Faisca.MISSOES['percurso-4'].sessoes[k].estacoes.flatMap(e => e.atividades).length, s - 1);

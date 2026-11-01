@@ -79,22 +79,24 @@
           const [dc, dr] = DIRS[b.getFieldValue('DIR')], n = numeroDe(b, 'N');
           for (let k = 0; k < n && !erro; k++) {
             const c = st.c + dc, r = st.r + dr;
-            if (c < 0 || r < 0 || c >= at.cols || r >= at.rows) { erro = { tipo: 'fora', dir: b.getFieldValue('DIR') }; rasto.push({ tipo: 'bater', c: st.c, r: st.r }); return; }
+            if (c < 0 || r < 0 || c >= at.cols || r >= at.rows) { erro = { tipo: 'fora', dir: b.getFieldValue('DIR') }; rasto.push({ tipo: 'bater', c: st.c, r: st.r, b: b.id }); return; }
             const o = obstEm(c, r);
-            if (o) { erro = { tipo: 'obst', obst: o[2], dir: b.getFieldValue('DIR') }; rasto.push({ tipo: 'bater', c: st.c, r: st.r, para: [c, r] }); return; }
+            if (o) { erro = { tipo: 'obst', obst: o[2], dir: b.getFieldValue('DIR') }; rasto.push({ tipo: 'bater', c: st.c, r: st.r, para: [c, r], b: b.id }); return; }
             st.c = c; st.r = r; st.passos++;
-            rasto.push({ tipo: 'mover', c, r });
+            rasto.push({ tipo: 'mover', c, r, b: b.id });
           }
         } else if (b.type === 'cm_apanhar') {
           const i = itemEm(st.c, st.r);
-          if (i < 0 || st.apanhados.includes(i)) { erro = { tipo: 'nada' }; rasto.push({ tipo: 'nada', c: st.c, r: st.r }); return; }
-          st.apanhados.push(i); rasto.push({ tipo: 'apanhar', i });
+          if (i < 0 || st.apanhados.includes(i)) { erro = { tipo: 'nada' }; rasto.push({ tipo: 'nada', c: st.c, r: st.r, b: b.id }); return; }
+          st.apanhados.push(i); rasto.push({ tipo: 'apanhar', i, b: b.id, n: st.apanhados.length });
           if (at.itens[i][3] === false) { erro = { tipo: 'errado', item: at.itens[i][2] }; return; }
         } else if (b.type === 'mk_repetir') {
           const n = numeroDe(b, 'N');
-          for (let k = 0; k < n && !erro; k++) corre(b.getInputTargetBlock('DO'));
+          for (let k = 0; k < n && !erro; k++) { rasto.push({ tipo: 'volta', b: b.id, k: k + 1, n }); corre(b.getInputTargetBlock('DO')); }
         } else if (b.type === 'mk_se_entao') {
-          if (cond(b.getInputTargetBlock('C'))) corre(b.getInputTargetBlock('SIM'));
+          const v = cond(b.getInputTargetBlock('C'));
+          rasto.push({ tipo: 'teste', b: b.id, v, txt: b.getInputTargetBlock('C') ? b.getInputTargetBlock('C').getField('T').getText() : '' });
+          if (v) corre(b.getInputTargetBlock('SIM'));
         }
       }
     }
@@ -197,42 +199,91 @@
       const n = ws.getAllBlocks(false).filter(b => !b.isShadow() && b.type !== 'cm_comecar').length;
       nBlocos.textContent = `Blocos: ${n}` + (at.maxBlocos ? ` · consegues com ${at.maxBlocos} ou menos?` : '');
     };
-    ws.addChangeListener(ev => { if (!ev.isUiEvent) { contar(); if (!aCorrer) repor(); } });
+    const MUDA = [Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_DELETE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_MOVE];
+    ws.addChangeListener(ev => { if (!ev.isUiEvent && MUDA.includes(ev.type)) { contar(); if (!aCorrer) repor(); } });
     contar();
     const ro = new ResizeObserver(() => Blockly.svgResize(ws)); ro.observe(areaB);
 
     const nico = () => grelha.querySelector('.cm-nico');
+    const estadoEl = h('div', { class: 'cm-estado', 'aria-live': 'polite' });
+    const btnPasso = h('button', { type: 'button', class: 'btn btn-texto' }, '👣 Um passo');
+    el.querySelector('.cm-comandos').insertBefore(btnPasso, btnRep);
+    el.querySelector('.cm-comandos').after(estadoEl);
+    let exec = null, previsao = null, previsoes = 0, previsoesCertas = 0;
     function repor() {
       const [c, r] = at.inicio;
       nico().style.transform = `translate(${c * S}px,${r * S}px)`;
       grelha.querySelectorAll('.cm-item').forEach(i => { i.style.opacity = 1; });
+      ws.highlightBlock(null);
+      exec = null; estadoEl.textContent = '';
     }
-    btnRep.addEventListener('click', () => { if (!aCorrer) repor(); });
-    btnIr.addEventListener('click', async () => {
-      if (aCorrer) return;
-      repor();
-      const r = simular(at, ws);
-      tentativas++;
-      aCorrer = true; btnIr.disabled = true;
-      for (const p of r.rasto) {
-        if (p.tipo === 'mover') { nico().style.transform = `translate(${p.c * S}px,${p.r * S}px)`; if (F.Som) F.Som.tocar('clique'); await espera(300); }
-        else if (p.tipo === 'apanhar') { const it = grelha.querySelector(`.cm-item[data-i="${p.i}"]`); if (it) it.style.opacity = 0.15; if (F.Som) F.Som.tocar('apanhar'); await espera(250); }
-        else if (p.tipo === 'bater' || p.tipo === 'nada') { const n = nico().querySelector('image'); n.classList.remove('cm-toque'); void n.getBoundingClientRect(); n.classList.add('cm-toque'); if (F.Som) F.Som.tocar('apagar'); await espera(450); }
+    // prever: clicar na casa onde se acha que o Nico vai parar (Lightbot/code.org: prever → executar → corrigir)
+    const svgG = grelha.querySelector('svg');
+    const marca = svgEl('g', { class: 'cm-previsao' }); marca.style.display = 'none';
+    marca.innerHTML = `<circle cx="32" cy="32" r="26" fill="none" stroke="#d6336c" stroke-width="5" stroke-dasharray="7 5"/><text x="32" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#d6336c">?</text>`;
+    svgG.append(marca);
+    svgG.addEventListener('click', ev => {
+      if (aCorrer || !at.prever) return;
+      const pt = svgG.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+      const q = pt.matrixTransform(svgG.getScreenCTM().inverse());
+      previsao = [Math.floor(q.x / S), Math.floor(q.y / S)];
+      marca.setAttribute('transform', `translate(${previsao[0] * S},${previsao[1] * S})`); marca.style.display = '';
+      api.dizer('curiosa', 'Previsão marcada! Agora carrega em ▶ Começar ou vai 👣 passo a passo e vê se acertaste.');
+    });
+    // um passo do rasto: mexe o Nico, destaca o bloco que está a correr e mostra o estado
+    async function darPasso(p, lento) {
+      if (p.b) ws.highlightBlock(p.b);
+      if (p.tipo === 'mover') { nico().style.transform = `translate(${p.c * S}px,${p.r * S}px)`; if (F.Som) F.Som.tocar('clique'); estadoEl.textContent = `O Nico está na casa (${p.c + 1}, ${p.r + 1}).`; }
+      else if (p.tipo === 'apanhar') { const it = grelha.querySelector(`.cm-item[data-i="${p.i}"]`); if (it) it.style.opacity = 0.15; if (F.Som) F.Som.tocar('apanhar'); estadoEl.textContent = `Apanhou ${at.itens[p.i][2]} · já tem ${p.n}.`; }
+      else if (p.tipo === 'teste') estadoEl.textContent = `se o número aqui é ${p.txt} → ${p.v ? 'verdadeiro: faz o que está dentro' : 'falso: salta'}`;
+      else if (p.tipo === 'volta') estadoEl.textContent = `repetir: volta ${p.k} de ${p.n}`;
+      else if (p.tipo === 'bater' || p.tipo === 'nada') { const n = nico().querySelector('image'); n.classList.remove('cm-toque'); void n.getBoundingClientRect(); n.classList.add('cm-toque'); if (F.Som) F.Som.tocar('apagar'); }
+      await espera(lento ? ({ mover: 300, apanhar: 250, bater: 450, nada: 450 }[p.tipo] || 120) : 0);
+    }
+    function acabar(r) {
+      ws.highlightBlock(null);
+      let nota = '';
+      if (previsao) {
+        previsoes++;
+        const certo = previsao[0] === r.final[0] && previsao[1] === r.final[1];
+        if (certo) previsoesCertas++;
+        nota = certo ? ' E previste bem onde eu ia parar! 🔮' : ` Tinhas previsto outra casa — o que é que o programa fez de diferente?`;
+        previsao = null; marca.style.display = 'none';
       }
-      aCorrer = false; btnIr.disabled = false;
       if (r.ok) {
-        api.concluir({ ok: true, tentativas, blocos: r.blocos, estrelas: r.estrelas },
-          r.estrelas === 3 ? (at.sucesso || 'Conseguiste! ⭐⭐⭐') : `Conseguiste! ⭐⭐ Com ${at.maxBlocos} blocos ou menos ganhas a 3.ª estrela (usaste ${r.blocos}). Experimenta o «repetir».`);
+        api.concluir({ ok: true, tentativas, blocos: r.blocos, estrelas: r.estrelas, previsoes, previsoesCertas },
+          (r.estrelas === 3 ? (at.sucesso || 'Conseguiste! ⭐⭐⭐') : `Conseguiste! ⭐⭐ Com ${at.maxBlocos} blocos ou menos ganhas a 3.ª estrela (usaste ${r.blocos}). Experimenta o «repetir».`) + nota);
       } else {
         const [est, txt] = explicar(r, at);
-        api.dizer(est, txt);
-        api.msg('Ainda não. Muda o programa e carrega outra vez em ▶ Começar.', 'errado');
+        api.dizer(est, txt + nota);
+        api.msg('Ainda não. Usa 👣 Um passo para ver onde o programa se engana, muda-o e experimenta outra vez.', 'errado');
       }
+    }
+    btnRep.addEventListener('click', () => { if (!aCorrer) repor(); });
+    btnPasso.addEventListener('click', async () => {
+      if (aCorrer) return;
+      if (at.prever && !previsao && !exec && !tentativas) { api.dizer('curiosa', 'Antes de experimentar: onde achas que eu vou parar? Clica numa casa do mapa.'); return; }
+      if (!exec) { const keep = previsao; repor(); previsao = keep; exec = { r: simular(at, ws), i: 1 }; tentativas++; }
+      const p = exec.r.rasto[exec.i++];
+      if (p) await darPasso(p, false);
+      if (exec.i >= exec.r.rasto.length) { const r = exec.r; exec = null; acabar(r); }
     });
-    api.dizer('boas_vindas', at.boasVindas || 'Arrasta os blocos para dentro do «ao começar» e carrega em ▶ Começar. Lembra-te: norte é para cima.');
+    btnIr.addEventListener('click', async () => {
+      if (aCorrer) return;
+      if (at.prever && !previsao && !tentativas) { api.dizer('curiosa', 'Antes de experimentar: onde achas que eu vou parar? Clica numa casa do mapa.'); return; }
+      const keep = previsao; repor(); previsao = keep;
+      const r = simular(at, ws);
+      tentativas++;
+      aCorrer = true; btnIr.disabled = true; btnPasso.disabled = true;
+      for (const p of r.rasto.slice(1)) await darPasso(p, true);
+      aCorrer = false; btnIr.disabled = false; btnPasso.disabled = false;
+      acabar(r);
+    });
+    api.dizer('boas_vindas', at.boasVindas || (at.prever ? 'Primeiro prevê: clica na casa onde achas que eu vou parar. Depois experimenta!' : 'Arrasta os blocos para dentro do «ao começar» e carrega em ▶ Começar. Lembra-te: norte é para cima.'));
     return { fechar: () => { ro.disconnect(); ws.dispose(); }, ws };
   }
   const espera = ms => new Promise(r => setTimeout(r, ms));
+  function svgEl(tag, at) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in at) e.setAttribute(k, at[k]); return e; }
 
   F.PC.caminho = { montar, correr, xml: xmlProg, simular };
 })();

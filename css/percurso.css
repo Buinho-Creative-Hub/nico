@@ -406,3 +406,56 @@ body.percurso { overflow: hidden; }
 .pc-insignia { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; background: #fff; border: 2px solid #ddd; font-size: 15px; color: #9a9a9a; }
 .pc-insignia.ganha { border-color: #ffc850; color: #111; background: #fff8e1; font-weight: 700; }
 .pc-combo { font: 700 16px 'Asap'; color: #d6336c; }
+
+/* ---------------------------------------------------------------- Mostra de Invenções: ponte, detetive, correio */
+.of .pe-pergunta { font-size: 23px; }
+.of-ponte { width: 100%; max-width: 900px; display: block; margin: 0 auto 8px; border: 3px solid #111; border-radius: 10px; background: #fff; }
+.of-peca-posta { cursor: pointer; }
+.of-peca-posta:hover rect, .of-peca-posta:focus rect { stroke: #d6336c; stroke-width: 3; }
+.of-estado { text-align: center; font: 700 19px 'Asap'; margin: 4px 0 10px; min-height: 26px; }
+.of-linha { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+.of-tabuleiro { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 12px; min-height: 64px; border: 2px dashed #b99a6d; border-radius: 8px; background: #fbf3e4; outline: none; }
+.of-tabuleiro:focus { border-color: var(--azul); }
+.of-peca { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 8px; border: 2px solid #111; border-radius: 5px; font: 700 18px 'Asap';
+  background: repeating-linear-gradient(90deg, #c88a3d 0 10px, #bd7f33 10px 12px); color: #111; cursor: grab; user-select: none; touch-action: none; }
+.of-peca.sel { box-shadow: 0 0 0 4px var(--sol); }
+.of-peca.a-arrastar { cursor: grabbing; z-index: 50; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+.of-detetive .pd-texto { flex-basis: 50%; }
+.of-manual h2 { margin: 0 0 6px; font-size: 24px; }
+.of-manual h3 { margin: 18px 0 4px; font-size: 18px; color: var(--azul-escuro); }
+.of-frase { font-size: 18px; line-height: 1.7; cursor: pointer; border-radius: 3px; padding: 1px 2px; }
+.of-frase:hover, .of-frase:focus { background: #fff1c2; outline: none; }
+.of-frase.pista { background: #c8efdc; box-shadow: inset 0 -3px 0 var(--certo); }
+.of-frase.nao { background: #fdd; }
+.of-pedido { padding: 12px 14px; background: #fff6dc; border-left: 5px solid var(--sol); font-size: 18px; line-height: 1.45; margin-bottom: 12px; }
+.of-fases { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+.of-fases span { padding: 5px 12px; border-radius: 16px; background: #eee; font: 700 14px 'Asap'; color: #777; }
+.of-fases span.atual { background: var(--sol); color: #111; }
+.of-fases span.feita { background: #c8efdc; color: var(--certo); }
+.of-caderno { font-size: 16px; line-height: 1.5; padding-left: 22px; min-height: 30px; }
+.of-explica { width: 100%; min-height: 120px; padding: 12px 14px; border: 2px solid #8a8a8a; border-radius: 6px; font: 400 20px/1.5 'Asap', sans-serif; margin: 8px 0; }
+.of-explica:focus { outline: 3px solid var(--azul); border-color: var(--azul); }
+.of-repara { font-size: 64px; text-align: center; margin: 6px 0; }
+.of-roda { display: inline-block; animation: of-roda 1.2s linear infinite; }
+@keyframes of-roda { to { transform: rotate(360deg); } }
+.of-carta-caixa { position: relative; margin: 0 0 14px; padding: 16px 20px; border: 2px solid #c9b48f; border-radius: 6px; background: #fffaf0; box-shadow: 0 3px 0 #e5d6b8; transition: transform 800ms ease-in, opacity 800ms; }
+.of-carta-caixa.enviada { transform: translate(260px, -40px) rotate(8deg) scale(.6); opacity: .25; }
+.of-carta-topo { display: flex; gap: 12px; align-items: center; border-bottom: 1px dashed #c9b48f; padding-bottom: 8px; margin-bottom: 8px; }
+.of-carta-topo small { display: block; color: var(--cinza); }
+.of-selo { font-size: 30px; }
+.of-manuscrito { font: italic 400 21px/1.5 'Asap', serif; margin: 0; }
+.of-manuscrito.riscado { color: #8a6d3b; }
+.of-ajuda { display: inline-flex; gap: 6px; align-items: center; font-size: 15px; color: var(--cinza); margin-top: 6px; }
+.of-resposta { padding: 14px 16px; border-radius: 8px; background: #e7f6ef; border: 2px solid var(--certo); font-size: 18px; }
+.of-resposta p { margin: 6px 0 0; }
+.cm-estado { min-height: 26px; font: 700 16px 'Asap'; color: var(--azul-escuro); }
+.cm-grelha svg { cursor: default; }
+
+/* oficina do Nico (decoração comprada com bolotas — só cosmético) */
+.pc-oficina { max-width: 1000px; margin: 0 auto; padding: 24px; }
+.pc-oficina svg { width: 100%; display: block; border: 3px solid #111; border-radius: 10px; }
+.pc-loja { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 14px; }
+.pc-loja button { padding: 12px; border: 2px solid #111; border-radius: 8px; background: #fff; font: 700 16px 'Asap'; cursor: pointer; text-align: left; }
+.pc-loja button[disabled] { opacity: .5; cursor: not-allowed; }
+.pc-loja button.tem { background: #e7f6ef; border-color: var(--certo); }
+.pc-loja small { display: block; font-weight: 400; color: var(--cinza); }

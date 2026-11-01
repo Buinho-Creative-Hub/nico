@@ -75,7 +75,7 @@
     cv.style.width = '100%'; cv.style.maxWidth = W + 'px'; cv.style.display = 'block'; cv.style.margin = '0 auto'; cv.style.borderRadius = '10px'; cv.style.border = '3px solid #111'; cv.style.outline = 'none';
     const ctx = cv.getContext('2d');
     const placar = h('div', { class: 'jg-placar' });
-    const info = () => { placar.innerHTML = ''; placar.append(h('span', { class: 'jg-vidas' }, '❤'.repeat(vidas) + '♡'.repeat(3 - vidas)), h('span', null, `Certas: ${apanhadas} de ${precisa}`)); };
+    const info = () => { placar.innerHTML = ''; placar.append(h('span', null, `Certas: ${apanhadas} de ${precisa}`), h('span', { class: 'pe-instr' }, falhas ? `Tropeções: ${falhas}` : '')); };
     // botões no ecrã (rato / ecrã tátil)
     const botao = (txt, k) => {
       const b = h('button', { type: 'button', class: 'btn btn-texto jg-tecla' }, txt);
@@ -112,13 +112,13 @@
       }
       // fichas
       for (const f of fichas) {
-        if (f.apanhada) continue;
+        if (f.apanhada || (!f.certo && tropeco > 0)) continue;
         if (Math.abs(p.x + PW / 2 - f.x) < 40 && Math.abs(p.y + PH / 2 - f.y) < 50) {
           f.apanhada = true;
           if (f.certo) { apanhadas++; som('apanhar'); api.dizer('celebrar', `${f.v}! Certo!`); }
           else {
-            vidas--; falhas++; tropeco = 0.6; som('apagar');
-            if (vidas <= 0) { reiniciar(`Ups, acabaram-se os corações. O ${f.v} não era para apanhar. ${at.porque || ''} Vamos outra vez!`); return; }
+            // tropeçar não tira o que já se aprendeu: o erro fica registado e a ficha volta ao sítio
+            falhas++; tropeco = 0.6; som('apagar'); f.apanhada = false; p.vx = -260 * p.dir; p.vy = -380; p.chao = false;
             api.dizer('surpreendida', `Tropecei no ${f.v}… esse não era! ${at.porque || ''}`);
           }
           info();
@@ -128,7 +128,7 @@
       if (p.x + PW > BANDEIRA && !fim) {
         if (apanhadas >= precisa) {
           fim = true; som('sucesso');
-          api.concluir({ ok: true, vidas, tempo: seg(t0), falhas }, vidas === 3 ? 'Perfeito: sem tropeçar! 🏁' : 'Chegaste à bandeira! 🏁');
+          api.concluir({ ok: true, tempo: seg(t0), falhas }, falhas === 0 ? 'Perfeito: sem tropeçar! 🏁' : 'Chegaste à bandeira! 🏁');
         } else if (performance.now() - ultimoAviso > 2500) {
           ultimoAviso = performance.now();
           api.dizer('a_pensar', `Ainda faltam ${precisa - apanhadas} ${precisa - apanhadas === 1 ? 'ficha certa' : 'fichas certas'}. Volta atrás e procura!`);
@@ -366,20 +366,21 @@
     const placar = h('div', { class: 'jg-placar' });
     el.append(h('div', { class: 'pc-enunciado jg' }, h('p', { class: 'pe-pergunta' }, at.pergunta),
       h('p', { class: 'pe-instr' }, 'Mexe o rato para a esquerda e para a direita (ou usa as setas) e apanha só as certas.'), placar, zona));
-    const meta = at.meta || at.certos.length;
+    const meta = at.certos.length;
+    const certasVistas = new Set();
     let fila, caem, vidas, apanhados, cx = 0.5, t0 = performance.now(), fim = false, falhas = 0, proximo = 0;
     const W = () => zona.clientWidth || 900, H = () => zona.clientHeight || 460;
     function reiniciar() {
       fila = baralhar([...at.certos.map(t => [t, true]), ...at.errados.map(t => [t, false])], (at.id || 'ap') + Math.random());
       (caem || []).forEach(c => c.el.remove()); caem = []; vidas = 3; apanhados = 0; info();
     }
-    const info = () => { placar.innerHTML = ''; placar.append(h('span', { class: 'jg-vidas' }, '❤'.repeat(vidas) + '♡'.repeat(3 - vidas)), h('span', null, `Apanhadas: ${apanhados} de ${meta}`)); };
+    const info = () => { placar.innerHTML = ''; placar.append(h('span', null, `Palavras certas: ${apanhados} de ${meta}`), h('span', { class: 'pe-instr' }, falhas ? `Enganos: ${falhas}` : '')); };
     zona.addEventListener('pointermove', ev => { const r = zona.getBoundingClientRect(); cx = Math.max(0.06, Math.min(0.94, (ev.clientX - r.left) / r.width)); });
     const kd = ev => { if (ev.key === 'ArrowLeft') { cx = Math.max(0.06, cx - 0.05); ev.preventDefault(); } if (ev.key === 'ArrowRight') { cx = Math.min(0.94, cx + 0.05); ev.preventDefault(); } };
     window.addEventListener('keydown', kd);
     reiniciar();
     function largar() {
-      if (!fila.length) fila = baralhar([...at.certos.filter(t => true).map(t => [t, true]), ...at.errados.map(t => [t, false])], 'x' + Math.random());
+      if (!fila.length) fila = baralhar([...at.certos.filter(t => !certasVistas.has(t)).map(t => [t, true]), ...at.errados.map(t => [t, false])], 'x' + Math.random());
       const [t, certo] = fila.shift();
       const e = h('div', { class: 'jg-cai' }, t);
       zona.append(e);
@@ -398,12 +399,16 @@
           c.el.style.left = (c.x * w - 60) + 'px'; c.el.style.top = c.y + 'px';
           if (c.y > hh - 120 && c.y < hh - 70 && Math.abs(c.x * w - bx) < 80) {
             c.el.remove(); caem.splice(caem.indexOf(c), 1);
-            if (c.certo) { apanhados++; som('apanhar'); api.dizer('celebrar', `${c.t}! Isso!`); if (apanhados >= meta) { fim = true; api.concluir({ ok: true, vidas, tempo: seg(t0), falhas }); } }
-            else { vidas--; falhas++; som('apagar'); api.dizer('surpreendida', `«${c.t}» não! ${at.porque || ''}`); if (vidas <= 0) { api.dizer('calma', 'Acabaram-se os corações. Vamos outra vez, com calma!'); reiniciar(); } }
+            if (c.certo) {
+              // conta cada palavra certa uma só vez: no fim têm de estar todas as diferentes
+              if (!certasVistas.has(c.t)) { certasVistas.add(c.t); apanhados++; }
+              som('apanhar'); api.dizer('celebrar', `${c.t}! Isso!`);
+              if (apanhados >= meta) { fim = true; api.concluir({ ok: true, tempo: seg(t0), falhas }); }
+            } else { falhas++; som('apagar'); api.dizer('surpreendida', `«${c.t}» não! ${at.porque || ''}`); }
             info();
           } else if (c.y > hh) {
             c.el.remove(); caem.splice(caem.indexOf(c), 1);
-            if (c.certo) fila.push([c.t, true]);        // as certas voltam a cair
+            if (c.certo && !certasVistas.has(c.t)) fila.push([c.t, true]);        // as certas que faltam voltam a cair
           }
         }
       }
@@ -456,9 +461,11 @@
     const zona = h('div', { class: 'rt-zona jg-baloes' });
     const inp = h('input', { class: 'tc-entrada', type: 'text', autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', 'aria-label': 'Escreve a palavra do balão' });
     const placar = h('div', { class: 'jg-placar' });
-    el.append(h('div', { class: 'pc-enunciado jg' }, h('p', { class: 'pe-pergunta' }, at.pergunta || 'Escreve a palavra de um balão para o rebentar!'), placar, zona, inp));
+    const bPausa = h('button', { type: 'button', class: 'btn btn-texto' }, '⏸ Pausa');
+    bPausa.addEventListener('click', () => { pausa = !pausa; bPausa.textContent = pausa ? '▶ Continuar' : '⏸ Pausa'; inp.focus(); });
+    el.append(h('div', { class: 'pc-enunciado jg' }, h('p', { class: 'pe-pergunta' }, at.pergunta || 'Escreve a palavra de um balão para o rebentar!'), placar, zona, h('div', { style: 'display:flex;gap:10px;margin-top:10px' }, inp, bPausa)));
     const CORES = ['#ff5050', '#2364ff', '#0e9f6e', '#ffc850', '#d6336c', '#7b2fd1'];
-    let fila = at.palavras.slice(), sobem = [], feitos = 0, erros = 0, proximo = 0; const t0 = performance.now(), total = at.palavras.length;
+    let fila = at.palavras.slice(), sobem = [], feitos = 0, erros = 0, proximo = 0, emErro = false, pausa = false; const t0 = performance.now(), total = at.palavras.length;
     const info = () => { placar.innerHTML = ''; placar.append(h('span', null, `Rebentados: ${feitos} de ${total}`)); };
     info();
     inp.addEventListener('paste', ev => ev.preventDefault());
@@ -469,21 +476,26 @@
         b.el.classList.add('pum'); setTimeout(() => b.el.remove(), 300); sobem.splice(sobem.indexOf(b), 1);
         feitos++; som('apanhar'); inp.value = ''; info();
         if (feitos >= total) { vivo = false; api.concluir({ ok: true, tempo: seg(t0), falhas: erros }, 'Rebentaste todos os balões! 🎈'); }
-      } else if (v && !sobem.some(s => s.t.startsWith(v))) { erros++; inp.classList.add('erro'); setTimeout(() => inp.classList.remove('erro'), 250); }
+      } else if (v && !sobem.some(s => s.t.startsWith(v))) {
+        // um engano conta uma vez por palavra (até a criança apagar e recomeçar)
+        if (!emErro) { erros++; emErro = true; }
+        inp.classList.add('erro');
+      } else { emErro = false; inp.classList.remove('erro'); }
     });
     let ult = performance.now(), raf = 0, vivo = true;
     const ciclo = now => {
       if (!vivo) return;
       const dt = Math.min(0.05, (now - ult) / 1000); ult = now;
       const hh = zona.clientHeight || 460, w = zona.clientWidth || 900;
-      if (now > proximo && sobem.length < 3 && fila.length) {
+      const maxBaloes = feitos < 2 ? 1 : 2;      // começa com um balão de cada vez
+      if (!pausa && now > proximo && sobem.length < maxBaloes && fila.length) {
         const t = fila.shift();
         const e = h('div', { class: 'jg-balao' }, t); e.style.background = CORES[(total - fila.length) % CORES.length];
-        zona.append(e); sobem.push({ el: e, t, x: 0.1 + Math.random() * 0.7, y: hh, v: (at.velocidade || 38) + Math.random() * 12 });
+        zona.append(e); sobem.push({ el: e, t, x: 0.1 + Math.random() * 0.7, y: hh, v: (at.velocidade || 30) + Math.random() * 8 });
         proximo = now + 2600;
       }
       for (const s of sobem.slice()) {
-        s.y -= s.v * dt; s.el.style.left = (s.x * w) + 'px'; s.el.style.top = s.y + 'px';
+        if (!pausa) s.y -= s.v * dt; s.el.style.left = (s.x * w) + 'px'; s.el.style.top = s.y + 'px';
         if (s.y < -90) { s.el.remove(); sobem.splice(sobem.indexOf(s), 1); fila.push(s.t); }   // fugiu: volta a aparecer
       }
       raf = requestAnimationFrame(ciclo);

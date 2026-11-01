@@ -67,6 +67,39 @@ imita o tipo de tarefas e os gestos.
   (`buinho-os/handoffs/2026-11-01_pacheco_ambrosio_percurso-4ano-ilustracao.md`) e entram sozinhas quando existirem
   em `img/percurso/` (`F.PC.ARTE`).
 
+## 2.2 Mostra de Invenções — a revisão do Ambrósio (1 Nov 2026, PR buinho-os #67; Carlos: «prefiro a opção dele, avança»)
+
+Direção escolhida: **A · Livro ilustrado** como base, com a clareza das peças de **B** e o mapa com escolhas de **C**.
+Narrativa: o Nico prepara uma **Mostra de Invenções** com a turma; cada missão muda o mundo do Nico.
+
+**Fatia vertical já jogável — «Missão 1 · A ponte da ribeira»** (`m1`, primeiro cartão do percurso):
+- **Pontes de cortiça** (`tipo: 'ponte'`, `js/percurso/oficina.js`): arrastar (ou setas + Enter) peças com frações ou
+  comprimentos até a ponte ter a medida do vão. O Nico experimenta: «ainda falta um quarto», «passa do vão». Não há
+  quedas. Pode haver restrição de peças, e várias soluções são aceites. A ponte fica no mapa (`transforma: 'ponte'`).
+  Depois vem uma pergunta de transferência sem ponte.
+- **Detetive da oficina** (`tipo: 'detetive'`): manual com secções para rolar, marcar as pistas (com explicação
+  quando a pista não serve), ordenar a reparação, ver a reparação e escrever o relatório para o professor ler.
+- **Correio do Nico** (`tipo: 'correio'`): copiar (com ajuda de teclado opcional), corrigir um rascunho (diz quantas
+  palavras faltam), escrever uma mensagem própria e enviar. O destinatário responde.
+- **Caminho melhorado**: `prever: true` pede para marcar no mapa onde o Nico vai parar; **👣 Um passo** executa bloco
+  a bloco, com o bloco ativo destacado e o estado visível («se o número aqui é par → falso: salta», «repetir: volta
+  2 de 6»).
+- Momento-prova curto no fim.
+
+**Correções pedidas na revisão (feitas):**
+- registos com `estado` autónomo / apoio / mostrada;
+- plataforma sem perder progresso nem corações;
+- apanhar só termina com todas as palavras certas diferentes;
+- balões: um engano por palavra, um balão de cada vez no início, pausa e velocidade mais baixa;
+- teclado: precisão por inserção (`insertText`/`compositionend`, NFC) e caracteres corretos por minuto;
+- bolotas fixas pela 1.ª conclusão (também com apoio), sem bónus de sequência. Só servem para decorar a
+  **oficina do Nico** (vaso, bandeirolas, quadro, rádio, bicicleta, impressora 3D) e nunca compram pistas.
+
+**Por fazer (próximos passos da revisão):** pacote de ilustração final (Entrega 4 do Ambrósio); passar as sessões
+1–6 para missões do mesmo tipo; M4 Horta programável, M5 Ateliê de mosaicos, M6 Mapa das entregas, M7 Histórias que
+respondem, M8 Bancada das gambiarras; painel do professor com as 4 dimensões (Matemática, Português, pensamento
+computacional, operação digital); testar num PC fraco da escola.
+
 ## 3. A sessão na sala (60 min)
 
 1. **5 min** — o professor projeta o tema e a mascote diz o objetivo. Os alunos entram na turma (código + nome +

@@ -53,6 +53,71 @@
 
   // ================================================================================================= SESSÕES
   const sessoes = [
+    // -------------------------------------------------------------------------------------------- Missão-piloto (revisão do Ambrósio)
+    // A Mostra de Invenções: a ribeira levou a ponte do caminho para a horta. Construir, investigar, escrever e programar
+    // são momentos da mesma missão; a ponte construída fica no mapa.
+    {
+      id: 'm1', rotulo: 'Missão 1', insignia: 'Construtor de pontes', titulo: 'A ponte da ribeira',
+      resumo: 'A ribeira levou a ponte: constrói-a com frações, descobre porque a rega falhou, escreve à Dona Aurora e programa a rega.',
+      estacoes: [
+        { area: 'maos', titulo: 'Aquecer as mãos', atividades: [
+          { id: 'm1-r1', tipo: 'alvos', titulo: 'Recolher a cortiça', pergunta: 'Recolhe 8 pedaços de cortiça para a ponte (clica em cada um).', n: 8, tamanho: [110, 70],
+            boasVindas: 'Aquecimento rápido: precisamos de cortiça para a ponte! Clica com calma, não há pressa.',
+            pistas: ['Leva a setinha até ao pedaço de cortiça.', 'Um clique com o botão da esquerda.', 'Não há tempo-limite: devagar também conta.'] },
+        ] },
+        { area: 'prog', titulo: 'Programar', atividades: [
+          { id: 'm1-p1', tipo: 'caminho', prever: true, titulo: 'Onde vai parar?', missao: 'O Nico tem de levar a cortiça até à ribeira. Primeiro prevê onde o programa o deixa; depois corrige-o.',
+            cols: 6, rows: 4, inicio: [0, 3], meta: [5, 0], nomeMeta: 'Ribeira', obst: [[2, 2, 'arvore'], [4, 2, 'arvore'], [5, 2, 'pedra']],
+            inicial: [['N', 2], ['E', 3]], blocos: ['andarN', 'andarS', 'andarE', 'andarO'], maxBlocos: 2, solucao: [['N', 3], ['E', 5]],
+            pistas: ['Segue o programa com o dedo: 2 casas para norte, depois 3 para este. Onde fica?', 'A ribeira está na fila de cima, na última coluna.', 'Muda os números: norte 3 e este 5.'] },
+          { id: 'm1-p2', tipo: 'caminho', titulo: 'A rega dos canteiros', missao: 'O programa rega todos os canteiros, mas só os de número par estão secos. Usa 👣 Um passo para ver o que acontece e corrige-o.',
+            porque: 'Só os canteiros com número par estão secos.',
+            cols: 7, rows: 2, inicio: [0, 0], meta: null, fundo: '#d9c49a',
+            itens: [[1, 0, '6'], [2, 0, '9', false], [3, 0, '4'], [4, 0, '7', false], [5, 0, '10'], [6, 0, '3', false]],
+            inicial: [['rep', 6, [['E', 1], ['ap']]]], blocos: ['andarE', 'apanhar', 'repetir', 'se', 'aqui'], maxBlocos: 5,
+            solucao: [['rep', 6, [['E', 1], ['se', 'par', [['ap']]]]]],
+            boasVindas: 'Aqui «apanhar» é regar. Carrega em 👣 Um passo várias vezes: vês o bloco que está a correr a acender.',
+            pistas: ['Vai passo a passo: em que canteiro é que eu rego sem dever?', 'Antes de regar, o Nico tem de perguntar se o número é par.', 'Dentro do repetir: andar 1 → se «o número aqui é par» então regar.'] },
+        ] },
+        { area: 'mat', titulo: 'Construir a ponte', atividades: [
+          { id: 'm1-pt1', tipo: 'ponte', transforma: 'ponte', titulo: 'Pontes de cortiça · 1', pergunta: 'A ponte tem de medir 1 inteiro. Junta peças de cortiça até tapar o vão.',
+            alvo: '1', pecas: ['1/2', '1/4', '1/3', '1/4', '1/8'],
+            pistas: ['Começa pela peça maior. Quanto falta depois?', 'Meio mais um quarto ainda não chega: falta outro quarto.', '1/2 + 1/4 + 1/4 = 1.'] },
+          { id: 'm1-pt2', tipo: 'ponte', titulo: 'Pontes de cortiça · 2', pergunta: 'Outra ponte de 1 inteiro, mas agora com exatamente 3 peças.', alvo: '1', restricao: { pecas: 3 },
+            pecas: ['1/2', '1/3', '3/4', '1/6', '1/4', '1/4'],
+            pistas: ['Há mais do que uma maneira de fazer 1 com 3 peças.', 'Um terço e um sexto juntos fazem metade.', '1/2 + 1/3 + 1/6 = 1, ou 1/2 + 1/4 + 1/4 = 1.'] },
+          { id: 'm1-pt3', tipo: 'ponte', titulo: 'Pontes de cortiça · 3', pergunta: 'A ponte grande mede 1,5 m. Constrói-a com 3 peças.', alvo: '1,5', unidade: 'm', restricao: { pecas: 3 },
+            pecas: ['1', '0,75', '0,5', '0,25', '0,2'],
+            pistas: ['1,5 m é um metro e meio.', 'Experimenta com 0,75: quanto falta para 1,5?', '0,75 + 0,5 + 0,25 = 1,5.'] },
+          { id: 'm1-tr1', tipo: 'escolha', titulo: 'E sem a ponte?', pergunta: 'A primeira ponte tinha 1/2 + 1/4 + 1/4. Que parte da ponte fazem as duas peças de 1/4 juntas?',
+            opcoes: ['1/4', '2/4, ou seja, metade', '1/8', '2/8'], certa: 1, explica: '1/4 + 1/4 = 2/4, que é o mesmo que 1/2: metade da ponte.',
+            pistas: ['Junta os dois quartos: quantos quartos são?', 'Dois quartos de uma coisa são metade dela.'] },
+        ] },
+        { area: 'port', titulo: 'Investigar e escrever', atividades: [
+          { id: 'm1-d1', tipo: 'detetive', titulo: 'Detetive da oficina', pedido: 'A Dona Aurora diz que a água da rega deixou de chegar ao canteiro 3 da horta da escola. Os outros canteiros estão bem regados. Porquê?',
+            manual: { titulo: 'Manual da rega da horta', seccoes: [
+              { titulo: 'Como funciona', frases: ['A água sai do depósito e passa pela mangueira principal.', 'Da mangueira principal saem tubos finos, um para cada canteiro.', 'Cada canteiro tem a sua torneira pequena.'] },
+              { titulo: 'Avarias frequentes', frases: ['Se nenhum canteiro recebe água, o depósito pode estar vazio.', 'Quando um tubo está esmagado ou dobrado, a água deixa de passar para a frente.', 'Uma torneira fechada também impede a rega, mas só desse canteiro.'] },
+              { titulo: 'Registo da semana', frases: ['Segunda-feira: depósito cheio e torneiras abertas.', 'Terça-feira: o trator da junta passou por cima do tubo do canteiro 3.', 'Quarta-feira: as couves do canteiro 1 cresceram muito.'] },
+            ] },
+            pistas: ['2.2', '3.2'], ajudas: ['O problema é só no canteiro 3. Procura frases que falem só de um canteiro.', 'Há uma frase sobre tubos esmagados nas avarias frequentes.', 'E no registo da semana, o que aconteceu na terça-feira?'], porquePistas: { '2.2': 'Isso! Um tubo esmagado não deixa a água passar.', '3.2': 'Boa! O trator esmagou o tubo do canteiro 3.' },
+            dicaPista: 'Essa frase é verdade, mas explica porque é que SÓ o canteiro 3 ficou sem água?',
+            passos: ['Fechar a torneira do depósito.', 'Encontrar o tubo esmagado do canteiro 3.', 'Cortar o bocado estragado e pôr uma peça nova.', 'Abrir a torneira e ver se a água chega ao canteiro 3.'],
+            animacao: '<span class="of-roda">💧</span> 🥬',
+            explicar: 'Escreve no relatório o que estava avariado e como o descobriste.',
+            boasVindas: 'Temos um caso! Lê o manual à esquerda — rola até ao fim — e encontra as duas frases que explicam a avaria.' },
+          { id: 'm1-c1', tipo: 'correio', titulo: 'Correio do Nico', para: 'a Dona Aurora, da horta',
+            copia: 'A rega do canteiro 3 já está reparada.',
+            rascunho: 'amanha vamos a horta ver as couves', certo: ['Amanhã vamos à horta ver as couves.', 'Amanhã vamos à horta ver as couves!'],
+            dicaEdicao: 'Falta: maiúscula no início, o til de «amanhã», o acento de «à» e um ponto final.',
+            propria: { pergunta: 'Agora escreve tu à Dona Aurora: convida-a para a Mostra de Invenções do Nico. Diz o dia e o que vai haver.', min: 15, palavrasChave: ['Mostra'] },
+            resposta: 'Que boa notícia, Nico! As couves agradecem. Lá estarei na Mostra, com um cesto de laranjas para todos. — Aurora',
+            pistas: ['Lê cada mensagem antes de escrever.', 'Os acentos escrevem-se antes da letra: ~ e depois a dá «ã».', 'Uma mensagem começa com maiúscula e acaba com ponto final.'] },
+          { id: 'm1-q1', tipo: 'curta', titulo: 'Momento-prova', pergunta: 'Na frase «O trator passou por cima do tubo», qual é a forma verbal?', aceitar: ['passou'], largura: '200px',
+            explica: '«Passou» é a forma verbal (do verbo passar, no pretérito perfeito).', pistas: ['A forma verbal diz o que aconteceu.', 'O que fez o trator?'] },
+        ] },
+      ],
+    },
     // -------------------------------------------------------------------------------------------- 1
     {
       id: 's1', insignia: 'Orientador de Messejana', titulo: 'Norte, sul, este e oeste', resumo: 'Orientar-se pelo Sol e pela rosa dos ventos · números grandes · nomes próprios.',
@@ -556,8 +621,8 @@
   // ================================================================================================= MISSÃO
   const X = {
     id: 'percurso-4', chave: 'nico.percurso4.v1', pagina: 'percurso.html',
-    titulo: 'Percurso 4.º ano', tema: 'Rumo à prova no computador', cor: '#0e9f6e',
-    descricao: 'Rato e teclado, programar, Matemática e Português — sessão a sessão, com prova-ensaio no fim.',
+    titulo: 'Percurso 4.º ano', tema: 'A Mostra de Invenções do Nico', cor: '#0e9f6e',
+    descricao: 'Construir pontes, investigar avarias, escrever cartas e programar — e chegar à prova no computador a dominar o rato e o teclado.',
     boasVindas: { nico: 'Olá! Este é o nosso percurso do 4.º ano. Em cada sessão treinamos as mãos, programamos e resolvemos desafios de Matemática e Português. Escolhe uma sessão!',
       _: 'Olá! Este é o percurso do 4.º ano. Em cada sessão treinamos as mãos, programamos e resolvemos desafios de Matemática e Português. Escolhe uma sessão!' },
     sessoes, prova,
