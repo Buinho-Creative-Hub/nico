@@ -138,15 +138,15 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   const fecharJanela = async () => { if (await pg.locator('#janela:not([hidden])').count()) await pg.click('#janelaBotoes .btn:last-child'); };
   const seguinte = async () => { await pg.click('#btnSeguinte'); await pg.waitForTimeout(80); await fecharJanela(); };
   const P = () => pg.evaluate(() => JSON.parse(JSON.stringify(window.Faisca.PC.app.progresso())));
-  ok(await pg.locator('.pc-sessao').count() === 14 && await pg.locator('.pc-cap').count() === 4 && await pg.locator('.pc-mapa-arte .ma-no').count() === 8, '4 capítulos · 11 missões + 2 provas-ensaio + loja na lista; 8 destinos no mapa');
+  ok(await pg.locator('.pc-sessao').count() === 14 && await pg.locator('.pc-cap').count() === 4 && await pg.locator('.pc-mapa-arte .ma-no').count() === 12, '4 capítulos · 11 missões + 2 provas-ensaio + loja na lista; 12 destinos no mapa do concelho');
   const caixaMapa = await pg.locator('.pc-mapa-arte').boundingBox();
   const nos = await pg.$$eval('.pc-mapa-arte .ma-no', l => l.map(b => { const r = b.getBoundingClientRect(); return [b.getAttribute('aria-label'), r.left, r.right, r.top, r.bottom]; }));
   const cortados = nos.filter(([, l, r, t, b]) => l < caixaMapa.x || r > caixaMapa.x + caixaMapa.width || t < caixaMapa.y);
   ok(!cortados.length, 'nenhum botão do mapa sai da imagem' + (cortados.length ? ': ' + cortados.map(x => x[0]).join(', ') : ''));
   const agua = nos.find(n => /A água da horta/.test(n[0])), pat = nos.find(n => /O painel do castelo/.test(n[0]));
-  ok(agua && Math.abs((agua[1] + 25 - caixaMapa.x) / caixaMapa.width - 585 / 1536) < 0.02 && pat && Math.abs((pat[1] + 25 - caixaMapa.x) / caixaMapa.width - 180 / 1536) < 0.02,
-    'Observatório da Água em (585,650) e Património em (180,70)');
-  ok(await pg.locator('.pc-mapa-arte .ma-camada[src*="mapa-observatorio-agua"]').count() === 1, 'camada do Observatório da Água no mapa sem ponte');
+  ok(agua && Math.abs((agua[1] + 25 - caixaMapa.x) / caixaMapa.width - 1390 / 1536) < 0.02 && pat && Math.abs((pat[1] + 25 - caixaMapa.x) / caixaMapa.width - 905 / 1536) < 0.02,
+    'Barragem do Roxo em x=1390 e castelo de Aljustrel em x=905 (pontos do manifesto do Ambrósio)');
+  ok((await pg.getAttribute('.pc-mapa-arte > img.ma-fundo', 'src')).includes('mapa-concelho') && await pg.locator('.pc-mapa-arte .ma-nico[src*="bicicleta"]').count() === 1, 'fundo: mapa do concelho; o Nico de bicicleta-oficina no destino atual');
   await foto('01-mapa');
 
   // ------------------------------------------------------------ 3. Missão 2 (sessão 1) de ponta a ponta pela interface
@@ -374,8 +374,8 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   ok((await pg.textContent('#janelaTexto')).includes('Construtor de pontes'), 'missão 1 completa: insígnia');
   await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('.pc-mapa-arte');
-  ok((await pg.getAttribute('.pc-mapa-arte > img.ma-fundo', 'src')).includes('mapa-com-ponte') && await pg.locator('.pc-mapa-arte .ma-camada[src*="mapa-observatorio-agua"]').count() === 1,
-    'mapa com ponte: a camada do Observatório da Água continua no mesmo sítio');
+  ok(await pg.locator('.pc-mapa-arte .ma-marca', { hasText: 'Ponte' }).count() === 1 && await pg.locator('.pc-mapa-arte .ma-ins').count() === 1,
+    'mapa: a marca «Ponte ✓» e a insígnia aparecem na ribeira');
   await foto('m1-mapa-com-ponte');
 
   // ------------------------------------------------------------ 5. Horta programável (M4) só com teclado
@@ -652,6 +652,25 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     return out;
   });
   pur.forEach(([m, c]) => ok(c, m));
+  // arte do pacote «Mapa de Cobre» (PR #79): todas as imagens referidas existem e carregam
+  const arte = await pg.evaluate(async () => {
+    const F = window.Faisca, X = F.MISSOES['percurso-4'], nomes = new Set(['moeda-cobre', 'estacao-meio', 'bilhete', 'mapa-concelho', 'nico-bicicleta-oficina', 'mapa-cobre-completo', 'estacao-arcada']);
+    X.capitulos.forEach(c => nomes.add('cenario-' + c.cenario));
+    X.sessoes.forEach(s => s.estacoes.forEach(e => e.atividades.forEach(a => {
+      if (a.personagem) nomes.add(a.personagem);
+      if (a.tipo === 'triagem') a.itens.forEach(i => i[2] && nomes.add(i[2]));
+      (a.materiais || []).forEach(m => m[2] && nomes.add(m[2]));
+      (a.camadas || []).forEach(c => c.img && nomes.add(c.img));
+      Object.values(a.destinosImg || {}).forEach(n => nomes.add(n));
+      if (a.tipo === 'feira') a.rondas.forEach(r => r.img && nomes.add(r.img));
+    })));
+    ['n', 'e', 's', 'o'].forEach(d => nomes.add('nico-tartaruga-' + d));
+    for (let i = 1; i <= 8; i++) nomes.add('entrevistado-0' + i);
+    const falham = [];
+    await Promise.all([...nomes].map(n => new Promise(r => { const i = new Image(); i.onload = () => r(); i.onerror = () => { falham.push(n); r(); }; i.src = `img/percurso/${n}.webp`; })));
+    return { n: nomes.size, falham };
+  });
+  ok(!arte.falham.length, `arte do Ambrósio: ${arte.n} imagens referidas carregam` + (arte.falham.length ? ' — faltam: ' + arte.falham.join(', ') : ''));
 
   // capítulos fechados e bilhetes (progresso novo)
   const ctx4 = await br.newContext({ viewport: { width: 1366, height: 768 } }); const p4 = await ctx4.newPage();

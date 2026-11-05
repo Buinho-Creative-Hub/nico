@@ -20,6 +20,7 @@
   const som = n => { if (F.Som) F.Som.tocar(n); };
   const seg = t0 => Math.round((performance.now() - t0) / 100) / 10;
   const reg = (n, fn) => F.PC.oficina.registar(n, fn);
+  const img = (n, cls, alt) => h('img', { src: `img/percurso/${n}.webp`, alt: alt || '', class: cls || '' });   // arte do Ambrósio (pacote Mapa de Cobre, PR #79)
   const NS = 'http://www.w3.org/2000/svg';
   const sv = (tag, at, ...f) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); f.forEach(x => e.append(x.nodeType ? x : document.createTextNode(x))); return e; };
 
@@ -28,13 +29,15 @@
   const euros = c => (c / 100).toFixed(2).replace('.', ',') + ' €';
   const MOEDAS = [500, 200, 100, 50, 20, 10, 5, 2, 1];
   const nomeMoeda = c => c >= 100 ? (c / 100) + ' €' : c + ' c';
+  const PRODUTO_IMG = { 'Pão': 'feira-pao', 'Queijo fresco': 'feira-queijo-fresco', 'Azeitonas': 'feira-azeitonas', 'Mel': 'feira-mel', 'Laranjas': 'feira-laranjas' };
 
   reg('feira', (el, at, api) => {
     const R = F.PC.relogioDe(api), t0 = performance.now();
     let r = 0, tent = 0, erros = 0, mostradas = 0, tabuleiro = [], escolha = new Set();
     const conta = h('div', { class: 'li-frase-num' }), enun = h('p', { class: 'pe-pergunta' }), corpo = h('div', { class: 'te-feira' });
     const bVer = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Verificar');
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-instr' }, at.pergunta || 'Feira de Ervidel: ajuda o Nico na banca.'), conta, enun, corpo, h('div', { class: 'li-botoes' }, bVer)));
+    const cliente = h('div', { class: 'te-cliente' });
+    el.append(h('div', { class: 'pc-enunciado of' }, h('div', { class: 'te-banca' }, img('feira-banca', 'te-banca-img'), cliente), h('p', { class: 'pe-instr' }, at.pergunta || 'Feira de Ervidel: ajuda o Nico na banca.'), conta, enun, corpo, h('div', { class: 'li-botoes' }, bVer)));
     const soma = () => tabuleiro.reduce((t, c) => t + c, 0);
     function carteira() {
       const tab = h('div', { class: 'te-tabuleiro', 'aria-label': 'Dinheiro no balcão', role: 'list' });
@@ -52,12 +55,13 @@
     function mostrar() {
       const Rd = at.rondas[r]; tent = 0; tabuleiro = []; escolha = new Set(); corpo.innerHTML = ''; bVer.disabled = false;
       conta.textContent = `Cliente ${r + 1} de ${at.rondas.length}`;
+      cliente.innerHTML = ''; if (Rd.img) cliente.append(img(Rd.img, 'te-pessoa'));
       if (Rd.tipo === 'pagar') { enun.textContent = `${Rd.quem || 'O Nico'} compra ${Rd.oque} por ${euros(cent(Rd.preco))}. Põe no balcão a quantia certa, sem troco.`; corpo.append(...carteira()); }
       else if (Rd.tipo === 'troco') { enun.textContent = `${Rd.quem || 'Uma cliente'} compra ${Rd.oque} por ${euros(cent(Rd.preco))} e paga com ${euros(cent(Rd.pago))}. Dá-lhe o troco certo.`; corpo.append(...carteira()); }
       else {
         enun.textContent = `Tens ${euros(cent(Rd.tem))}. Escolhe ${Rd.n} coisas diferentes sem gastar mais do que tens. Depois escreve quanto sobra.`;
         const lista = h('div', { class: 'te-produtos' });
-        Rd.produtos.forEach(([nome, p], i) => lista.append(h('label', { class: 'te-produto' }, h('input', { type: 'checkbox', onchange: e => { e.target.checked ? escolha.add(i) : escolha.delete(i); } }), h('span', null, nome), h('b', null, euros(cent(p))))));
+        Rd.produtos.forEach(([nome, p], i) => lista.append(h('label', { class: 'te-produto' }, h('input', { type: 'checkbox', onchange: e => { e.target.checked ? escolha.add(i) : escolha.delete(i); } }), PRODUTO_IMG[nome] ? img(PRODUTO_IMG[nome], 'te-prod-img') : null, h('span', null, nome), h('b', null, euros(cent(p))))));
         const sobra = h('input', { class: 'tc-entrada', type: 'text', inputmode: 'decimal', 'aria-label': 'Quanto sobra, em euros', placeholder: '0,00', style: 'width:120px' });
         corpo.append(lista, h('label', { class: 'li-plano' }, h('b', null, 'Sobram (€):'), sobra));
       }
@@ -105,7 +109,7 @@
     const bolas = Object.entries(s).flatMap(([c, n]) => Array(n).fill(c));
     const W = Math.max(160, 34 * Math.min(bolas.length, 6) + 30), linhas = Math.ceil(bolas.length / 6);
     const g = sv('svg', { viewBox: `0 0 ${W} ${40 * linhas + 40}`, width: W, class: 'te-saco', role: 'img', 'aria-label': (rot ? rot + ': ' : '') + Object.entries(s).map(([c, n]) => `${n} ${c}${n === 1 ? '' : 's'}`).join(', ') });
-    g.append(sv('rect', { x: 4, y: 18, width: W - 8, height: 40 * linhas + 16, rx: 18, fill: '#f6efe3', stroke: '#8a6a3a', 'stroke-width': 3 }));
+    g.append(sv('image', { href: 'img/percurso/saco.webp', x: -10, y: 2, width: W + 20, height: 40 * linhas + 46, preserveAspectRatio: 'none', opacity: 0.95 }));
     if (rot) g.append(sv('text', { x: W / 2, y: 14, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 700, fill: '#333' }, rot));
     bolas.forEach((c, i) => { const x = 30 + (i % 6) * 34, y = 44 + Math.floor(i / 6) * 40;
       g.append(sv('circle', { cx: x, cy: y, r: 14, fill: COR[c][0], stroke: '#111', 'stroke-width': 1.5 }), sv('text', { x, y: y + 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: '#fff' }, COR[c][1])); });
@@ -177,7 +181,7 @@
     const freq = cats.map(c => at.respostas.filter(x => x === c).length), modas = moda(at.respostas);
     const corpo = h('div', { class: 'te-inq' }), faseEl = h('div', { class: 'of-fases' });
     const NOMES = ['Recolher', 'Tabela', 'Gráfico', 'Moda'];
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta), faseEl, corpo));
+    el.append(h('div', { class: 'pc-enunciado of li-com-arte' }, img('prancheta', 'li-arte-lado'), h('p', { class: 'pe-pergunta' }, at.pergunta), faseEl, corpo));
     const pintarFases = () => { faseEl.innerHTML = ''; NOMES.forEach((f, k) => faseEl.append(h('span', { class: k < fase ? 'feita' : k === fase ? 'atual' : '' }, `${k + 1}. ${f}`))); };
     const tally = n => '||||| '.repeat(Math.floor(n / 5)).replace(/\|\|\|\|\| /g, '卌 ') + '|'.repeat(n % 5);
     function mostrar() {
@@ -185,7 +189,7 @@
       if (fase === 0) {
         const pessoa = at.pessoas ? at.pessoas[i % at.pessoas.length] : `Pessoa ${i + 1}`;
         corpo.append(h('p', { class: 'pe-instr' }, `Pergunta do inquérito: «${at.tema}» Lê a resposta de cada pessoa e faz um risco na categoria certa.`),
-          h('div', { class: 'te-cartao' }, h('small', null, `${i + 1} de ${N} · ${pessoa}`), h('strong', null, '«' + (at.ditos ? at.ditos[i] : at.respostas[i]) + '»')),
+          h('div', { class: 'te-cartao' }, at.retratos ? img('entrevistado-' + String(i % at.retratos + 1).padStart(2, '0'), 'te-retrato') : null, h('div', null, h('small', null, `${i + 1} de ${N} · ${pessoa}`), h('strong', null, '«' + (at.ditos ? at.ditos[i] : at.respostas[i]) + '»'))),
           h('div', { class: 'te-cats' }, cats.map((c, k) => h('button', { type: 'button', class: 'btn btn-texto', onclick: () => {
             if (c !== at.respostas[i]) { erros++; return api.dizer('a_pensar', 'Lê outra vez a resposta: em que categoria cabe?'); }
             marcas[k]++; som('encaixe'); i++; if (i >= N) { fase = 1; } mostrar();
@@ -275,9 +279,11 @@
     let parte = at.rede === false ? 1 : 0, tent = 0, erros = 0, mostradas = 0, s = 0; const cel = new Set();
     const L = at.linhas || 5, C = at.colunas || 6;
     const corpo = h('div', { class: 'te-plan' });
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta), corpo));
+    const caixaImg = img('caixa-queijos-aberta', 'li-arte-lado');
+    el.append(h('div', { class: 'pc-enunciado of li-com-arte' }, caixaImg, h('p', { class: 'pe-pergunta' }, at.pergunta), corpo));
     function mostrar() {
       corpo.innerHTML = ''; tent = 0;
+      if (parte > 0) caixaImg.src = 'img/percurso/caixa-queijos-fechada.webp';
       if (parte === 0) {
         const grelha = h('div', { class: 'te-grelha', role: 'grid', 'aria-label': 'Grelha para a planificação', style: `grid-template-columns:repeat(${C},44px)` });
         const pintar = () => { grelha.innerHTML = ''; for (let r = 0; r < L; r++) for (let c = 0; c < C; c++) { const k = r + ',' + c;
@@ -403,7 +409,8 @@
       segs.forEach(([a, b, c, d]) => svg.append(sv('line', { x1: px(a), y1: px(b), x2: px(c), y2: px(d), stroke: '#d6336c', 'stroke-width': 4, 'stroke-linecap': 'round' })));
       const [x, y] = pos ? [pos.x, pos.y] : (at.inicio || [0, 0]), d = pos ? pos.d : 0;
       const ang = d * 90;
-      svg.append(sv('g', { transform: `translate(${px(x)},${px(y)}) rotate(${ang})` }, sv('circle', { r: 11, fill: '#0e9f6e', stroke: '#fff', 'stroke-width': 2 }), sv('path', { d: 'M0,-16 L7,-4 L-7,-4 Z', fill: '#0e9f6e' })));
+      svg.append(sv('g', { transform: `translate(${px(x)},${px(y)})` }, sv('image', { href: `img/percurso/nico-tartaruga-${'neso'[d]}.webp`, x: -22, y: -22, width: 44, height: 44 }),
+        sv('path', { d: 'M0,-26 L6,-18 L-6,-18 Z', fill: '#0e9f6e', transform: `rotate(${ang})` })));
     }
     function pintarCrit(v) { crit.innerHTML = ''; v.crit.forEach(([n, ok]) => crit.append(h('li', { class: ok ? 'ok' : '' }, n))); }
     function correr(animado) {
@@ -461,10 +468,10 @@
     }
     function desenharPista(destinos) {
       pista.innerHTML = '';
-      const cols = at.destinos.map(([id, n]) => h('div', { class: 'te-dest' }, h('strong', null, n)));
+      const cols = at.destinos.map(([id, n]) => h('div', { class: 'te-dest' }, at.destinosImg && at.destinosImg[id] ? img(at.destinosImg[id], 'te-dest-img') : null, h('strong', null, n)));
       at.itens.forEach(([tipo, nome], i) => {
         const d = destinos ? destinos[i] : null, certo = at.certo[tipo];
-        const chip = h('span', { class: 'te-chip' + (d ? (d === certo ? ' certo' : ' errado') : '') }, nome);
+        const chip = h('span', { class: 'te-chip' + (d ? (d === certo ? ' certo' : ' errado') : '') }, at.itens[i][2] ? img(at.itens[i][2], 'te-chip-img') : null, nome);
         if (d) cols[at.destinos.findIndex(x => x[0] === d)].append(chip); else pista.append(chip);
       });
       pista.append(h('div', { class: 'te-dests' }, cols));
@@ -483,7 +490,7 @@
       api.dizer('a_pensar', `${mal.length} ${mal.length === 1 ? 'foi parar' : 'foram parar'} ao sítio errado (a vermelho): ${mal.map(m => m[1]).join(', ')}. Que condição falta?`);
     }
     bSol.onclick = () => { prog = JSON.parse(JSON.stringify(at.solucao)); mostrada = true; pintar(); bExp.onclick(); };
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta), h('div', { class: 'te-tart-caixa' }, h('div', { class: 'te-tart-prog' }, editor, h('div', { class: 'li-botoes' }, bExp, bSol)), pista)));
+    el.append(h('div', { class: 'pc-enunciado of' + (at.personagem ? ' li-com-arte' : '') }, at.personagem ? img(at.personagem, 'li-arte-lado') : null, h('p', { class: 'pe-pergunta' }, at.pergunta), h('div', { class: 'te-tart-caixa' }, h('div', { class: 'te-tart-prog' }, editor, h('div', { class: 'li-botoes' }, bExp, bSol)), pista)));
     pintar(); desenharPista(null);
     R.depois(() => api.dizer('boas_vindas', 'Escolhe as condições e carrega em ▶. O programa decide para onde vai cada uma.'), 30);
     return { fechar: () => R.limpar(), resolver: () => { prog = JSON.parse(JSON.stringify(at.solucao)); fim(correrTriagem(prog, at.itens)); } };
@@ -499,11 +506,12 @@
       svg.innerHTML = '';
       const on = mat && mat[1];
       svg.append(sv('path', { d: 'M60 170 V60 H200 M260 60 H360 V170 H260 M200 170 H60', fill: 'none', stroke: '#b5651d', 'stroke-width': 5 }));
-      svg.append(sv('rect', { x: 30, y: 95, width: 60, height: 40, fill: '#333', rx: 4 }), sv('text', { x: 60, y: 121, 'text-anchor': 'middle', fill: '#fff', 'font-size': 14, 'font-weight': 700 }, 'pilha'));
-      svg.append(sv('circle', { cx: 230, cy: 60, r: 26, fill: on ? '#ffe45c' : '#f0f0f0', stroke: '#333', 'stroke-width': 3 }), sv('text', { x: 230, y: 25, 'text-anchor': 'middle', 'font-size': 13 }, on ? 'acesa' : 'apagada'));
-      if (on) [[-40, 0], [40, 0], [0, -40], [-28, -28], [28, -28]].forEach(([dx, dy]) => svg.append(sv('line', { x1: 230 + dx * 0.75, y1: 60 + dy * 0.75, x2: 230 + dx, y2: 60 + dy, stroke: '#e5b100', 'stroke-width': 3 })));
+      svg.append(sv('image', { href: 'img/percurso/pilha.webp', x: 15, y: 80, width: 90, height: 70 }), sv('text', { x: 60, y: 158, 'text-anchor': 'middle', 'font-size': 13 }, 'pilha'));
+      if (on) svg.append(sv('circle', { cx: 230, cy: 52, r: 34, fill: '#ffe45c', opacity: 0.45 }));
+      svg.append(sv('image', { href: `img/percurso/lampada-${on ? 'acesa' : 'apagada'}.webp`, x: 196, y: 18, width: 68, height: 68 }), sv('text', { x: 300, y: 50, 'font-size': 13 }, on ? 'acesa' : 'apagada'));
       svg.append(sv('rect', { x: 200, y: 150, width: 60, height: 40, fill: mat ? '#e9dcfb' : '#fff', stroke: '#7b2fd1', 'stroke-width': 3, 'stroke-dasharray': mat ? 'none' : '6 4', rx: 6 }),
-        sv('text', { x: 230, y: 210 + 6, 'text-anchor': 'middle', 'font-size': 13 }, mat ? mat[0] : 'material?'));
+        mat && mat[2] ? sv('image', { href: `img/percurso/${mat[2]}.webp`, x: 204, y: 146, width: 52, height: 48 }) : sv('text', { x: 230, y: 175, 'text-anchor': 'middle', 'font-size': 13 }, '?'),
+        sv('text', { x: 230, y: 216, 'text-anchor': 'middle', 'font-size': 13 }, mat ? mat[0] : 'material?'));
     }
     function mostrar() {
       corpo.innerHTML = '';
@@ -512,7 +520,7 @@
           h('div', { class: 'te-cats' }, at.materiais.map(m => h('button', { type: 'button', class: 'btn btn-texto' + (m[0] in testados ? ' feito' : ''), onclick: () => {
             testados[m[0]] = m[1]; desenhar(m); estado.textContent = `${m[0]}: a lâmpada ${m[1] ? 'acende' : 'não acende'}.`; som(m[1] ? 'encaixe' : 'apagar'); mostrar();
             if (Object.keys(testados).length === at.materiais.length) R.depois(() => { fase = 1; mostrar(); }, 900);
-          } }, m[0] in testados ? `${m[0]} ${testados[m[0]] ? '💡' : '✗'}` : m[0]))));
+          } }, m[2] ? img(m[2], 'te-mat-img') : null, m[0] in testados ? `${m[0]} ${testados[m[0]] ? '💡' : '✗'}` : m[0]))));
       } else {
         const marc = new Set();
         corpo.append(h('p', { class: 'pe-pergunta' }, 'Quais destes materiais são bons condutores de eletricidade? Marca todos.'),
@@ -538,7 +546,7 @@
     let aberto = 0, fase = 0, tent = 0, erros = 0, mostradas = 0; let ordem = [];
     const corpo = h('div'), faseEl = h('div', { class: 'of-fases' });
     const NOMES = ['Escavar', 'O mais antigo', 'Linha do tempo'];
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta), faseEl, corpo));
+    el.append(h('div', { class: 'pc-enunciado of' + (at.personagem ? ' li-com-arte' : '') }, at.personagem ? img(at.personagem, 'li-arte-lado') : null, h('p', { class: 'pe-pergunta' }, at.pergunta), faseEl, corpo));
     const pintarFases = () => { faseEl.innerHTML = ''; NOMES.forEach((f, k) => faseEl.append(h('span', { class: k < fase ? 'feita' : k === fase ? 'atual' : '' }, `${k + 1}. ${f}`))); };
     function corte() {
       const caixa = h('div', { class: 'te-camadas' });
@@ -547,13 +555,13 @@
         caixa.append(h('button', { type: 'button', class: 'te-camada' + (vista ? ' aberta' : ''), style: `background:${c.cor || ['#c9a46a', '#b08550', '#8f6a3f', '#6f5232', '#5a4128'][i % 5]}`, disabled: fase > 0 ? true : null,
           'aria-label': vista ? `Camada ${i + 1}: ${c.achado}` : `Camada ${i + 1} (por escavar)`,
           onclick: () => { if (i > aberto) { erros++; return api.dizer('a_pensar', 'Os arqueólogos escavam de cima para baixo: primeiro a camada de cima!'); } if (i === aberto) { aberto++; som('encaixe'); mostrar(); if (aberto === at.camadas.length) R.depois(() => { fase = 1; tent = 0; mostrar(); }, 900); } } },
-          h('small', null, `Camada ${i + 1}` + (i === 0 ? ' (em cima)' : i === at.camadas.length - 1 ? ' (mais funda)' : '')), vista ? h('strong', null, '⛏ ' + c.achado) : h('span', null, i === aberto ? 'clica para escavar' : '')));
+          h('small', null, `Camada ${i + 1}` + (i === 0 ? ' (em cima)' : i === at.camadas.length - 1 ? ' (mais funda)' : '')), vista ? h('strong', null, c.img ? img(c.img, 'te-achado') : '⛏ ', c.achado) : h('span', null, i === aberto ? 'clica para escavar' : '')));
       });
       return caixa;
     }
     function mostrar() {
       pintarFases(); corpo.innerHTML = '';
-      if (fase === 0) corpo.append(h('p', { class: 'pe-instr' }, 'Escava camada a camada, de cima para baixo.'), corte());
+      if (fase === 0) corpo.append(h('p', { class: 'pe-instr' }, img('colher-arqueologia', 'te-ferr'), img('pincel-arqueologia', 'te-ferr'), ' Escava camada a camada, de cima para baixo.'), corte());
       else if (fase === 1) {
         corpo.append(corte(), h('p', { class: 'pe-pergunta' }, 'Qual destes achados é o mais antigo?'), h('div', { class: 'te-cats' }, at.camadas.map((c, i) => h('button', { type: 'button', class: 'btn btn-texto', onclick: () => {
           tent++;

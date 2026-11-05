@@ -17,7 +17,7 @@
     prog: { nome: 'Programar', cor: 'var(--prog)', img: 'estacao-programar' },
     mat: { nome: 'Matemática', cor: 'var(--mat)', img: 'estacao-pontes' },
     port: { nome: 'Português', cor: 'var(--port)', img: 'estacao-portugues' },
-    meio: { nome: 'Estudo do Meio', cor: 'var(--meio)', img: null, icone: '🌍' },   // ícone provisório (emoji) até o Ambrósio desenhar estacao-meio
+    meio: { nome: 'Estudo do Meio', cor: 'var(--meio)', img: 'estacao-meio' },
   };
   F.PC.AREAS = AREAS;
 
@@ -34,7 +34,7 @@
 
   // ------------------------------------------------------------ moedas de cobre (ideia do Jaime, 5 Nov 2026), sequências e insígnias
   // Guardam-se em P.bolotas (o nome antigo), para ninguém perder o que já ganhou. Ícone provisório até o Ambrósio desenhar a moeda de cobre.
-  const BOLOTA = '<span class="pc-moeda" aria-hidden="true">🪙</span>';
+  const BOLOTA = '<img class="pc-moeda" src="img/percurso/moeda-cobre.webp" alt="">';
   function pintarBolotas(salto) {
     let b = $('bolotas');
     if (!b) { b = h('span', { class: 'pc-bolotas', id: 'bolotas', title: 'Moedas de cobre ganhas no percurso' }); document.querySelector('.ligacao').prepend(b); }
@@ -168,20 +168,23 @@
   // mapa da campanha: arte do Ambrósio (img/percurso/mapa-sem-ponte / mapa-com-ponte, 1536×1024) com botões por cima.
   // Pontos e camadas: MAPA-E-CENARIOS.json do complemento (1 Nov 2026). A Água e o Património têm sítio próprio;
   // a Horta (1260,460) recebe a sessão 5; Ateliê (1245,790) e Correio (1280,235) ficam reservados às suas funções.
-  const SITIOS = { m1: [805, 515], s1: [265, 200], s2: [300, 440], s3: [585, 650], s4: [275, 775], s5: [1260, 460], s6: [180, 70], prova: [1220, 70] };
-  const CAMADAS = [{ src: 'img/percurso/mapa-observatorio-agua.webp', x: 490, y: 510, w: 190, h: 126.667 }];   // nos dois estados da ponte
+  // mapa do concelho do Ambrósio (mapa-concelho, 1536×1024, esquemático e sem escala): botões nos pontos do manifesto
+  // MAPA-DE-COBRE-ARTE.json (PR #79); as placas ficam no caminho que sai de Montes Velhos
+  const SITIOS = { s1: [760, 245], v1: [470, 335], s2: [135, 345], m1: [1390, 390], s3: [1390, 245], s5: [1125, 397], v2: [1010, 330],
+    s6: [905, 470], v3: [1290, 640], s4: [690, 870], v4: [465, 975], prova: [150, 625] };
+  const CAMADAS = [];
   // tema dos cenários quando a atividade não traz um (themeBySession)
   const TEMA_SESSAO = { s1: 'messejana', s2: 'montado', s3: 'alqueva', s4: 'fablab', s5: 'horta', s6: 'castelo', m1: 'alqueva', v1: 'montado', v2: 'alqueva', v3: 'castelo', v4: 'messejana' };
   function trilho() {
     const L = $('listaSessoes');
     const atualK = ordem().find(k => capAberto(capDe(X.sessoes[k].id)) && !sessaoFeita(X.sessoes[k]));   // a próxima missão, pela ordem da história
-    const ponte = !!(P.mundo || {}).ponte;
-    const caixa = h('div', { class: 'pc-mapa-arte', role: 'list', 'aria-label': 'Mapa da Mostra de Invenções' },
-      h('img', { class: 'ma-fundo', src: `img/percurso/mapa-${ponte ? 'com' : 'sem'}-ponte.webp`, alt: ponte ? 'Mapa: a ponte da ribeira já está construída' : 'Mapa: a ribeira ainda não tem ponte' }));
+    const caixa = h('div', { class: 'pc-mapa-arte', role: 'list', 'aria-label': 'Mapa do concelho de Aljustrel: Montes Velhos, Ervidel, Aljustrel e Messejana' },
+      h('img', { class: 'ma-fundo', src: 'img/percurso/mapa-concelho.webp', alt: 'Mapa ilustrado e sem escala do concelho, com Montes Velhos, Ervidel, Aljustrel e Messejana' }));
     const pos = ([x, y]) => ({ left: (100 * x / 1536) + '%', top: (100 * y / 1024) + '%' });
     CAMADAS.forEach(c => { const i = h('img', { class: 'ma-camada', src: c.src, alt: '' }); Object.assign(i.style, pos([c.x, c.y]), { width: (100 * c.w / 1536) + '%', height: (100 * c.h / 1024) + '%' }); caixa.append(i); });
     // marcas no mapa quando uma missão transforma o mundo (rótulos de texto; a pintura só muda onde o Ambrósio a desenhou)
-    (X.marcasMundo || []).forEach(m => { if (!(P.mundo || {})[m.id]) return; const e = h('span', { class: 'ma-marca' }, m.texto); Object.assign(e.style, pos(m.em)); caixa.append(e); });
+    X.sessoes.forEach(s => { const tr = s.transforma || (s.id === 'm1' ? { id: 'ponte', texto: 'Ponte ✓' } : null), sit = SITIOS[s.id];
+      if (!tr || !sit || !(P.mundo || {})[tr.id]) return; const e = h('span', { class: 'ma-marca' }, tr.texto); Object.assign(e.style, pos([sit[0], sit[1] + 52])); caixa.append(e); });
     const etapas = [...X.sessoes.map((s, k) => ({ s, k, id: s.id })), ...(X.prova ? [{ prova: true, id: 'prova' }] : [])];
     etapas.forEach(e => {
       const sitio = SITIOS[e.id]; if (!sitio) return;
@@ -189,12 +192,12 @@
       const aqui = e.prova ? atualK == null : e.k === atualK;
       const b = h('button', { type: 'button', class: 'ma-no' + (feita ? ' feita' : '') + (aqui ? ' aqui' : ''), role: 'listitem',
         'aria-label': (e.prova ? X.prova.titulo : `${rotulo(e.k)}: ${e.s.titulo}`) + (feita ? ' (feita)' : '') },
-        h('b', null, feita ? '✓' : e.prova ? '★' : curto(e.k)), h('span', { class: 'ma-nome' }, e.prova ? 'Prova-ensaio' : (e.s.lugar || e.s.titulo)),
+        h('b', null, feita ? '✓' : e.prova ? '★' : curto(e.k)), h('span', { class: 'ma-nome' }, e.prova ? 'Desafios do Castelo' : (e.s.lugar || e.s.titulo)),
         feita && !e.prova && e.s.id === 'm1' ? h('img', { class: 'ma-ins', src: 'img/percurso/insignia-construtor-pontes.webp', alt: 'Insígnia Construtor de pontes' }) : null);
       Object.assign(b.style, pos(sitio));
       b.addEventListener('click', () => { if (e.prova) { const c = capDe('final'); return capAberto(c) ? abrirProva(X.prova) : avisoFechado(c); } entrar(e.k); });
       caixa.append(b);
-      if (aqui) { const n = h('img', { class: 'ma-nico', src: 'img/percurso/nico-parado.webp', alt: '' }); Object.assign(n.style, pos([sitio[0], sitio[1] - 24])); caixa.append(n); }
+      if (aqui) { const n = h('img', { class: 'ma-nico', src: 'img/percurso/nico-bicicleta-oficina.webp', alt: '' }); Object.assign(n.style, pos([sitio[0], sitio[1] - 24])); caixa.append(n); }
     });
     const velho = L.parentNode.querySelector('.pc-mapa-arte'); if (velho) velho.remove();
     L.parentNode.insertBefore(caixa, L);
@@ -491,13 +494,13 @@
   // arcada: jogos extra que se compram uma vez e depois se jogam sempre. Usam os motores e os cenários do Ambrósio;
   // não contam para as missões. Lugar reservado para os jogos feitos pelos alunos (o primeiro: o jogo retro do Jaime).
   const ARCADA = [
-    { id: 'arc-messejana', nome: 'Corrida nas ruas de Messejana', base: 's1-j2', preco: 15, tema: 'messejana' },
-    { id: 'arc-montado', nome: 'Bolotas no montado', base: 's2-j2', preco: 15, tema: 'montado' },
-    { id: 'arc-memoria', nome: 'Memória das horas', base: 's5-j2', preco: 15 },
-    { id: 'arc-roxo', nome: 'Gotas na Barragem do Roxo', base: 's3-j2', preco: 20, tema: 'alqueva' },
-    { id: 'arc-baloes', nome: 'Balões com acentos', base: 's4-j1', preco: 20 },
-    { id: 'arc-fablab', nome: 'Corrida no FabLab', base: 's4-j3', preco: 25, tema: 'fablab' },
-    { id: 'arc-castelo', nome: 'Letras no castelo', base: 's6-j1', preco: 25, tema: 'castelo' },
+    { id: 'arc-messejana', nome: 'Corrida nas ruas de Messejana', base: 's1-j2', preco: 15, tema: 'messejana', capa: 'arcada-corrida-messejana' },
+    { id: 'arc-montado', nome: 'Bolotas no montado', base: 's2-j2', preco: 15, tema: 'montado', capa: 'arcada-bolotas-montado' },
+    { id: 'arc-memoria', nome: 'Memória das horas', base: 's5-j2', preco: 15, capa: 'arcada-memoria' },
+    { id: 'arc-roxo', nome: 'Gotas na Barragem do Roxo', base: 's3-j2', preco: 20, tema: 'alqueva', capa: 'arcada-gotas-roxo' },
+    { id: 'arc-baloes', nome: 'Balões com acentos', base: 's4-j1', preco: 20, capa: 'arcada-baloes' },
+    { id: 'arc-fablab', nome: 'Corrida no FabLab', base: 's4-j3', preco: 25, tema: 'fablab', capa: 'arcada-fablab' },
+    { id: 'arc-castelo', nome: 'Letras no castelo', base: 's6-j1', preco: 25, tema: 'castelo', capa: 'arcada-castelo' },
   ];
   const atividadePorId = id => { for (const s of X.sessoes) for (const e of s.estacoes) for (const a of e.atividades) if (a.id === id) return a; return null; };
   let jogoArcada = null;
@@ -516,6 +519,14 @@
     const c = F.PC.jogos.montar(palco, Object.assign({}, base, { id: j.id, tema: j.tema || base.tema }), api);
     jogoArcada.fechar = c && c.fechar;
   }
+  // os 4 pedaços do mapa de cobre (recortes exatos do mapa completo: 1 NO, 2 NE, 3 SE, 4 SO), montados à medida que se ganham
+  function mapaCobre() {
+    const tem = k => !!(P.mundo || {})['mapa' + k], todos = [1, 2, 3, 4].every(tem);
+    const caixa = h('div', { class: 'pc-mapa-cobre', role: 'img', 'aria-label': todos ? 'Mapa de cobre completo' : `Mapa de cobre: ${[1, 2, 3, 4].filter(tem).length} de 4 pedaços` });
+    if (todos) caixa.append(h('img', { src: 'img/percurso/mapa-cobre-completo.webp', alt: '' }));
+    else [1, 2, 3, 4].forEach(k => caixa.append(tem(k) ? h('img', { src: `img/percurso/mapa-cobre-${k}.webp`, alt: '', class: 'pmc-' + k }) : h('span', { class: 'pmc-falta pmc-' + k }, `pedaço ${k}`)));
+    return caixa;
+  }
   function oficina() {
     vista('vOficina'); $('estacoes').innerHTML = ''; pintarBolotas();
     const tem = new Set(P.oficina || []), jogos = new Set(P.arcada || []);
@@ -531,7 +542,7 @@
     const arcada = h('div', { class: 'pc-loja pc-arcada' });
     ARCADA.filter(j => atividadePorId(j.base)).forEach(j => {
       const meu = jogos.has(j.id), pode = (P.bolotas || 0) >= j.preco;
-      const b = h('button', { type: 'button', class: meu ? 'tem' : '', disabled: !meu && !pode ? true : null }, h('span', { class: 'pc-arc-ico', 'aria-hidden': 'true' }, '🕹'), j.nome, h('small', null, meu ? 'É teu · jogar ▶' : `${j.preco} moedas`));
+      const b = h('button', { type: 'button', class: meu ? 'tem' : '', disabled: !meu && !pode ? true : null }, h('img', { class: 'pc-arc-capa', src: `img/percurso/${j.capa}.webp`, alt: '' }), j.nome, h('small', null, meu ? 'É teu · jogar ▶' : `${j.preco} moedas`));
       b.addEventListener('click', () => {
         if (meu) return jogarArcada(j);
         if (!pode) return;
@@ -542,7 +553,7 @@
     const bilhetes = h('div', { class: 'pc-loja' });
     (X.capitulos || []).filter(c => c.n > 1).forEach(c => {
       const ab = capAberto(c), pode = (P.bolotas || 0) >= c.bilhete;
-      const b = h('button', { type: 'button', class: ab ? 'tem' : '', disabled: !ab && !pode ? true : null }, h('span', { class: 'pc-arc-ico', 'aria-hidden': 'true' }, '🎟'), `Bilhete para ${c.nome}`, h('small', null, ab ? 'Capítulo aberto ✓' : `${c.bilhete} moedas`));
+      const b = h('button', { type: 'button', class: ab ? 'tem' : '', disabled: !ab && !pode ? true : null }, h('img', { src: 'img/percurso/bilhete.webp', alt: '', style: 'width:96px;height:60px;object-fit:contain;display:block;margin:0 auto' }), `Bilhete para ${c.nome}`, h('small', null, ab ? 'Capítulo aberto ✓' : `${c.bilhete} moedas`));
       b.addEventListener('click', () => { if (!ab) comprarBilhete(c); });
       bilhetes.append(b);
     });
@@ -556,9 +567,10 @@
     const v = $('vOficina'); v.innerHTML = '';
     v.append(h('div', { class: 'pc-mapa' }, h('div', { class: 'pc-oficina' }, h('h1', null, 'A loja e a oficina do Nico'),
       h('p', null, `Tens ${P.bolotas || 0} moedas de cobre. Ganhas moedas por cada atividade que acabas (uma vez por atividade). Com elas compras jogos extra, decoração para a oficina e bilhetes para o capítulo seguinte. Pistas e respostas não se compram!`),
-      h('h2', null, '🕹 Jogos extra'), arcada,
+      h('h2', { class: 'pc-loja-tit' }, h('img', { src: 'img/percurso/estacao-arcada.webp', alt: '' }), 'Jogos extra'), arcada,
       (X.capitulos ? [h('h2', null, '🎟 Bilhetes'), h('p', { class: 'pe-instr' }, 'Quem cumpre as missões de um capítulo recebe o bilhete seguinte de graça. Com moedas podes ir mais cedo.'), bilhetes] : []),
       h('h2', null, 'Decorar a oficina'), cena, loja,
+      h('h2', null, 'O mapa de cobre'), mapaCobre(),
       h('h2', null, 'Na Mostra de Invenções'), mostra, h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: mapa }, '← Voltar ao percurso')))));
     masc.dizer('celebrar', tem.size ? 'Está a ficar linda, a nossa oficina!' : 'Ainda está vazia… escolhe o primeiro enfeite!');
   }

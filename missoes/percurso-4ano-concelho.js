@@ -24,13 +24,13 @@
 
   // ------------------------------------------------------------ a história
   const capitulos = [
-    { id: 'c1', n: 1, nome: 'Montes Velhos', cenario: 'montado', bilhete: 0, sessoes: ['s1', 's2', 'v1'], provas: [],
+    { id: 'c1', n: 1, nome: 'Montes Velhos', cenario: 'montes-velhos', bilhete: 0, sessoes: ['s1', 's2', 'v1'], provas: [],
       historia: 'O mapa de cobre que guia os inventores até à Mostra, no castelo de Messejana, partiu-se em quatro pedaços. O Nico parte de Montes Velhos na bicicleta-oficina. Aqui, a Junta precisa de placas, de cortiça e de um inquérito — e quem ajudar recebe o primeiro pedaço do mapa.' },
-    { id: 'c2', n: 2, nome: 'Ervidel', cenario: 'agua', bilhete: 30, sessoes: ['m1', 's3', 's5', 'v2'], provas: ['fev'],
+    { id: 'c2', n: 2, nome: 'Ervidel', cenario: 'ervidel', bilhete: 30, sessoes: ['m1', 's3', 's5', 'v2'], provas: ['fev'],
       historia: 'Em Ervidel há água: a ribeira e a Barragem do Roxo, que rega os campos. A ponte caiu, as hortas têm sede e a Feira precisa de uma banca com as contas certas. No fim, a prova-ensaio de fevereiro.' },
-    { id: 'c3', n: 3, nome: 'Aljustrel', cenario: 'patrimonio', bilhete: 35, sessoes: ['s6', 'v3'], provas: [],
+    { id: 'c3', n: 3, nome: 'Aljustrel', cenario: 'aljustrel-mina', bilhete: 35, sessoes: ['s6', 'v3'], provas: [],
       historia: 'Aljustrel é terra de minas desde o tempo dos romanos, que lhe chamavam Vipasca. É daqui que vem o cobre das moedas do Nico! Há um painel no castelo para corrigir, vagonetas para organizar e um moinho para desenhar.' },
-    { id: 'c4', n: 4, nome: 'Messejana', cenario: 'messejana', bilhete: 40, sessoes: ['s4', 'v4'], provas: ['final'],
+    { id: 'c4', n: 4, nome: 'Messejana', cenario: 'messejana-praca', bilhete: 40, sessoes: ['s4', 'v4'], provas: ['final'],
       historia: 'Chegaste a Messejana com o mapa quase completo! No FabLab preparam-se as invenções, o Jornal de Messejana quer uma notícia e, no castelo, esperam-te os Desafios do Castelo.' },
   ];
 
@@ -75,7 +75,7 @@
   // ================================================================================================ capítulo 1
   const v1 = {
     id: 'v1', rotulo: 'Missão 1.3', lugar: 'Junta de Freguesia', titulo: 'O inquérito de Montes Velhos', marca: [420, 300],
-    transforma: { id: 'mapa1', texto: '1.º pedaço do mapa de cobre ✓' }, cenario: 'montado',
+    transforma: { id: 'mapa1', texto: '1.º pedaço do mapa de cobre ✓' }, imagem: 'img/percurso/cenario-montes-velhos.webp',
     missao: 'A Junta de Freguesia quer pedir mais um autocarro para a escola, mas precisa de números: como vêm as crianças para a escola? O Nico faz o inquérito — e a Junta entrega-lhe o primeiro pedaço do mapa de cobre.',
     resumo: 'Inquérito, tabela de frequências, gráfico e moda · condições · rádio e ditado · a localidade, a freguesia e o concelho.',
     estacoes: [
@@ -84,7 +84,7 @@
           frases: ['Montes Velhos fica no concelho de Aljustrel.', 'O Nico foi de bicicleta até à Junta de Freguesia.', 'Na praça, as pessoas conversam à sombra das árvores.'] },
       ] },
       { area: 'mat', titulo: 'O inquérito', atividades: [
-        { id: 'v1-inq', tipo: 'inquerito', titulo: 'Como vens para a escola?', pergunta: 'O Nico perguntou a 20 crianças como vêm para a escola. Conta as respostas, faz a tabela e o gráfico, e descobre a moda.',
+        { id: 'v1-inq', tipo: 'inquerito', retratos: 8, titulo: 'Como vens para a escola?', pergunta: 'O Nico perguntou a 20 crianças como vêm para a escola. Conta as respostas, faz a tabela e o gráfico, e descobre a moda.',
           tema: 'Como vens para a escola?', coluna: 'Como vem', categorias: ['a pé', 'autocarro', 'carro', 'bicicleta'],
           respostas: ['autocarro', 'a pé', 'autocarro', 'carro', 'a pé', 'autocarro', 'bicicleta', 'autocarro', 'a pé', 'carro', 'autocarro', 'a pé', 'autocarro', 'carro', 'a pé', 'bicicleta', 'autocarro', 'carro', 'a pé', 'autocarro'],
           ditos: ['Venho no autocarro da escola.', 'Moro aqui ao lado, venho a pé.', 'Apanho o autocarro em Jungeiros.', 'A minha mãe traz-me de carro.', 'Venho a pé com o meu irmão.', 'Venho de autocarro.', 'Venho de bicicleta!', 'O autocarro passa à minha porta.', 'Venho a pé com a avó.', 'O meu pai deixa-me de carro.', 'Venho de autocarro.', 'A pé, que é perto.', 'Venho no autocarro.', 'De carro, com a minha tia.', 'Venho a pé.', 'De bicicleta, pela estrada de terra.', 'Venho de autocarro.', 'Venho de carro.', 'Venho a pé.', 'Venho no autocarro.'],
@@ -94,7 +94,7 @@
         { id: 'v1-m2', tipo: 'curta', pergunta: 'No inquérito, 8 crianças vêm de autocarro. Se mais 3 crianças passarem a vir de autocarro, quantas serão?', numero: 11, depois: 'crianças', largura: '110px' },
       ] },
       { area: 'prog', titulo: 'O carteiro', atividades: [
-        { id: 'v1-tri', tipo: 'triagem', titulo: 'O saco do carteiro', item: 'carta', se: 'se a morada for',
+        { id: 'v1-tri', tipo: 'triagem', titulo: 'O saco do carteiro', item: 'carta', se: 'se a morada for', personagem: 'carteiro',
           pergunta: 'O carteiro da freguesia separa as cartas: as de Montes Velhos num saco, as de Jungeiros noutro, e as das outras terras num terceiro. Programa a triagem.',
           condicoes: ['Montes Velhos', 'Jungeiros', 'Aljustrel', 'Ervidel', 'Messejana'],
           destinos: [['mv', 'Saco de Montes Velhos'], ['ju', 'Saco de Jungeiros'], ['ou', 'Saco das outras terras']],
@@ -104,7 +104,7 @@
           solucao: { regras: [{ se: 'Montes Velhos', vai: 'mv' }, { se: 'Jungeiros', vai: 'ju' }], senao: 'ou' }, pistas: P_TRI },
       ] },
       { area: 'port', titulo: 'Ouvir, ler e construir', atividades: [
-        { id: 'v1-rad', tipo: 'radio', titulo: 'Rádio: a escola de antigamente', programa: 'Montes Velhos', pistas: P_RAD,
+        { id: 'v1-rad', tipo: 'radio', titulo: 'Rádio: a escola de antigamente', programa: 'Montes Velhos', personagem: 'avo-rosa', pistas: P_RAD,
           texto: ['Bom dia! Hoje temos connosco a avó Rosa, que andou na escola há muitos anos.',
             'Avó Rosa, como ia para a escola? — Ia a pé, por um caminho de terra, com os meus irmãos. Quando chovia, chegávamos com os sapatos cheios de lama!',
             'E o que levava na mochila? — Mochila? Levava uma sacola de pano, com a lousa, o lápis e um pedaço de pão com queijo para o lanche.',
@@ -142,7 +142,7 @@
   // ================================================================================================ capítulo 2
   const v2 = {
     id: 'v2', rotulo: 'Missão 2.4', lugar: 'Feira de Ervidel', titulo: 'A Feira de Ervidel', marca: [700, 380],
-    transforma: { id: 'mapa2', texto: '2.º pedaço do mapa de cobre ✓' }, cenario: 'agua',
+    transforma: { id: 'mapa2', texto: '2.º pedaço do mapa de cobre ✓' }, imagem: 'img/percurso/cenario-ervidel.webp',
     missao: 'Na Feira de Ervidel, o Nico tem uma banca para juntar dinheiro para a Mostra. Faz as contas da banca, monta as caixas, organiza a tômbola e arruma os produtos. No fim do dia, a feira dá-lhe o segundo pedaço do mapa.',
     resumo: 'Euros e cêntimos, troco · probabilidades · planificações e sólidos · sujeito e predicado · a água e o corpo humano.',
     estacoes: [
@@ -154,9 +154,9 @@
         { id: 'v2-fei', tipo: 'feira', titulo: 'Contas certas na banca', pistas: ['1 € são 100 cêntimos.', 'Começa pelas moedas maiores e vê quanto falta.', 'Troco = o que a pessoa deu − o preço.'],
           rondas: [
             { tipo: 'pagar', quem: 'O Nico', oque: 'um frasco de mel', preco: '2,35' },
-            { tipo: 'troco', quem: 'A Dona Graça', oque: 'um queijo', preco: '3,70', pago: '5' },
+            { tipo: 'troco', quem: 'A Dona Graça', img: 'dona-graca', oque: 'um queijo', preco: '3,70', pago: '5' },
             { tipo: 'pagar', quem: 'O Rui', oque: 'um saco de laranjas', preco: '0,85' },
-            { tipo: 'troco', quem: 'O Sr. Manuel', oque: 'azeitonas e pão', preco: '6,45', pago: '10' },
+            { tipo: 'troco', quem: 'O Sr. Manuel', img: 'sr-manuel', oque: 'azeitonas e pão', preco: '6,45', pago: '10' },
             { tipo: 'orcamento', tem: '5', n: 3, produtos: [['Pão', '1,20'], ['Queijo fresco', '2,50'], ['Azeitonas', '1,40'], ['Mel', '3,10'], ['Laranjas', '0,90']], solucao: [0, 2, 4] },
           ] },
         { id: 'v2-sac', tipo: 'saco', titulo: 'A tômbola da feira', pistas: ['Conta as bolas de cada cor.', 'Certo: acontece sempre. Impossível: nunca acontece.', 'Mais provável: há mais bolas dessa cor em comparação com as outras.'],
@@ -175,7 +175,8 @@
           pergunta: 'Fruta vai para o cesto, laticínios para a caixa fresca e o resto para a prateleira. Programa a arrumação.',
           condicoes: ['fruta', 'laticínio', 'pão', 'conserva'],
           destinos: [['cesto', 'Cesto'], ['fresco', 'Caixa fresca'], ['prat', 'Prateleira']],
-          itens: [['fruta', 'Laranjas'], ['laticínio', 'Queijo'], ['pão', 'Pão'], ['fruta', 'Maçãs'], ['conserva', 'Azeitonas'], ['laticínio', 'Iogurtes'], ['conserva', 'Mel']],
+          itens: [['fruta', 'Laranjas', 'feira-laranjas'], ['laticínio', 'Queijo', 'feira-queijo-fresco'], ['pão', 'Pão', 'feira-pao'], ['fruta', 'Maçãs'], ['conserva', 'Azeitonas', 'feira-azeitonas'], ['laticínio', 'Iogurtes'], ['conserva', 'Mel', 'feira-mel']],
+          destinosImg: { cesto: 'cesto', fresco: 'caixa-fresca', prat: 'prateleira' },
           certo: { fruta: 'cesto', 'laticínio': 'fresco', 'pão': 'prat', conserva: 'prat' }, maxRegras: 2,
           inicial: { regras: [{ se: 'fruta', vai: 'cesto' }], senao: 'fresco' },
           solucao: { regras: [{ se: 'fruta', vai: 'cesto' }, { se: 'laticínio', vai: 'fresco' }], senao: 'prat' }, pistas: P_TRI },
@@ -210,7 +211,7 @@
   const VELAS = sol([{ op: 'repete', n: 4, corpo: [{ op: 'avanca', n: 3 }, { op: 'recua', n: 3 }, { op: 'dir' }] }]);
   const v3 = {
     id: 'v3', rotulo: 'Missão 3.2', lugar: 'Minas de Aljustrel', titulo: 'A mina e o moinho', marca: [980, 640],
-    transforma: { id: 'mapa3', texto: '3.º pedaço do mapa de cobre ✓' }, cenario: 'patrimonio',
+    transforma: { id: 'mapa3', texto: '3.º pedaço do mapa de cobre ✓' }, imagem: 'img/percurso/cenario-aljustrel-mina.webp',
     missao: 'Em Aljustrel tira-se minério da terra desde o tempo dos romanos. O Nico visita a mina: organiza as vagonetas, experimenta o cobre num circuito, escava como um arqueólogo e desenha as velas do moinho. O mineiro mais velho guarda o terceiro pedaço do mapa.',
     resumo: 'Desenhar com blocos (polígonos, perímetro, ângulos retos) · condições · condutores e isoladores · tempo histórico · construir frases.',
     estacoes: [
@@ -219,7 +220,7 @@
           pergunta: 'O minério de cobre vai para a lavaria, a pedra sem minério para a escombreira e as ferramentas partidas para a oficina. Programa as agulhas dos carris.',
           condicoes: ['minério de cobre', 'pedra sem minério', 'ferramenta partida'],
           destinos: [['lav', 'Lavaria'], ['esc', 'Escombreira'], ['ofi', 'Oficina']],
-          itens: [['minério de cobre', 'Vagoneta 1: minério'], ['pedra sem minério', 'Vagoneta 2: pedra'], ['minério de cobre', 'Vagoneta 3: minério'], ['ferramenta partida', 'Vagoneta 4: picareta partida'], ['pedra sem minério', 'Vagoneta 5: pedra'], ['minério de cobre', 'Vagoneta 6: minério']],
+          itens: [['minério de cobre', 'Vagoneta 1: minério', 'vagoneta-minerio'], ['pedra sem minério', 'Vagoneta 2: pedra', 'vagoneta-pedra'], ['minério de cobre', 'Vagoneta 3: minério', 'vagoneta-minerio'], ['ferramenta partida', 'Vagoneta 4: picareta partida', 'vagoneta-ferramenta'], ['pedra sem minério', 'Vagoneta 5: pedra', 'vagoneta-pedra'], ['minério de cobre', 'Vagoneta 6: minério', 'vagoneta-minerio']],
           certo: { 'minério de cobre': 'lav', 'pedra sem minério': 'esc', 'ferramenta partida': 'ofi' }, maxRegras: 2,
           inicial: { regras: [{ se: 'minério de cobre', vai: 'lav' }], senao: 'lav' },
           solucao: { regras: [{ se: 'minério de cobre', vai: 'lav' }, { se: 'ferramenta partida', vai: 'ofi' }], senao: 'esc' }, pistas: P_TRI },
@@ -237,15 +238,16 @@
       ] },
       { area: 'meio', titulo: 'Minas, cobre e história', atividades: [
         { id: 'v3-cir', tipo: 'circuito', titulo: 'O cobre conduz?', pergunta: 'Na oficina da mina há uma pilha, fios e uma lâmpada. Experimenta cada material no espaço vazio do circuito.',
-          materiais: [['fio de cobre', true], ['prego de ferro', true], ['moeda', true], ['borracha', false], ['palito de madeira', false], ['rolha de cortiça', false], ['régua de plástico', false]],
+          materiais: [['fio de cobre', true, 'fio-cobre'], ['prego de ferro', true, 'prego'], ['moeda', true, 'moeda-material'], ['borracha', false, 'borracha'], ['palito de madeira', false, 'palito'], ['rolha de cortiça', false, 'rolha-cortica'], ['régua de plástico', false, 'regua-plastico']],
           porque: 'Os metais, como o cobre e o ferro, deixam passar a corrente elétrica: são bons condutores. A borracha, a madeira, a cortiça e o plástico não a deixam passar: são isoladores.',
           pistas: ['Clica em cada material para o pôr no circuito.', 'Repara: com quais é que a lâmpada acende?', 'Os materiais que acendem a lâmpada são condutores.'] },
         { id: 'v3-arq', tipo: 'arqueologia', titulo: 'Escavar junto à mina', pergunta: 'Uma arqueóloga escava junto à mina de Aljustrel. Ajuda-a! (Os achados são imaginados para este jogo.)',
           camadas: [
-            { achado: 'Garrafa de plástico', epoca: 'dos nossos dias' },
-            { achado: 'Lanterna de mineiro', epoca: 'de há cerca de cem anos (século XX)' },
+            { achado: 'Garrafa de plástico', epoca: 'dos nossos dias', img: 'garrafa-plastico' },
+            { achado: 'Lanterna de mineiro', epoca: 'de há cerca de cem anos (século XX)', img: 'lanterna-mineiro' },
             { achado: 'Moeda do rei D. Manuel I', epoca: 'de há uns quinhentos anos (século XVI)' },
-            { achado: 'Candeia de barro romana', epoca: 'do tempo dos romanos, há quase dois mil anos' }],
+            { achado: 'Candeia de barro romana', epoca: 'do tempo dos romanos, há quase dois mil anos', img: 'candeia-romana' }],
+          personagem: 'arqueologa',
           feito: 'Quanto mais fundo, mais antigo — e já sabes pôr a história por ordem!',
           pistas: ['Escava de cima para baixo.', 'As camadas de terra juntam-se por cima, ao longo do tempo.', 'O mais antigo está no fundo; o mais recente em cima.'] },
         { id: 'v3-e1', tipo: 'escolha', pergunta: 'No tempo dos romanos, que nome tinha Aljustrel?', opcoes: ['Vipasca.', 'Olisipo.', 'Pax Julia.', 'Ebora.'], certa: 0,
@@ -254,7 +256,7 @@
         { id: 'v3-e3', tipo: 'vf', pergunta: 'Rochas e minerais. Verdadeiro ou falso?', afirmacoes: [['Um minério é uma rocha de onde se pode tirar um metal.', true], ['A pirite brilha como o ouro, mas não é ouro.', true], ['O cobre é um mau condutor de eletricidade.', false]] },
       ] },
       { area: 'port', titulo: 'Ouvir, escrever e construir', atividades: [
-        { id: 'v3-rad', tipo: 'radio', titulo: 'Rádio: o avô mineiro', programa: 'Aljustrel', pistas: P_RAD,
+        { id: 'v3-rad', tipo: 'radio', titulo: 'Rádio: o avô mineiro', programa: 'Aljustrel', personagem: 'avo-joaquim', pistas: P_RAD,
           texto: ['Hoje a nossa rádio foi conversar com o avô Joaquim, que trabalhou muitos anos na mina.',
             'Avô, como era um dia na mina? — Começava cedo. Púnhamos o capacete com a lanterna e descíamos num elevador a que chamávamos gaiola. Lá em baixo era escuro e fazia calor.',
             'E o que fazia? — Partia a rocha e enchia as vagonetas com minério. As vagonetas andavam em carris até ao poço e subiam cá para cima.',
@@ -278,7 +280,7 @@
   // ================================================================================================ capítulo 4
   const v4 = {
     id: 'v4', rotulo: 'Missão 4.2', lugar: 'Messejana', titulo: 'O Jornal de Messejana', marca: [1180, 300],
-    transforma: { id: 'mapa4', texto: 'Mapa de cobre completo ✓' }, cenario: 'messejana',
+    transforma: { id: 'mapa4', texto: 'Mapa de cobre completo ✓' }, imagem: 'img/percurso/cenario-messejana-praca.webp',
     missao: 'Chegaste a Messejana! Antes da Mostra, o Jornal de Messejana quer uma notícia. O Nico investiga a história da vila, olha para o céu à noite, desenha as ameias do castelo e escreve. Com o último pedaço, o mapa de cobre fica completo.',
     resumo: 'Escrita com plano e revisão · ditado · rádio · ler e provar · ameias com blocos · horas · História e Sistema Solar.',
     estacoes: [
@@ -287,7 +289,7 @@
           frases: ['Messejana tem um pelourinho, uma praça e casas caiadas de branco.', 'As barras das casas são pintadas de azul ou de amarelo.', 'No FabLab, o Nico e a turma prepararam as invenções.', 'Amanhã, todos vão à Mostra de Invenções!'] },
       ] },
       { area: 'port', titulo: 'Ouvir e ler', atividades: [
-        { id: 'v4-rad', tipo: 'radio', titulo: 'Rádio: a história da vila', programa: 'Messejana', pistas: P_RAD,
+        { id: 'v4-rad', tipo: 'radio', titulo: 'Rádio: a história da vila', programa: 'Messejana', personagem: 'jornalista', pistas: P_RAD,
           texto: ['Bem-vindos ao programa «A nossa terra». Hoje falamos de Messejana.',
             'Durante muitos séculos, Messejana foi sede de concelho, com a sua própria câmara. Em 1855 o concelho acabou e Messejana passou a ser uma freguesia do concelho de Aljustrel.',
             'Na vila há um pelourinho de estilo manuelino, o estilo do tempo do rei D. Manuel I. O pelourinho era o símbolo de que a terra tinha concelho.',

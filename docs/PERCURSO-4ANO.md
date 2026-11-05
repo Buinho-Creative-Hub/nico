@@ -63,10 +63,26 @@ estados físicos e ciclo da água, sistema digestivo, rochas e minerais, Vipasca
 concelho (até 1855), o Sistema Solar. Continua sem prova própria na ModA (o IAVE retirou a componente de Estudo do Meio da prova
 de Matemática em 2025), mas é currículo do 4.º ano e dá contexto aos textos e problemas.
 
-**Arte.** Nada desenhado por Pacheco: os cenários das terras são os do Ambrósio (montado, água, património, Messejana) até haver
-cenários próprios de cada terra. Onde ainda falta ilustração há geometria exata (SVG/HTML) ou um ícone simples:
-moeda de cobre (🪙), ícone da estação de Estudo do Meio (🌍), arcada (🕹) e bilhete (🎟). Briefing ao Ambrósio:
-`buinho-os/handoffs/2026-11-05_pacheco_ambrosio_mapa-de-cobre-arte.md`.
+**Arte (Ambrósio, PR #79 no buinho-os, 87 WebP, integrada a 5 Nov).** O manifesto `MAPA-DE-COBRE-ARTE.json` está em
+`buinho-os/OpenAI/drafts/nico-mapa-cobre-arte/`. O que entrou:
+- **Mapa:** o mapa do percurso passou a ser o `mapa-concelho`, esquemático e sem escala. Os botões estão nos pontos do manifesto
+  e as placas (1.1) ficam no caminho que sai de Montes Velhos. O nome do destino só aparece no destino atual, ao passar o rato
+  ou com o foco. O Nico vai de `nico-bicicleta-oficina`. O mapa antigo com/sem ponte deixou de ser usado: a ponte aparece como
+  marca «Ponte ✓» e com a insígnia.
+- **Terras:** os 4 cenários servem para os capítulos e as missões novas.
+- **Loja e economia:** moeda de cobre, ícone `estacao-meio`, bilhete, mapa de cobre em 4 pedaços (na loja) e as capas da arcada.
+- **Jogos:** rádio parado/a tocar, auscultadores e personagens; o Nico a falar no ditado; banca, clientes e produtos da feira,
+  com moeda e nota estilizadas (os valores estão em HTML); saco; retratos e prancheta do inquérito; caixa aberta/fechada;
+  o Nico visto de cima na tartaruga (mais uma seta de direção); vagonetas, carteiro, cesto, caixa fresca e prateleira;
+  pilha, lâmpada e materiais do circuito; arqueóloga, ferramentas e achados; cabeçalho do jornal.
+- **Limpeza:** em `rolha-cortica` e `palito` removi pequenos fragmentos soltos na transparência. Foi só técnico (o maior
+  componente alfa fica), sem redesenho.
+- **Por usar:** `fabrica-frases`, `ditado-caderno` (o caderno é decorativo; a escrita continua em HTML), `camadas-terra`,
+  `arcada-categoria` e `moeda-antiga`. O desenho da `moeda-antiga` é romano, por isso não serve para a «Moeda do rei
+  D. Manuel I» da escavação: fica sem imagem até haver uma moeda manuelina (pedido ao Ambrósio).
+- **Revisão local:** a moeda de cobre tem uma bolota gravada (pode ficar; o Carlos decide). Fachadas e monumentos são
+  interpretações ilustradas: confirmar com a escola e as Juntas.
+
 
 ## 1. Porquê assim
 

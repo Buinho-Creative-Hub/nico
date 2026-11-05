@@ -21,6 +21,7 @@
   const som = n => { if (F.Som) F.Som.tocar(n); };
   const seg = t0 => Math.round((performance.now() - t0) / 100) / 10;
   const reg = (n, fn) => F.PC.oficina.registar(n, fn);
+  const img = (n, cls, alt) => h('img', { src: `img/percurso/${n}.webp`, alt: alt || '', class: cls || '' });   // arte do Ambrósio (pacote Mapa de Cobre, PR #79)
 
   // ------------------------------------------------------------ voz
   const temVoz = () => 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
@@ -85,11 +86,11 @@
     const R = F.PC.relogioDe(api), t0 = performance.now();
     let modo = at.modo || 'fim', k = 0, ouvidas = 0, fase = 'escrever';
     const escritos = at.frases.map(() => ''), primeiras = [];
-    const corpo = h('div', { class: 'li-ditado' });
+    const corpo = h('div', { class: 'li-ditado li-caderno' });
     const escolhaModo = h('div', { class: 'li-modo', role: 'radiogroup', 'aria-label': 'Quando corrigir' },
       ['fim', 'cada'].map(m => h('label', null, h('input', { type: 'radio', name: 'modo-' + at.id, value: m, checked: m === modo ? true : null,
         onchange: () => { modo = m; } }), m === 'fim' ? ' Corrigir no fim' : ' Corrigir a cada frase')));
-    el.append(h('div', { class: 'pc-enunciado of' }, h('p', { class: 'pe-pergunta' }, at.pergunta || 'Ditado do Nico: ouve cada frase e escreve-a.'),
+    el.append(h('div', { class: 'pc-enunciado of li-com-arte' }, img('nico-fala', 'li-arte-lado'), h('p', { class: 'pe-pergunta' }, at.pergunta || 'Ditado do Nico: ouve cada frase e escreve-a.'),
       h('p', { class: 'pe-instr' }, 'Carrega em 🔊 para ouvir. Podes ouvir as vezes que precisares. Escreve com maiúsculas, acentos e pontuação.'), escolhaModo, corpo));
     const semVoz = !temVoz();
     function ditar(lento) {
@@ -171,13 +172,15 @@
     const estado = h('span', { class: 'li-ouvidas' });
     const bOuvir = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, '▶ Ouvir o programa');
     const onda = h('div', { class: 'li-onda', 'aria-hidden': 'true' }, [1, 2, 3, 4, 5, 6, 7].map(() => h('i')));
+    const aparelho = img('radio-parado', 'li-radio-img');
+    const tocar = on => { aparelho.src = `img/percurso/radio-${on ? 'tocar' : 'parado'}.webp`; on ? onda.classList.add('a-tocar') : onda.classList.remove('a-tocar'); };
     const perg = h('ol', { class: 'li-perguntas' });
     const bVer = h('button', { type: 'button', class: 'btn btn-escuro btn-grande' }, 'Verificar as respostas');
     const pintarEstado = () => { estado.textContent = `Ouviste ${ouvidas} de ${max} vezes`; bOuvir.disabled = ouvidas >= max; };
     bOuvir.onclick = () => {
-      if (ouvidas >= max) return; ouvidas++; pintarEstado(); onda.classList.add('a-tocar');
-      if (!falar([at.programa ? 'Rádio de ' + at.programa + '.' : '', ...at.texto], 0.88, () => onda.classList.remove('a-tocar'))) {
-        onda.classList.remove('a-tocar');
+      if (ouvidas >= max) return; ouvidas++; pintarEstado(); tocar(true);
+      if (!falar([at.programa ? 'Rádio de ' + at.programa + '.' : '', ...at.texto], 0.88, () => tocar(false))) {
+        tocar(false);
         api.dizer('a_pensar', 'Este computador não tem voz. Pede ao professor para ler o texto do rádio em voz alta (está no guia).');
       }
     };
@@ -201,14 +204,14 @@
       acabar(false);
     };
     function acabar(ok) {
-      calar(); bVer.disabled = true; bOuvir.disabled = true;
+      calar(); tocar(false); bVer.disabled = true; bOuvir.disabled = true;
       perg.querySelectorAll('input').forEach(i => { i.disabled = true; });
       el.querySelector('.li-radio').append(h('details', { class: 'li-transcricao' }, h('summary', null, 'Ler o texto que ouviste'), at.texto.map(p => h('p', null, p))));
       api.concluir({ ok, tempo: seg(t0), tentativas: tent, ouvidas }, ok ? 'Bons ouvidos! Percebeste tudo.' : 'Ouvir com atenção treina-se. Lê o texto que ouviste.');
     }
     el.append(h('div', { class: 'pc-enunciado of li-radio' }, h('p', { class: 'pe-pergunta' }, at.pergunta || 'Ouve o programa de rádio e responde às perguntas.'),
       h('p', { class: 'pe-instr' }, `O texto não aparece no ecrã: tens de o ouvir (usa os auscultadores, como na prova). Podes ouvir ${max} vezes. Podes ler as perguntas antes de ouvir.`),
-      h('div', { class: 'li-aparelho' }, h('strong', null, '📻 Rádio ' + (at.programa || 'do Nico')), onda, bOuvir, estado), perg, h('div', { class: 'li-botoes' }, bVer)));
+      h('div', { class: 'li-aparelho' }, aparelho, h('strong', null, 'Rádio ' + (at.programa || 'do Nico')), onda, bOuvir, estado, img('auscultadores', 'li-ausc'), at.personagem ? img(at.personagem, 'li-pers') : null), perg, h('div', { class: 'li-botoes' }, bVer)));
     pintarEstado();
     R.depois(() => api.dizer('boas_vindas', 'Primeiro lê as perguntas. Depois carrega em ▶ e ouve com atenção.'), 30);
     return { fechar: () => { R.limpar(); calar(); }, resolver: () => { at.perguntas.forEach((q, i) => { resp[i] = q.certa; }); tent = 0; bVer.onclick(); } };
@@ -410,7 +413,7 @@
         }
         pintar(); R.depois(() => (fase === 1 ? ta : ta).focus(), 50);
       } else {
-        corpo.append(h('article', { class: 'li-jornal' }, h('header', null, h('strong', null, at.jornal || 'Jornal de Messejana'), h('small', null, at.data || 'Edição da Mostra de Invenções')),
+        corpo.append(h('article', { class: 'li-jornal' }, h('header', null, img('jornal-cabecalho', 'li-jornal-cab', at.jornal || 'Jornal de Messejana'), h('small', null, at.data || 'Edição da Mostra de Invenções')),
           h('h2', null, titulo), texto.split(/\n+/).map(p => h('p', null, p))));
         som('sucesso');
         api.concluir({ ok: true, aberta: true, tempo: seg(t0), valor: JSON.stringify({ titulo, texto, plano }) }, 'Publicado! Já está no jornal. 📰');
