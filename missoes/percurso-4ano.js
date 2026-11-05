@@ -788,6 +788,17 @@
       if (extra.length) s.estacoes.push({ area: 'maos', titulo: 'Treino extra (opcional)', extra: true, atividades: extra });
     });
   })();
+  // ================================================================================================= CAPÍTULOS DO CONCELHO
+  // «O Nico e o Mapa de Cobre» (missoes/percurso-4ano-concelho.js, 5 Nov 2026): as missões passam a estar nas terras do
+  // concelho de Aljustrel, ganham uma estação de Estudo do Meio e juntam-se-lhes 4 missões novas. Ids antigos intactos.
+  const CC = F.PC_CONCELHO;
+  if (CC) {
+    sessoes.forEach(s => {
+      const L = CC.lugares[s.id]; if (L) Object.assign(s, L);
+      const M = CC.meio[s.id]; if (M) { const i = s.estacoes.findIndex(e => e.extra); const est = { area: 'meio', titulo: 'Estudo do Meio', atividades: M }; i < 0 ? s.estacoes.push(est) : s.estacoes.splice(i, 0, est); }
+    });
+    sessoes.push(...CC.missoes);
+  }
   // o mapa mostra uma marca por cada missão cumprida (P.mundo[id]); a da Missão 1 é a ponte pintada pelo Ambrósio
   const marcasMundo = sessoes.filter(s => s.transforma).map(s => ({ id: s.transforma.id, texto: s.transforma.texto, em: s.marca }));
 
@@ -830,23 +841,26 @@
   const X = {
     id: 'percurso-4', chave: 'nico.percurso4.v1', pagina: 'percurso.html',
     titulo: 'Percurso 4.º ano', tema: 'A Mostra de Invenções do Nico', cor: '#0e9f6e',
-    descricao: 'Construir pontes, investigar avarias, escrever cartas e programar — e chegar à prova no computador a dominar o rato e o teclado.',
-    boasVindas: { nico: 'Olá! Estou a preparar a Mostra de Invenções e preciso de ti. Em cada missão constróis, investigas, programas e escreves — e o nosso mundo vai mudando. Escolhe uma missão!',
-      _: 'Olá! Em cada missão da Mostra de Invenções constróis, investigas, programas e escreves. Escolhe uma missão!' },
+    descricao: 'O Nico e o Mapa de Cobre: 4 capítulos pelo concelho de Aljustrel — construir, investigar, escrever, programar, ditados e rádio — até às provas no computador.',
+    boasVindas: { nico: 'Olá! O mapa de cobre que guia os inventores até à Mostra partiu-se em quatro pedaços. Vamos buscá-los: Montes Velhos, Ervidel, Aljustrel e Messejana! Em cada missão ganhas moedas de cobre.',
+      _: 'Olá! Em cada missão constróis, investigas, programas e escreves — e ganhas moedas de cobre. Escolhe uma missão!' },
     sessoes, prova, marcasMundo,
   };
+  prova.id = 'final';
+  if (CC) { prova.titulo = 'Os Desafios do Castelo'; prova.capitulo = 'c4'; X.capitulos = CC.capitulos; }
+  X.provas = CC ? [CC.provaFev, prova] : [prova];
   // compatível com o resto do Nico (ecrã inicial, turmas, professor): cada sessão é um «nível» e cada atividade um «desafio»
   X.niveis = sessoes.map(s => ({ nome: (s.rotulo ? s.rotulo + ' · ' : '') + s.titulo, desafios: s.estacoes.filter(e => !e.extra).flatMap(e => e.atividades) }));
   const totalAtividades = X.niveis.reduce((t, n) => t + n.desafios.length, 0);
-  X.textoNiveis = `${sessoes.length} missões · ${totalAtividades} atividades · prova-ensaio`;
+  X.textoNiveis = `${X.capitulos ? X.capitulos.length + ' capítulos · ' : ''}${sessoes.length} missões · ${totalAtividades} atividades · provas-ensaio`;
   // resumo para a área do professor: certas por área e a última prova-ensaio
   const AREA_DE = {};
   sessoes.forEach(s => s.estacoes.forEach(e => e.atividades.forEach(a => { AREA_DE[a.id] = e.area; })));
-  const NOMES = { maos: 'Rato/teclado', prog: 'Programar', mat: 'Matemática', port: 'Português' };
+  const NOMES = { maos: 'Rato/teclado', prog: 'Programar', mat: 'Matemática', port: 'Português', meio: 'Estudo do Meio' };
   X.resumoExtra = d => {
     const por = {};
     Object.entries((d && d.at) || {}).forEach(([id, r]) => { const a = AREA_DE[id]; if (!a) return; por[a] = por[a] || [0, 0]; por[a][1]++; if (r.ok) por[a][0]++; });
-    const p = d && d.provas && d.provas[d.provas.length - 1];
+    const p = d && d.provas && d.provas[d.provas.length - 1];   // a mais recente, de qualquer prova-ensaio
     const det = Object.keys(NOMES).filter(a => por[a]).map(a => `${NOMES[a]} ${por[a][0]}/${por[a][1]} certas`);
     if (p) det.push(`Prova-ensaio ${p.certas}/${p.total} (${p.quando.slice(0, 10)})`);
     return { detalhe: det.join(' · '), prova: p ? `${p.certas}/${p.total}` : null };

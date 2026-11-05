@@ -1,7 +1,7 @@
 /* Nico — service worker (gerado por ferramentas/gerar-sw.py; não editar à mão).
  * Depois de abrir o nico.buinho.pt uma vez com internet, o Nico fica todo guardado no browser e funciona sem rede.
  * Com internet vai sempre buscar a versão mais recente (rede primeiro); sem internet usa a cópia guardada. */
-const VERSAO = 'nico-caa246228f';
+const VERSAO = 'nico-543e0dfe5a';
 const FICHEIROS = [
  "./",
  "css/faisca.css",
@@ -104,9 +104,11 @@ const FICHEIROS = [
  "js/percurso/caminho.js",
  "js/percurso/itens.js",
  "js/percurso/jogos.js",
+ "js/percurso/lingua.js",
  "js/percurso/mascote.js",
  "js/percurso/oficina.js",
  "js/percurso/rato-teclado.js",
+ "js/percurso/territorio.js",
  "js/pistas.js",
  "js/professor.js",
  "js/sensory-oled.js",
@@ -124,6 +126,7 @@ const FICHEIROS = [
  "missoes/matematica.js",
  "missoes/natureza.js",
  "missoes/palco.js",
+ "missoes/percurso-4ano-concelho.js",
  "missoes/percurso-4ano.js",
  "missoes/primeiros-passos.js",
  "missoes/reparar.js",

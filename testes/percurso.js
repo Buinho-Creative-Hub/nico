@@ -138,12 +138,12 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   const fecharJanela = async () => { if (await pg.locator('#janela:not([hidden])').count()) await pg.click('#janelaBotoes .btn:last-child'); };
   const seguinte = async () => { await pg.click('#btnSeguinte'); await pg.waitForTimeout(80); await fecharJanela(); };
   const P = () => pg.evaluate(() => JSON.parse(JSON.stringify(window.Faisca.PC.app.progresso())));
-  ok(await pg.locator('.pc-sessao').count() === 9 && await pg.locator('.pc-mapa-arte .ma-no').count() === 8, '7 missões + prova-ensaio + oficina na lista; 8 destinos no mapa');
+  ok(await pg.locator('.pc-sessao').count() === 14 && await pg.locator('.pc-cap').count() === 4 && await pg.locator('.pc-mapa-arte .ma-no').count() === 8, '4 capítulos · 11 missões + 2 provas-ensaio + loja na lista; 8 destinos no mapa');
   const caixaMapa = await pg.locator('.pc-mapa-arte').boundingBox();
   const nos = await pg.$$eval('.pc-mapa-arte .ma-no', l => l.map(b => { const r = b.getBoundingClientRect(); return [b.getAttribute('aria-label'), r.left, r.right, r.top, r.bottom]; }));
   const cortados = nos.filter(([, l, r, t, b]) => l < caixaMapa.x || r > caixaMapa.x + caixaMapa.width || t < caixaMapa.y);
   ok(!cortados.length, 'nenhum botão do mapa sai da imagem' + (cortados.length ? ': ' + cortados.map(x => x[0]).join(', ') : ''));
-  const agua = nos.find(n => /Missão 4/.test(n[0])), pat = nos.find(n => /Missão 7/.test(n[0]));
+  const agua = nos.find(n => /A água da horta/.test(n[0])), pat = nos.find(n => /O painel do castelo/.test(n[0]));
   ok(agua && Math.abs((agua[1] + 25 - caixaMapa.x) / caixaMapa.width - 585 / 1536) < 0.02 && pat && Math.abs((pat[1] + 25 - caixaMapa.x) / caixaMapa.width - 180 / 1536) < 0.02,
     'Observatório da Água em (585,650) e Património em (180,70)');
   ok(await pg.locator('.pc-mapa-arte .ma-camada[src*="mapa-observatorio-agua"]').count() === 1, 'camada do Observatório da Água no mapa sem ponte');
@@ -151,7 +151,10 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
   // ------------------------------------------------------------ 3. Missão 2 (sessão 1) de ponta a ponta pela interface
   console.log('Missão 2 · As placas da Mostra (sessão 1)');
-  await pg.locator('.pc-sessao').nth(1).click();
+  await pg.locator('.pc-sessao').nth(0).click();
+  await pg.waitForSelector('#janela:not([hidden])');
+  ok((await pg.textContent('#janelaTitulo')).includes('Montes Velhos'), 'a primeira vez, o capítulo abre com a história: ' + (await pg.textContent('#janelaTitulo')));
+  await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('#janela:not([hidden])');
   ok((await pg.textContent('#janelaTexto')).includes('perdem-se'), 'a missão abre com o problema: ' + (await pg.textContent('#janelaTitulo')));
   await pg.click('#janelaBotoes .btn');
@@ -273,6 +276,16 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.fill('textarea.of-explica', 'Ao meio-dia o Sol está a sul. Quem ficar de costas para o Sol olha para norte e encontra a escola.');
   await pg.click('button:has-text("Enviar")');
   await pg.waitForSelector('.of-resposta', { timeout: 5000 });
+  // estação nova de Estudo do Meio (5 Nov): sombra ao meio-dia (escolha) e Portugal (verdadeiro/falso), pela interface
+  await seguinte();
+  await pg.waitForSelector('.it-opcao');
+  await pg.locator('.it-opcao').nth(0).click(); await pg.click('#btnVerificar');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
+  await pg.waitForSelector('.it-vf');
+  for (const [i, v] of [[0, 0], [1, 0], [2, 1]]) await pg.locator('.it-vf tbody tr').nth(i).locator('.vf-c button').nth(v).click();
+  await pg.click('#btnVerificar');
+  await pg.waitForSelector('#btnSeguinte:not([hidden])');
+  ok(await pg.locator('.pr-msg.certo').count() === 1, 'Estudo do Meio na missão das placas: respondido pela interface');
   await pg.click('#btnSeguinte');
   await pg.waitForSelector('#janela:not([hidden])');
   const fim = await pg.textContent('#janelaTexto');
@@ -281,15 +294,17 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await foto('s1-fim');
   const p1 = await P();
   const s1 = await pg.evaluate(() => { const s = window.Faisca.MISSOES['percurso-4'].sessoes[1]; return s.estacoes.filter(e => !e.extra).flatMap(e => e.atividades).map(a => [a.id, a.tipo]); });
-  const esperadas = s1.reduce((t, [, tp]) => t + (['caminho', 'ponte', 'detetive', 'correio', 'horta', 'mosaico'].includes(tp) ? 5 : 3), 0);
-  ok(s1.every(([id]) => p1.at[id]) && p1.bolotas === esperadas && p1.mundo.placas, `progresso: ${s1.length} atividades, ${p1.bolotas} bolotas (esperadas ${esperadas}), mundo.placas`);
+  const esperadas = s1.reduce((t, [, tp]) => t + (['caminho', 'ponte', 'detetive', 'correio', 'horta', 'mosaico', 'ditado', 'radio', 'feira', 'saco', 'inquerito', 'planificacao', 'tartaruga', 'triagem', 'circuito', 'arqueologia', 'jornal', 'sublinhar', 'frases'].includes(tp) ? 5 : 3), 0);
+  ok(s1.every(([id]) => p1.at[id]) && p1.bolotas === esperadas && p1.mundo.placas, `progresso: ${s1.length} atividades, ${p1.bolotas} moedas (esperadas ${esperadas}), mundo.placas`);
   await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('.pc-mapa-arte .ma-marca');
   ok((await pg.textContent('.pc-mapa-arte')).includes('Placas da Mostra'), 'a marca «Placas da Mostra ✓» aparece no mapa');
 
   // ------------------------------------------------------------ 4. Missão 1: previsão só com teclado, ponte, detetive, correio
   console.log('Missão 1 · A ponte da ribeira');
-  await pg.locator('.pc-sessao').nth(0).click(); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
+  // a ponte está agora no capítulo de Ervidel: abre-se com o bilhete (e a história já vista)
+  await pg.evaluate(() => { const P = window.Faisca.PC.app.progresso(); P.bilhetes = ['c2']; P.historias = ['c1', 'c2']; window.Faisca.PC.app.mapa(); });
+  await pg.locator('.pc-sessao', { hasText: 'A ponte da ribeira' }).click(); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
   await pg.waitForSelector('.rt-alvo');
   for (let i = 0; i < 8; i++) await pg.locator('.rt-alvo').click();
   await pg.waitForSelector('#btnSeguinte:not([hidden])'); await seguinte();
@@ -350,7 +365,11 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.waitForSelector('button:has-text("Enviar")');
   await pg.fill('textarea.of-explica', 'Olá, Dona Aurora! No dia 20 de maio há a Mostra de Invenções do Nico na escola, com pontes e robôs. Venha!');
   await pg.click('button:has-text("Enviar")'); await pg.waitForSelector('.of-resposta', { timeout: 5000 }); await pg.click('#btnSeguinte');
-  await pg.fill('.it-curta input', 'passou'); await pg.click('#btnVerificar'); await pg.click('#btnSeguinte');
+  await pg.fill('.it-curta input', 'passou'); await pg.click('#btnVerificar'); await seguinte();
+  // Estudo do Meio (seres vivos da ribeira), pela interface
+  await pg.waitForSelector('.it-vf');
+  for (const [i, v] of [[0, 0], [1, 0], [2, 1]]) await pg.locator('.it-vf tbody tr').nth(i).locator('.vf-c button').nth(v).click();
+  await pg.click('#btnVerificar'); await pg.waitForSelector('#btnSeguinte:not([hidden])'); await pg.click('#btnSeguinte');
   await pg.waitForSelector('#janela:not([hidden])');
   ok((await pg.textContent('#janelaTexto')).includes('Construtor de pontes'), 'missão 1 completa: insígnia');
   await pg.click('#janelaBotoes .btn');
@@ -360,9 +379,11 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await foto('m1-mapa-com-ponte');
 
   // ------------------------------------------------------------ 5. Horta programável (M4) só com teclado
+  // abrir uma missão pelo índice (ordem antiga das missões); os capítulos ficam todos abertos e com a história já vista
+  const abrirK = k => pg.evaluate(k => { const P = window.Faisca.PC.app.progresso(); P.bilhetes = ['c2', 'c3', 'c4']; P.historias = ['c1', 'c2', 'c3', 'c4']; window.Faisca.PC.app.entrar(k); }, k);
   console.log('Missão 4 · Horta programável (só teclado)');
   const tecla = async (sel, k = 'Enter') => { await pg.locator(sel).first().focus(); await pg.keyboard.press(k); };
-  await pg.locator('.pc-sessao').nth(3).click(); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
+  await abrirK(3); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn');
   await pg.locator('.pc-est', { hasText: 'Horta programável' }).click();
   await pg.waitForSelector('.hp-canteiro');
   // h1: uma dose de cada vez (prever 1 dose no canteiro 1)
@@ -412,7 +433,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   ok(ph.bolotas === b0 + 5 && ph.at['s3-h2'].estado === 'autonomo' && ph.at['s3-h2'].v.includes('sensor') && ph.at['s3-h2'].previsoes >= 1, `H2: 5 bolotas, estado ${ph.at['s3-h2'].estado}, explicação e previsões registadas`);
   // recarregar e repetir: a recompensa não volta a ser paga
   await pg.reload(); await pg.waitForSelector('.pc-mapa-arte');
-  await pg.locator('.pc-sessao').nth(3).click(); await fecharJanela();
+  await abrirK(3); await fecharJanela();
   await pg.locator('.pc-est', { hasText: 'Horta programável' }).click(); await pg.waitForSelector('.hp-canteiro');
   await pg.evaluate(() => window.Faisca.PC.app.seguinte());
   await pg.waitForSelector('.hp-canteiro');
@@ -425,7 +446,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   console.log('Missão 6 · Ateliê de mosaicos (só teclado)');
   const cel = (r, c) => `.mo-celulas > button:nth-child(${(r - 1) * 6 + c})`;
   await pg.locator('#btnMissoes').click(); await pg.waitForSelector('.pc-mapa-arte');
-  await pg.locator('.pc-sessao').nth(5).click(); await fecharJanela();
+  await abrirK(5); await fecharJanela();
   await pg.locator('.pc-est', { hasText: 'Ateliê de mosaicos' }).click();
   await pg.waitForSelector('.mo-celulas');
   ok(await pg.locator('.mo-cel.cobrir').count() === 6, 'A1: retângulo 2×3 marcado para cobrir');
@@ -473,13 +494,13 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await tecla('.hp-lista.dentro .hp-lista.dentro > .hp-ranhura'); await tecla('.hp-pal.op-repetir');
   const antesR = await pg.evaluate(() => JSON.stringify(window.Faisca.PC.app.atual().estado().prog));
   await pg.reload(); await pg.waitForSelector('.pc-mapa-arte');
-  await pg.locator('.pc-sessao').nth(5).click(); await fecharJanela();
+  await abrirK(5); await fecharJanela();
   await pg.locator('.pc-est', { hasText: 'Horta programável' }).click(); await pg.waitForSelector('.hp-canteiro');
   ok(await pg.evaluate(() => JSON.stringify(window.Faisca.PC.app.atual().estado().prog)) === antesR && (await pg.textContent('.at-vivo')).includes('Recuperei'), 'rascunho da Horta retomado depois de recarregar');
 
   // M5-03B: painel em espelho com erro deliberado
   console.log('Missão 7 · painel em espelho');
-  await pg.locator('#btnMissoes').click(); await pg.locator('.pc-sessao').nth(6).click(); await fecharJanela();
+  await pg.locator('#btnMissoes').click(); await abrirK(6); await fecharJanela();
   await pg.locator('.pc-est', { hasText: 'Ateliê' }).click();
   await pg.waitForSelector('.mo-celulas');
   const n0 = await pg.locator('.mo-cel.cheia').count();
@@ -559,7 +580,8 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
   // ------------------------------------------------------------ 9. todas as atividades de todas as missões abrem (inclui o treino extra)
   console.log('Todas as atividades abrem e concluem');
-  for (let s = 2; s <= 7; s++) {
+  const nMissoes = await pg.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes.length);
+  for (let s = 2; s <= nMissoes; s++) {
     await pg.goto(url('percurso.html', '?s=' + s));
     await pg.waitForSelector('#vSessao:not([hidden])');
     const ests = await pg.evaluate(k => window.Faisca.MISSOES['percurso-4'].sessoes[k].estacoes.map(e => e.atividades.length), s - 1);
@@ -583,6 +605,149 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     }
     ok(true, `missão ${s}: ${n} atividades abertas`);
   }
+
+  // ------------------------------------------------------------ 10. «O Nico e o Mapa de Cobre»: capítulos, moedas e jogos novos (5 Nov 2026)
+  console.log('Capítulos do concelho, moedas e jogos novos');
+  await pg.goto(url('percurso.html'));
+  await pg.waitForSelector('.pc-cap');
+  const pur = await pg.evaluate(() => {
+    const F = window.Faisca, T = F.PC.terr, L = F.PC.lingua, X = F.MISSOES['percurso-4'], out = [];
+    const todas = X.sessoes.flatMap(s => s.estacoes.flatMap(e => e.atividades));
+    out.push(['cruz é planificação do cubo', T.redeCubo([[1, 1], [0, 2], [1, 2], [2, 2], [3, 2], [1, 3]])]);
+    out.push(['6 em fila não é planificação', !T.redeCubo([[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5]])]);
+    out.push(['quadrado 2×3 não é planificação', !T.redeCubo([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])]);
+    todas.filter(a => a.tipo === 'tartaruga').forEach(a => {
+      out.push([`${a.id}: a solução cumpre (${T.contarBlocos(a.solucao)} blocos)`, T.verificarTartaruga(a, a.solucao).ok]);
+      out.push([`${a.id}: o programa vazio não cumpre`, !T.verificarTartaruga(a, a.inicial || []).ok]);
+    });
+    todas.filter(a => a.tipo === 'triagem').forEach(a => {
+      const ds = T.correrTriagem(a.solucao, a.itens), di = T.correrTriagem(a.inicial, a.itens);
+      out.push([`${a.id}: a solução põe tudo no sítio`, a.itens.every(([t], i) => ds[i] === a.certo[t]) && a.solucao.regras.length <= a.maxRegras]);
+      out.push([`${a.id}: o programa inicial falha`, a.itens.some(([t], i) => di[i] !== a.certo[t])]);
+    });
+    todas.filter(a => a.tipo === 'feira').forEach(a => a.rondas.filter(r => r.tipo === 'orcamento').forEach(r => {
+      const tot = r.solucao.reduce((t, i) => t + T.cent(r.produtos[i][1]), 0);
+      out.push([`${a.id}: o orçamento tem solução (${T.euros(tot)} ≤ ${T.euros(T.cent(r.tem))})`, r.solucao.length === r.n && tot <= T.cent(r.tem)]);
+    }));
+    todas.filter(a => a.tipo === 'inquerito').forEach(a => out.push([`${a.id}: uma só moda (${T.moda(a.respostas)})`, T.moda(a.respostas).length === 1 && a.ditos.length === a.respostas.length]));
+    todas.filter(a => a.tipo === 'sublinhar').forEach(a => out.push([`${a.id}: as frases certas existem no texto`, a.perguntas.every(q => { const [p, f] = q.certa.split('.').map(Number); return L.frasesDe(a.texto.paragrafos[p - 1])[f - 1]; })]));
+    todas.filter(a => a.tipo === 'frases' && a.modo === 'sujeito').forEach(a => out.push([`${a.id}: cortes dentro das frases`, a.frases.every(([f, c]) => c > 0 && c < f.split(' ').length)]));
+    todas.filter(a => a.tipo === 'frases' && a.modo === 'construir').forEach(a => out.push([`${a.id}: há peças para cada encaixe`, a.molde.every(c => a.pecas.filter(p => p[1] === c).length >= a.molde.filter(x => x === c).length)]));
+    const c = (a, b) => L.comparar(a, b).palavras.filter(p => p.tipo !== 'ok').map(p => p.tipo).join();
+    out.push(['ditado: acento', c('O Nico está aqui.', 'O Nico esta aqui.') === 'acento']);
+    out.push(['ditado: maiúscula', c('Vive em Messejana.', 'Vive em messejana.') === 'maiuscula']);
+    out.push(['ditado: pontuação', c('Vive em Messejana.', 'Vive em Messejana') === 'pontuacao']);
+    out.push(['ditado: palavra em falta', c('O Nico foi à praça.', 'O Nico à praça.') === 'falta']);
+    out.push(['ditado: palavra mal escrita', c('O Nico foi à praça.', 'O Nico fói à prasa.') === 'acento,letra']);
+    out.push(['ditado: sem erros', c('Quem ganhou?', 'Quem ganhou?') === '']);
+    out.push(['4 capítulos pela ordem da história', X.capitulos.map(k => k.nome).join() === 'Montes Velhos,Ervidel,Aljustrel,Messejana']);
+    out.push(['cada missão está num capítulo', X.sessoes.every(s => X.capitulos.some(k => k.sessoes.includes(s.id)))]);
+    out.push(['todas as missões antigas têm Estudo do Meio', X.sessoes.every(s => s.estacoes.some(e => e.area === 'meio'))]);
+    out.push(['2 provas-ensaio (fevereiro e Desafios do Castelo)', X.provas.length === 2 && X.provas[1] === X.prova]);
+    // cada bilhete custa menos do que as moedas do capítulo anterior
+    const moedas = k => k.sessoes.reduce((t, id) => t + X.sessoes.find(s => s.id === id).estacoes.filter(e => !e.extra).flatMap(e => e.atividades).length * 3, 0);
+    X.capitulos.slice(1).forEach((k, i) => out.push([`bilhete de ${k.nome} (${k.bilhete}) < moedas mínimas de ${X.capitulos[i].nome} (${moedas(X.capitulos[i])})`, k.bilhete < moedas(X.capitulos[i])]));
+    const ids = X.sessoes.flatMap(s => s.estacoes.flatMap(e => e.atividades.map(a => a.id))).concat(X.provas.flatMap(p => p.itens.map(i => i.id)));
+    out.push(['ids únicos (com as missões novas e a prova de fevereiro)', new Set(ids).size === ids.length]);
+    return out;
+  });
+  pur.forEach(([m, c]) => ok(c, m));
+
+  // capítulos fechados e bilhetes (progresso novo)
+  const ctx4 = await br.newContext({ viewport: { width: 1366, height: 768 } }); const p4 = await ctx4.newPage();
+  p4.on('pageerror', e => erros.push(e.message));
+  await p4.goto(url('percurso.html')); await p4.waitForSelector('.pc-cap');
+  ok(await p4.locator('#cap-c2.fechado').count() === 1 && await p4.locator('#cap-c1.fechado').count() === 0, 'progresso novo: Montes Velhos aberto, Ervidel fechado');
+  await p4.locator('#cap-c2 ~ .pc-sessao').first().click();
+  await p4.waitForSelector('#janela:not([hidden])');
+  ok((await p4.textContent('#janelaTitulo')).includes('fechado'), 'missão de um capítulo fechado mostra o aviso: ' + await p4.textContent('#janelaTitulo'));
+  await p4.click('#janelaBotoes .btn-texto');
+  await p4.evaluate(() => { const P = window.Faisca.PC.app.progresso(); P.bolotas = 31; window.Faisca.PC.app.mapa(); });
+  await p4.click('#cap-c2 .pcap-bilhete .btn-azul');
+  await p4.waitForSelector('#janela:not([hidden])');
+  await p4.click('#janelaBotoes .btn-azul');
+  const pb = await p4.evaluate(() => { const P = window.Faisca.PC.app.progresso(); return { m: P.bolotas, b: P.bilhetes }; });
+  ok(pb.m === 1 && pb.b.includes('c2') && await p4.locator('#cap-c2.fechado').count() === 0, `bilhete comprado: Ervidel aberto, sobra ${pb.m} moeda`);
+  // cumprir as missões de um capítulo abre o seguinte de graça
+  await p4.evaluate(() => { const F = window.Faisca, X = F.MISSOES['percurso-4'], P = F.PC.app.progresso();
+    X.capitulos[1].sessoes.forEach(id => X.sessoes.find(s => s.id === id).estacoes.filter(e => !e.extra).forEach(e => e.atividades.forEach(a => { P.at[a.id] = { ok: true }; })));
+    F.PC.app.mapa(); });
+  ok(await p4.locator('#cap-c3.fechado').count() === 0 && await p4.locator('#cap-c4.fechado').count() === 1, 'Ervidel cumprido: Aljustrel abre de graça, Messejana continua fechado');
+  // a história do capítulo aparece ao entrar a primeira vez
+  await p4.locator('#cap-c3 ~ .pc-sessao').first().click();
+  await p4.waitForSelector('#janela:not([hidden])');
+  ok((await p4.textContent('#janelaTitulo')).includes('Aljustrel'), 'ao entrar em Aljustrel aparece a história do capítulo: ' + await p4.textContent('#janelaTitulo'));
+  if (CAP) await p4.screenshot({ path: path.join(CAP, '15-capitulo.png') });
+  await p4.click('#janelaBotoes .btn-azul');
+  await p4.waitForSelector('#vSessao:not([hidden])');
+  await p4.waitForSelector('#janela:not([hidden])');
+  ok((await p4.textContent('#janelaTitulo')).includes('painel do castelo'), 'e depois abre a missão com o problema');
+  await p4.click('#janelaBotoes .btn');
+
+  // ditado jogado pelo teclado, com um erro e a correção
+  const kv1 = await p4.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes.findIndex(s => s.id === 'v1'));
+  await p4.evaluate(k => window.Faisca.PC.app.abrirSessao(k, 0, 0), kv1);
+  await p4.waitForSelector('.li-entrada');
+  const frs = await p4.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes.find(s => s.id === 'v1').estacoes[0].atividades[0].frases);
+  for (let i = 0; i < frs.length; i++) {
+    await p4.waitForSelector('.li-entrada:not([disabled])');
+    await p4.locator('.li-entrada').click();
+    await p4.keyboard.type(i === 1 ? frs[i].replace('à', 'a') : frs[i]);
+    await p4.keyboard.press('Enter');
+  }
+  await p4.waitForSelector('.li-dif .mal.acento');
+  ok(await p4.locator('.li-dif .mal').count() === 1, 'ditado: o erro de acento fica assinalado (1 erro)');
+  if (CAP) await p4.screenshot({ path: path.join(CAP, '16-ditado.png') });
+  await p4.locator('input.li-entrada').first().fill(frs[1]);
+  await p4.click('.li-ditado .btn-azul');
+  await p4.waitForSelector('#btnSeguinte:not([hidden])');
+  const rd = await p4.evaluate(() => window.Faisca.PC.app.progresso().at['v1-dit']);
+  ok(rd && rd.falhas === 1 && rd.estado === 'apoio', `ditado guardado: ${rd && rd.falhas} erro na 1.ª escrita, estado ${rd && rd.estado}`);
+
+  // feira: pagar com as moedas (rato)
+  const kv2 = await p4.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes.findIndex(s => s.id === 'v2'));
+  await p4.evaluate(k => window.Faisca.PC.app.abrirSessao(k, 1, 0), kv2);
+  await p4.waitForSelector('.te-bolsa');
+  for (const m of ['2 €', '20 c', '10 c', '5 c']) await p4.locator('.te-bolsa .te-moeda', { hasText: new RegExp('^' + m + '$') }).click();
+  await p4.click('.te-feira ~ .li-botoes .btn-azul');
+  await p4.waitForFunction(() => /Cliente 2/.test(document.querySelector('.li-frase-num').textContent), null, { timeout: 5000 }).catch(() => {});
+  ok(/Cliente 2/.test(await p4.textContent('.li-frase-num')), 'feira: 2,35 € pagos com 2 € + 20 c + 10 c + 5 c → cliente seguinte');
+  if (CAP) await p4.screenshot({ path: path.join(CAP, '17-feira.png') });
+
+  // tartaruga: montar o quadrado com os botões (sem arrastar)
+  const kv3 = await p4.evaluate(() => window.Faisca.MISSOES['percurso-4'].sessoes.findIndex(s => s.id === 'v3'));
+  await p4.evaluate(k => window.Faisca.PC.app.abrirSessao(k, 1, 0), kv3);
+  await p4.waitForSelector('.te-paleta');
+  await p4.click('.te-paleta .te-op-repete');
+  await p4.click('.te-ranhura >> nth=0');
+  await p4.click('.te-paleta .te-op-avanca');
+  await p4.click('.te-paleta .te-op-dir');
+  await p4.locator('.te-prog .te-op-avanca select').selectOption('3');
+  await p4.click('text=▶ Experimentar');
+  await p4.waitForSelector('#btnSeguinte:not([hidden])', { timeout: 15000 });
+  ok(true, 'tartaruga: repete 4 [avança 3, roda à direita] desenha o quadrado e conclui');
+  if (CAP) await p4.screenshot({ path: path.join(CAP, '18-tartaruga.png') });
+
+  // loja: comprar e jogar um jogo extra
+  await p4.evaluate(() => { window.Faisca.PC.app.progresso().bolotas = 20; window.Faisca.PC.app.oficina(); });
+  await p4.locator('.pc-arcada button', { hasText: 'Corrida nas ruas de Messejana' }).click();
+  await p4.waitForSelector('.pc-arcada-palco canvas, .pc-arcada-palco .jg-plataforma, .pc-arcada-palco *', { timeout: 5000 });
+  const arc = await p4.evaluate(() => { const P = window.Faisca.PC.app.progresso(); return { m: P.bolotas, a: P.arcada }; });
+  ok(arc.m === 5 && arc.a.includes('arc-messejana'), `jogo extra comprado (sobram ${arc.m} moedas) e a jogar`);
+  if (CAP) await p4.screenshot({ path: path.join(CAP, '19-arcada.png') });
+  await p4.click('text=← Voltar à loja');
+  await p4.locator('.pc-arcada button', { hasText: 'Corrida nas ruas de Messejana' }).click();
+  const arc2 = await p4.evaluate(() => window.Faisca.PC.app.progresso().bolotas);
+  ok(arc2 === 5, 'jogar outra vez não volta a cobrar');
+  await ctx4.close();
+
+  // prova-ensaio de fevereiro
+  await pg.goto(url('percurso.html', '?prova=fev'));
+  await pg.waitForSelector('.pv-nav button');
+  ok(await pg.locator('.pv-nav button').count() === 12, 'prova de fevereiro: 12 questões');
+  await pg.click('text=Entregar a prova'); await pg.waitForSelector('#janela:not([hidden])'); await pg.click('#janelaBotoes .btn-azul'); await pg.waitForSelector('.pv-res');
+  const pf = await pg.evaluate(() => window.Faisca.PC.app.progresso().provas.slice(-1)[0]);
+  ok(pf.id === 'fev', 'o resultado fica guardado com o id da prova (fev)');
 
   // ------------------------------------------------------------ prova-ensaio
   console.log('Prova-ensaio');

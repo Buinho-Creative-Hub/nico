@@ -8,10 +8,70 @@
 Abre em **`percurso.html`**. No ecrã inicial do Nico é o cartão «Percurso 4.º ano», e o endereço `index.html?m=percurso-4`
 também lá vai ter. Com `?s=3` abre-se a 3.ª missão da lista (a sessão 2), e com `?prova=1` a prova-ensaio.
 
+## 0. «O Nico e o Mapa de Cobre» — capítulos pelo concelho de Aljustrel (5 Nov 2026)
+
+Pedido do Carlos, a partir do teste feito pelo **Jaime** (filho do Carlos, fundador do Buinho, com quem começou o primeiro agente, o Chaimite):
+moedas em vez de bolotas, capítulos nas terras do concelho com uma história, mais jogos e mais ligados ao currículo do 4.º ano,
+ditados e Estudo do Meio com estação própria. Aprovado pelo Carlos: «sim concordo com tudo. avança com todos os jogos».
+
+**A história.** O mapa de cobre que guia os inventores até à Mostra, no castelo de Messejana, partiu-se em quatro pedaços.
+O Nico vai buscá-los de bicicleta-oficina, terra a terra. Ao entrar num capítulo pela primeira vez aparece a história, com o
+cenário do Ambrósio. Cada missão nova dá um pedaço do mapa (marca no mapa e na Mostra).
+
+| Capítulo | Quando | Missões (ids) | Bilhete |
+|---|---|---|---|
+| 1 · Montes Velhos | nov–dez | 1.1 placas (`s1`) · 1.2 cortiça (`s2`) · **1.3 o inquérito (`v1`)** | aberto |
+| 2 · Ervidel | jan–fev | 2.1 ponte (`m1`) · 2.2 água (`s3`) · 2.3 almoço (`s5`) · **2.4 a feira (`v2`)** · **prova-ensaio de fevereiro** | 30 moedas |
+| 3 · Aljustrel | mar–abr | 3.1 painel do castelo (`s6`) · **3.2 a mina e o moinho (`v3`)** | 35 moedas |
+| 4 · Messejana | mai | 4.1 FabLab (`s4`) · **4.2 o Jornal de Messejana (`v4`)** · **Os Desafios do Castelo** (prova final) | 40 moedas |
+
+O conteúdo está em `missoes/percurso-4ano-concelho.js` (lido antes de `missoes/percurso-4ano.js`, que o junta). A ordem do
+array `X.sessoes` não mudou (`?s=N` continua igual); os capítulos só agrupam ids. Nenhum id antigo mudou.
+
+**Moedas de cobre.** Guardam-se em `P.bolotas` (nome antigo, para ninguém perder o que ganhou). 5 moedas por cada mecânica
+grande e 3 pelas outras, só na 1.ª conclusão. Compram:
+- **jogos extra** na loja (arcada): compra única, depois joga-se à vontade; não contam para as missões. Usam os motores e os
+  cenários do Ambrósio. Fica lugar para jogos feitos pelos alunos (o primeiro previsto é o jogo retro do Jaime, quando houver
+  uma exportação HTML5);
+- **decoração** da oficina;
+- o **bilhete** para o capítulo seguinte. **Quem cumpre todas as missões de um capítulo recebe o bilhete seguinte de graça**; as
+  moedas servem para ir mais cedo. Quem já começou um capítulo nunca fica de fora. O professor abre tudo com `?cap=todos`.
+Nunca compram pistas, respostas ou vantagens. O teste confirma que cada bilhete custa menos do que as moedas mínimas do
+capítulo anterior.
+
+**Jogos novos** (`js/percurso/lingua.js` e `js/percurso/territorio.js`, registados em `F.PC.oficina`):
+
+| Tipo | O que treina (Aprendizagens Essenciais do 4.º ano) | Onde |
+|---|---|---|
+| `ditado` | ortografia, acentuação, maiúsculas e pontuação; ouvir e escrever no teclado. Voz pt-PT do computador (🔊 e 🐢 mais devagar); a criança escolhe **corrigir no fim** ou **a cada frase**; os erros ficam assinalados por tipo (acento, maiúscula, pontuação, palavra mal escrita, em falta, a mais) e corrige uma vez. Sem voz no PC: o professor dita | 1.3 · 2.4 · 3.2 · 4.2 |
+| `radio` | **compreensão do oral** (a prova de Português tem uma parte com auscultadores): o texto não aparece, ouve-se 2 vezes e responde-se; no fim pode ler-se a transcrição | 1.3 · 2.4 · 3.2 · 4.2 |
+| `sublinhar` | leitura: clicar na frase que prova a resposta (gesto de selecionar no texto) | 1.3 · 4.2 |
+| `frases` | gramática em blocos com cores por classe: dizer a classe, separar sujeito e predicado, construir frases num molde | 1.3 · 2.4 · 3.2 |
+| `jornal` | escrita com plano → texto → revisão por lista → publicação | 4.2 |
+| `feira` | dinheiro: pagar a quantia certa, dar troco, escolher dentro do orçamento (euros e cêntimos, decimais) | 2.4 |
+| `saco` | probabilidades: certo, possível, impossível; onde é mais provável; simular tiragens | 2.4 |
+| `inquerito` | dados: recolher, contar, tabela de frequências, gráfico de barras, **moda** | 1.3 |
+| `planificacao` | planificação do cubo (dobragem verificada) e faces, arestas e vértices de prismas e pirâmides | 2.4 |
+| `tartaruga` | programar o Nico a desenhar: polígonos, perímetro, ângulos retos, padrões com «repete» (pensamento computacional das AE de Matemática) | 3.2 · 4.2 |
+| `triagem` | condições «se… senão se… senão» (cartas do carteiro, produtos da feira, vagonetas da mina) | 1.3 · 2.4 · 3.2 |
+| `circuito` | Estudo do Meio: condutores e isoladores num circuito com pilha e lâmpada | 3.2 |
+| `arqueologia` | Estudo do Meio: camadas (mais fundo = mais antigo) e linha do tempo | 3.2 |
+
+**Estudo do Meio** tem agora estação própria (cor terracota) em todas as missões: seres vivos, orientação pelo Sol, Portugal,
+montado, poupar água, ecopontos, Roda dos Alimentos, cronologia, localidade/freguesia/concelho/distrito, órgãos autárquicos,
+estados físicos e ciclo da água, sistema digestivo, rochas e minerais, Vipasca e o foral de 1252, Messejana como antigo
+concelho (até 1855), o Sistema Solar. Continua sem prova própria na ModA (o IAVE retirou a componente de Estudo do Meio da prova
+de Matemática em 2025), mas é currículo do 4.º ano e dá contexto aos textos e problemas.
+
+**Arte.** Nada desenhado por Pacheco: os cenários das terras são os do Ambrósio (montado, água, património, Messejana) até haver
+cenários próprios de cada terra. Onde ainda falta ilustração há geometria exata (SVG/HTML) ou um ícone simples:
+moeda de cobre (🪙), ícone da estação de Estudo do Meio (🌍), arcada (🕹) e bilhete (🎟). Briefing ao Ambrósio:
+`buinho-os/handoffs/2026-11-05_pacheco_ambrosio_mapa-de-cobre-arte.md`.
+
 ## 1. Porquê assim
 
 - **A ModA do 4.º ano é digital** e avalia **Português e Matemática** todos os anos, mais uma disciplina rotativa
-  (2025: Inglês; 2026: Educação Artística). Desde 2025 o **Estudo do Meio já não tem prova própria**. Por isso entra
+  (2025: Inglês; 2026: Educação Artística; 2027: Educação Física, prática e fora do computador). Desde 2025 o **Estudo do Meio já não tem prova própria**. Por isso entra
   aqui como **contexto**: temas dos textos de leitura, dos problemas e dos mapas de programação. Assim continua a ser
   trabalhado sem ocupar uma estação.
 - Na prova digital muitas crianças perdem pontos por **não dominarem o computador**, e não por não saberem a matéria.

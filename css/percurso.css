@@ -6,6 +6,7 @@
   --port: #d6336c;     /* Português */
   --prog: #4b7bec;     /* Programar (gaveta Sprites do MakeCode Arcade) */
   --maos: #0e9f6e;     /* Rato e teclado */
+  --meio: #c2410c;     /* Estudo do Meio (terracota) */
   --certo: #12805c;
   --errado: #c92a2a;
   --papel: #ffffff;
@@ -633,3 +634,148 @@ body.pc-blocos .pc-balao { font-size: 15px; }
 .pc-mostra li.tem { border: 2px solid var(--certo); color: #17213B; background: #e7f6ef; }
 
 .pc-est span { font-size: 14px; line-height: 1.1; }
+
+/* ---------------------------------------------------------------- capítulos do concelho e moedas de cobre (5 Nov 2026) */
+.pc-moeda { font-size: 20px; line-height: 1; }
+.pc-cap { grid-column: 1 / -1; display: flex; gap: 18px; align-items: center; padding: 14px 18px; border-radius: 10px; background: #fff8ee; border: 2px solid #e8c9a0; margin-top: 10px; }
+.pc-cap h2 { margin: 2px 0 4px; font-size: 26px; }
+.pc-cap p { margin: 0 0 6px; font-size: 16px; line-height: 1.45; max-width: 900px; }
+.pc-cap .pcap-img { width: 190px; height: 110px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; }
+.pc-cap .pcap-n { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #8a5a2b; }
+.pc-cap .pcap-estado { font-size: 14px; font-weight: 700; color: var(--certo); }
+.pc-cap.fechado { background: #f3f3f3; border-color: #cfcfcf; }
+.pc-cap.fechado .pcap-img { filter: grayscale(1); opacity: .6; }
+.pc-cap.fechado .pcap-estado { color: #666; }
+.pcap-bilhete { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-top: 8px; }
+.pcap-bilhete small { color: #555; }
+.pc-sessao.fechada { opacity: .55; filter: grayscale(.6); }
+.pc-arcada button .pc-arc-ico, .pc-loja .pc-arc-ico { display: block; font-size: 38px; line-height: 56px; }
+.pc-arcada-palco { min-height: 420px; position: relative; border: 2px solid var(--linha); border-radius: 8px; background: #fff; }
+@media (max-width: 900px) { .pc-cap { flex-direction: column; align-items: flex-start; } .pc-cap .pcap-img { width: 100%; height: 120px; } }
+
+/* ---------------------------------------------------------------- jogos de Português (lingua.js) */
+.li-modo { display: flex; gap: 18px; margin: 8px 0 12px; font-size: 16px; }
+.li-ditado .li-frase-num, .li-frase-num { font-weight: 700; font-size: 18px; margin: 6px 0 10px; }
+.li-botoes { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; align-items: center; }
+.li-entrada { margin: 6px 0; }
+.li-dif { font-size: 22px; line-height: 2.1; margin: 4px 0 6px; }
+.li-dif .ok { color: var(--certo); }
+.li-dif .mal { position: relative; padding: 0 2px; border-bottom: 3px solid var(--errado); }
+.li-dif .mal.acento, .li-dif .mal.maiuscula, .li-dif .mal.pontuacao { border-bottom-style: dashed; border-color: #d48806; }
+.li-dif del { color: var(--errado); text-decoration-thickness: 2px; margin-right: 3px; }
+.li-dif ins { color: var(--certo); text-decoration: none; font-weight: 700; }
+.li-dif sup { font-size: 11px; color: #555; margin-left: 2px; }
+.li-num { font-weight: 700; color: #888; margin-top: 8px; }
+.li-final { font-size: 18px; line-height: 1.7; }
+.li-aparelho { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 18px; background: #23262d; color: #fff; border-radius: 12px; margin: 8px 0 16px; }
+.li-aparelho strong { font-size: 20px; }
+.li-ouvidas { font-size: 15px; color: #cfd3da; }
+.li-onda { display: flex; gap: 4px; align-items: flex-end; height: 34px; }
+.li-onda i { width: 6px; height: 8px; background: #6ee7b7; border-radius: 3px; }
+.li-onda.a-tocar i { animation: li-onda .9s ease-in-out infinite; }
+.li-onda.a-tocar i:nth-child(2n) { animation-delay: .2s; } .li-onda.a-tocar i:nth-child(3n) { animation-delay: .4s; }
+@keyframes li-onda { 0%, 100% { height: 8px; } 50% { height: 32px; } }
+@media (prefers-reduced-motion: reduce) { .li-onda.a-tocar i { animation: none; height: 22px; } }
+.li-perguntas { padding-left: 22px; }
+.li-perguntas li { margin-bottom: 14px; padding: 6px 10px; border-radius: 8px; }
+.li-perguntas li.certo { background: #e7f6ef; } .li-perguntas li.errado { background: #fdecec; }
+.li-opcoes { display: flex; flex-direction: column; gap: 6px; font-size: 18px; }
+.li-opcoes label { cursor: pointer; }
+.li-transcricao { margin-top: 12px; font-size: 17px; } .li-transcricao summary { cursor: pointer; font-weight: 700; }
+.li-sub .li-fr { cursor: pointer; border-radius: 4px; padding: 1px 2px; }
+.li-sub .li-fr:hover, .li-sub .li-fr:focus { background: #fff1c2; outline: none; }
+.li-sub .li-fr.sel { background: #ffe066; box-shadow: 0 2px 0 #d48806; }
+.li-sub .li-fr.tentada { text-decoration: line-through; text-decoration-color: #c92a2a55; }
+.li-sub .li-fr.certa { background: #c9f0dc; } .li-sub .li-fr.mostrada { background: #e6f4ff; }
+.li-linha { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; font-size: 20px; }
+.li-palavra { padding: 4px 6px; }
+.li-bloco, .li-slot { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 10px; background: #e9e9e9; border: 2px solid #bbb; font: inherit; }
+.li-bloco select { font-size: 14px; }
+.li-bloco.peca { cursor: pointer; } .li-bloco.peca:disabled { opacity: .35; cursor: default; }
+.li-bloco small, .li-slot small { font-size: 12px; font-weight: 700; color: #fff; opacity: .9; }
+[data-cls="nome"] { background: #4b7bec; border-color: #2f5bd0; color: #fff; }
+[data-cls="verbo"] { background: #d6336c; border-color: #b0204f; color: #fff; }
+[data-cls="adjetivo"] { background: #0e9f6e; border-color: #097a53; color: #fff; }
+[data-cls="determinante"] { background: #e5a100; border-color: #b97f00; color: #fff; }
+[data-cls="pronome"] { background: #7b2fd1; border-color: #5b1ca8; color: #fff; }
+[data-cls="adverbio"], [data-cls="preposicao"], [data-cls="quantificador"] { background: #5c6670; border-color: #3d454c; color: #fff; }
+.li-bloco.certo { outline: 3px solid var(--certo); } .li-bloco.errado { outline: 3px dashed var(--errado); }
+.li-slot { min-width: 96px; min-height: 52px; justify-content: center; border-style: dashed; cursor: pointer; }
+.li-slot:not(.cheio) small { color: #444; }
+.li-slot.cheio { border-style: solid; font-weight: 700; }
+.li-ponto { font-size: 30px; font-weight: 700; }
+.li-feita { font-size: 22px; font-weight: 700; color: var(--certo); }
+.li-suj .li-corte { border: 0; background: transparent; color: #bbb; font-size: 26px; cursor: pointer; padding: 0 2px; }
+.li-suj .li-corte.sel { color: var(--errado); font-weight: 700; }
+.li-palavra.suj { background: #dbe6ff; border-radius: 4px; } .li-palavra.pred { background: #ffe3ec; border-radius: 4px; }
+.li-linha.certo { box-shadow: inset 4px 0 0 var(--certo); } .li-linha.errado { box-shadow: inset 4px 0 0 var(--errado); }
+.li-legenda { font-size: 14px; color: #555; }
+.li-plano { display: flex; align-items: center; gap: 12px; margin: 8px 0; font-size: 18px; }
+.li-plano b { min-width: 90px; }
+.li-plano .tc-entrada { height: 46px; font-size: 20px; }
+.li-plano-mini { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 15px; color: #444; margin-bottom: 8px; }
+.li-titulo { font-weight: 700; margin-bottom: 8px; }
+.li-texto { min-height: 180px; }
+.li-conta { color: #666; }
+.li-jornal { max-width: 720px; background: #fbf8f1; border: 1px solid #d8cfbd; padding: 18px 26px; font-family: Georgia, serif; box-shadow: 0 2px 8px #0002; }
+.li-jornal header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px double #333; padding-bottom: 6px; margin-bottom: 12px; }
+.li-jornal header strong { font-size: 28px; letter-spacing: .02em; }
+.li-jornal h2 { font-size: 26px; margin: 0 0 10px; }
+.li-jornal p { font-size: 18px; line-height: 1.6; }
+
+/* ---------------------------------------------------------------- jogos de Matemática, Programar e Estudo do Meio (territorio.js) */
+.te-bolsa, .te-tabuleiro { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; min-height: 62px; align-items: center; }
+.te-tabuleiro { background: #f6efe3; border: 2px dashed #c9a46a; border-radius: 10px; padding: 8px; }
+.te-moeda { width: 58px; height: 58px; border-radius: 50%; border: 2px solid #555; font: 700 15px 'Asap', sans-serif; cursor: pointer; }
+.te-moeda.cobre { background: #e8a87c; } .te-moeda.ouro { background: #f3d36b; } .te-moeda.euro { background: radial-gradient(#f3d36b 55%, #cfd3da 56%); }
+.te-moeda.nota { width: 96px; border-radius: 6px; background: #b7d7c4; }
+.te-produtos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin: 8px 0; }
+.te-produto { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 2px solid var(--linha); border-radius: 8px; font-size: 18px; cursor: pointer; }
+.te-produto b { margin-left: auto; }
+.te-sacos { display: flex; flex-wrap: wrap; gap: 18px; margin: 10px 0; align-items: flex-start; }
+.te-tab { border-collapse: collapse; margin: 10px 0; font-size: 18px; }
+.te-tab th, .te-tab td { border: 1px solid #bbb; padding: 6px 12px; text-align: center; }
+.te-tab code { font-size: 18px; letter-spacing: 1px; }
+.te-cartao { display: inline-flex; flex-direction: column; gap: 6px; padding: 14px 20px; border-radius: 10px; background: #fff8ee; border: 2px solid #e8c9a0; font-size: 22px; margin: 8px 0 12px; }
+.te-cats { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; align-items: center; }
+.te-cats .btn { display: inline-flex; flex-direction: column; align-items: center; min-width: 110px; }
+.te-cats .btn code { font-size: 15px; color: #555; }
+.te-cats .btn.feito { border-color: var(--certo); }
+.te-graf { display: block; background: #fff; border: 1px solid var(--linha); border-radius: 6px; }
+.te-grelha { display: grid; gap: 3px; margin: 10px 0; }
+.te-cel { width: 44px; height: 44px; border: 1px solid #bbb; background: #fff; cursor: pointer; }
+.te-cel.on { background: #f3d36b; border-color: #b97f00; }
+.te-cel:focus { outline: 3px solid var(--azul); }
+.te-solido { display: block; background: #fff; border: 1px solid var(--linha); border-radius: 6px; margin: 8px 0; }
+.te-tart-caixa { display: flex; gap: 20px; align-items: flex-start; }
+@media (max-width: 1000px) { .te-tart-caixa { flex-wrap: wrap; } }
+.pc-enunciado.of:has(.te-tart-caixa) { max-width: 1080px; }
+.te-tart { display: block; background: #fff; border: 1px solid var(--linha); border-radius: 6px; }
+.te-tart-prog { flex: 1 1 340px; min-width: 280px; }
+.te-paleta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.te-prog { display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #f4f6fa; border-radius: 8px; min-height: 120px; }
+.te-b { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; color: #fff; font: 700 15px 'Asap', sans-serif; border: 0; background: var(--prog); }
+button.te-b { cursor: pointer; }
+.te-b.te-ini { background: #0e9f6e; align-self: flex-start; }
+.te-b.te-op-repete, .te-b.te-se { background: #e5a100; }
+.te-b.te-op-dir, .te-b.te-op-esq { background: #7b2fd1; }
+.te-b.te-op-recua { background: #3d6fd9; }
+.te-b select { font-size: 14px; }
+.te-ctl { margin-left: auto; display: inline-flex; gap: 2px; }
+.te-ctl button { border: 0; background: #ffffff33; color: #fff; border-radius: 4px; cursor: pointer; padding: 2px 6px; }
+.te-ctl button:disabled { opacity: .4; }
+.te-ranhura { border: 2px dashed #9aa6b8; background: transparent; color: #556; border-radius: 8px; padding: 4px 10px; text-align: left; cursor: pointer; font-size: 14px; }
+.te-ranhura.sel { border-color: var(--azul); color: var(--azul); font-weight: 700; }
+.te-pista { flex: 1 1 320px; }
+.te-dests { display: flex; gap: 10px; margin-top: 10px; }
+.te-dest { flex: 1 1 0; min-height: 140px; border: 2px solid var(--linha); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: #fafafa; }
+.te-chip { display: inline-block; padding: 4px 8px; border-radius: 6px; background: #e9eef8; margin: 2px; font-size: 15px; }
+.te-chip.certo { background: #c9f0dc; } .te-chip.errado { background: #fdd; outline: 2px dashed var(--errado); }
+.te-circ { display: block; background: #fff; border: 1px solid var(--linha); border-radius: 6px; max-width: 100%; }
+.te-camadas { display: flex; flex-direction: column; gap: 2px; max-width: 560px; margin: 10px 0; }
+.te-camada { min-height: 54px; border: 0; color: #fff; text-align: left; padding: 6px 14px; font: 400 15px 'Asap', sans-serif; cursor: pointer; display: flex; flex-direction: column; justify-content: center; }
+.te-camada strong { font-size: 18px; }
+.te-camada:disabled { cursor: default; }
+.te-linha { font-size: 18px; padding-left: 26px; }
+.te-linha li { display: flex; gap: 10px; align-items: center; padding: 6px 10px; margin: 4px 0; background: #f4f6fa; border-radius: 6px; }
+.te-linha .te-ctl button { background: #556; }
