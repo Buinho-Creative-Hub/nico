@@ -501,11 +501,13 @@
     { id: 'arc-baloes', nome: 'Balões com acentos', base: 's4-j1', preco: 20, capa: 'arcada-baloes' },
     { id: 'arc-fablab', nome: 'Corrida no FabLab', base: 's4-j3', preco: 25, tema: 'fablab', capa: 'arcada-fablab' },
     { id: 'arc-castelo', nome: 'Letras no castelo', base: 's6-j1', preco: 25, tema: 'castelo', capa: 'arcada-castelo' },
+    // o primeiro jogo feito por um aluno: a versão HTML5 do jogo retro do Jaime (js/percurso/jogo-jaime.js)
+    { id: 'arc-jaime', nome: 'O Jaime em Messejana', jogo: 'jaime', preco: 20, capa: 'cenario-messejana', autor: 'Jogo criado pelo Jaime' },
   ];
   const atividadePorId = id => { for (const s of X.sessoes) for (const e of s.estacoes) for (const a of e.atividades) if (a.id === id) return a; return null; };
   let jogoArcada = null;
   function jogarArcada(j) {
-    const base = atividadePorId(j.base); if (!base) return;
+    const base = j.jogo ? null : atividadePorId(j.base); if (!base && !j.jogo) return;
     vista('vOficina'); const v = $('vOficina'); v.innerHTML = '';
     const palco = h('div', { class: 'pc-palco pc-arcada-palco' }), msg = h('p', { class: 'pr-msg', role: 'status' });
     const relogio = F.PC.relogio();
@@ -516,7 +518,8 @@
     const api = { relogio, viva: () => !!jogoArcada, dizer: (e, t) => { msg.textContent = t; }, msg: t => { msg.textContent = t; },
       concluir: res => { msg.textContent = res.ok ? 'Boa! 🎉 Queres jogar outra vez?' : 'Quase! Tenta outra vez.'; if (F.Som) F.Som.tocar(res.ok ? 'sucesso' : 'apagar'); }, rascunho: null };
     jogoArcada = { fechar: null };
-    const c = F.PC.jogos.montar(palco, Object.assign({}, base, { id: j.id, tema: j.tema || base.tema }), api);
+    const c = j.jogo === 'jaime' ? F.PC.jogoJaime.montar(palco, {}, api) : F.PC.jogos.montar(palco, Object.assign({}, base, { id: j.id, tema: j.tema || base.tema }), api);
+    jogoArcada.ctl = c;
     jogoArcada.fechar = c && c.fechar;
   }
   // os 4 pedaços do mapa de cobre (recortes exatos do mapa completo: 1 NO, 2 NE, 3 SE, 4 SO), montados à medida que se ganham
@@ -540,9 +543,9 @@
       loja.append(b);
     });
     const arcada = h('div', { class: 'pc-loja pc-arcada' });
-    ARCADA.filter(j => atividadePorId(j.base)).forEach(j => {
+    ARCADA.filter(j => j.jogo || atividadePorId(j.base)).forEach(j => {
       const meu = jogos.has(j.id), pode = (P.bolotas || 0) >= j.preco;
-      const b = h('button', { type: 'button', class: meu ? 'tem' : '', disabled: !meu && !pode ? true : null }, h('img', { class: 'pc-arc-capa', src: `img/percurso/${j.capa}.webp`, alt: '' }), j.nome, h('small', null, meu ? 'É teu · jogar ▶' : `${j.preco} moedas`));
+      const b = h('button', { type: 'button', class: meu ? 'tem' : '', disabled: !meu && !pode ? true : null }, h('img', { class: 'pc-arc-capa', src: `img/percurso/${j.capa}.webp`, alt: '' }), j.nome, j.autor ? h('em', { class: 'pc-arc-autor' }, j.autor) : null, h('small', null, meu ? 'É teu · jogar ▶' : `${j.preco} moedas`));
       b.addEventListener('click', () => {
         if (meu) return jogarArcada(j);
         if (!pode) return;
@@ -609,7 +612,8 @@
     if (pq) correrProva(pq === '1' ? X.prova : (X.provas || []).find(p => p.id === pq) || X.prova);
     else if (s >= 1 && s <= X.sessoes.length) abrirSessao(s - 1);
     else if (q.get('loja') === '1') oficina();
+    else if (q.get('arcada')) { const j = ARCADA.find(x => x.id === 'arc-' + q.get('arcada')); if (j) jogarArcada(j); }   // professor/demonstração: ?arcada=jaime
     else mapa();
   });
-  F.PC.app = { mapa, abrirSessao, correrProva, abrirProva, oficina, entrar, capAberto, capDe, progresso: () => P, atual: () => atual, seguinte };
+  F.PC.app = { arcada: () => jogoArcada, mapa, abrirSessao, correrProva, abrirProva, oficina, entrar, capAberto, capDe, progresso: () => P, atual: () => atual, seguinte };
 })();

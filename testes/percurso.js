@@ -760,6 +760,31 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   ok(arc2 === 5, 'jogar outra vez não volta a cobrar');
   await ctx4.close();
 
+  // jogo extra «O Jaime em Messejana» (versão HTML5 do jogo retro do Jaime): os 4 níveis podem ser acabados
+  await pg.goto(url('percurso.html', '?arcada=jaime'));
+  await pg.waitForSelector('.jj-tela');
+  await pg.keyboard.press('Enter'); await pg.keyboard.press('p');
+  const jj = await pg.evaluate(() => {
+    const ctl = window.Faisca.PC.app.arcada().ctl, N = window.Faisca.PC.jogoJaime.NIVEIS, out = [];
+    N.forEach((L, lv) => {
+      ctl.saltarParaNivel(lv); let salto = 0, i = 0;
+      const temChao = x => L.chao.some(([a, b]) => x >= a && x <= b);
+      for (; i < 60 * 120; i++) {
+        const s = ctl.estado(); if (s.fase !== 'jogar') break;
+        ctl.tecla('dir', true);
+        const es = ctl.inimigos().filter(e => e.ativo !== false);
+        const perigo = es.some(e => e.x - s.x > 40 && e.x - s.x < 150 && Math.abs(e.y - 420) < 5) || es.some(e => e.tipo === 'laranja' && e.ativo && Math.abs(e.x - s.x) < 90);
+        if (s.chao && (perigo || !temChao(s.x + 60)) && salto <= 0) { ctl.tecla('salto', true); salto = 22; }
+        if (salto > 0 && --salto === 0) ctl.tecla('salto', false);
+        ctl.passo(1 / 60, 1);
+      }
+      const s = ctl.estado(); out.push([L.nome, s.fase, s.vidas, s.moedas]);
+    });
+    return out;
+  });
+  jj.forEach(([n, f, v, m]) => ok(f === 'festa', `jogo do Jaime · «${n}»: um jogador simples chega ao fim (${v} vidas, ${m} moedas no total)`));
+  if (CAP) await pg.screenshot({ path: path.join(CAP, '20-jogo-jaime.png') });
+
   // prova-ensaio de fevereiro
   await pg.goto(url('percurso.html', '?prova=fev'));
   await pg.waitForSelector('.pv-nav button');
