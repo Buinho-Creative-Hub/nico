@@ -767,22 +767,46 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   const jj = await pg.evaluate(() => {
     const ctl = window.Faisca.PC.app.arcada().ctl, N = window.Faisca.PC.jogoJaime.NIVEIS, out = [];
     N.forEach((L, lv) => {
-      ctl.saltarParaNivel(lv); let salto = 0, i = 0;
+      if (L.chave) return;
+      ctl.saltarParaNivel(lv); let salto = 0;
       const temChao = x => L.chao.some(([a, b]) => x >= a && x <= b);
-      for (; i < 60 * 120; i++) {
+      for (let i = 0; i < 60 * 150; i++) {
         const s = ctl.estado(); if (s.fase !== 'jogar') break;
         ctl.tecla('dir', true);
-        const es = ctl.inimigos().filter(e => e.ativo !== false);
-        const perigo = es.some(e => e.x - s.x > 40 && e.x - s.x < 150 && Math.abs(e.y - 420) < 5) || es.some(e => e.tipo === 'laranja' && e.ativo && Math.abs(e.x - s.x) < 90);
+        const es = ctl.inimigos().filter(e => e.ativo !== false && e.tipo !== 'gato');
+        const perigo = es.some(e => { const c = e.caixa; return c[0] - s.x > 20 && c[0] - s.x < 150 && c[1] + c[3] > 330; }) || ctl.vasos().some(v => !v.partido && Math.abs(v.x - s.x) < 120);
         if (s.chao && (perigo || !temChao(s.x + 60)) && salto <= 0) { ctl.tecla('salto', true); salto = 22; }
         if (salto > 0 && --salto === 0) ctl.tecla('salto', false);
         ctl.passo(1 / 60, 1);
       }
-      const s = ctl.estado(); out.push([L.nome, s.fase, s.vidas, s.moedas]);
+      const s = ctl.estado(); out.push([L.nome, s.fase === 'festa', `${s.vidas} vidas, ${s.moedas} moedas`]);
     });
+    // nível 5: três saltos na cabeça do guarda → chave → sem chave o portão não abre → com chave, meta
+    const ult = N.length - 1; ctl.saltarParaNivel(ult); ctl.tecla('dir', false);
+    let golpes = 0;
+    for (let k = 0; k < 6 && golpes < 3; k++) {
+      ctl.passo(1 / 60, 120);
+      const g = ctl.inimigos().find(e => e.tipo === 'guarda'), antes = g.vida;
+      ctl.teleportar(g.caixa[0] + g.caixa[2] / 2, g.caixa[1] - 8, 400); ctl.passo(1 / 60, 4);
+      if (ctl.inimigos().find(e => e.tipo === 'guarda').vida < antes) golpes++;
+      ctl.teleportar(1600);
+    }
+    const ch = ctl.estado().chave;
+    ctl.teleportar(N[ult].fim - 50); ctl.tecla('dir', true); ctl.passo(1 / 60, 30); const fechado = ctl.estado().fase === 'jogar';
+    ctl.teleportar(ch.x); ctl.passo(1 / 60, 2); const apanhou = ctl.estado().chave.ok;
+    ctl.teleportar(N[ult].fim - 50); ctl.passo(1 / 60, 60);
+    out.push([N[ult].nome + ': 3 saltos no guarda, chave, portão fechado sem chave, meta com chave', golpes === 3 && ch.visivel && fechado && apanhou && ctl.estado().fase === 'festa', `golpes ${golpes}`]);
     return out;
   });
-  jj.forEach(([n, f, v, m]) => ok(f === 'festa', `jogo do Jaime · «${n}»: um jogador simples chega ao fim (${v} vidas, ${m} moedas no total)`));
+  jj.forEach(([n, okk, info]) => ok(okk, `jogo do Jaime · «${n}» (${info})`));
+  const imgsJJ = await pg.evaluate(async () => {
+    const F = window.Faisca.PC.jogoJaime, ficheiros = new Set([...Object.values(F.FOLHAS).map(f => 'img/percurso/jogo-jaime/' + f.f), 'img/percurso/jaime-sheet.png', 'img/percurso/jogo-jaime/jaime-orange-sheet.png', 'img/percurso/arcada-jogo-jaime.webp', 'img/percurso/moeda-manuelina.webp']);
+    F.NIVEIS.forEach(L => ['fundo', 'topo', 'enche'].forEach(k => ficheiros.add('img/percurso/jogo-jaime/' + L[k])));
+    const falham = [];
+    await Promise.all([...ficheiros].map(src => new Promise(r => { const i = new Image(); i.onload = r; i.onerror = () => { falham.push(src); r(); }; i.src = src; })));
+    return { n: ficheiros.size, falham };
+  });
+  ok(!imgsJJ.falham.length, `jogo do Jaime: ${imgsJJ.n} imagens do Ambrósio carregam` + (imgsJJ.falham.length ? ' — faltam: ' + imgsJJ.falham.join(', ') : ''));
   if (CAP) await pg.screenshot({ path: path.join(CAP, '20-jogo-jaime.png') });
 
   // prova-ensaio de fevereiro

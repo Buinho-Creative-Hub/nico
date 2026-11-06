@@ -502,7 +502,7 @@
     { id: 'arc-fablab', nome: 'Corrida no FabLab', base: 's4-j3', preco: 25, tema: 'fablab', capa: 'arcada-fablab' },
     { id: 'arc-castelo', nome: 'Letras no castelo', base: 's6-j1', preco: 25, tema: 'castelo', capa: 'arcada-castelo' },
     // o primeiro jogo feito por um aluno: a versão HTML5 do jogo retro do Jaime (js/percurso/jogo-jaime.js)
-    { id: 'arc-jaime', nome: 'O Jaime em Messejana', jogo: 'jaime', preco: 20, capa: 'cenario-messejana', autor: 'Jogo criado pelo Jaime' },
+    { id: 'arc-jaime', nome: 'O Jaime em Messejana', jogo: 'jaime', preco: 20, capa: 'arcada-jogo-jaime', autor: 'Jogo criado pelo Jaime' },
   ];
   const atividadePorId = id => { for (const s of X.sessoes) for (const e of s.estacoes) for (const a of e.atividades) if (a.id === id) return a; return null; };
   let jogoArcada = null;

@@ -245,7 +245,7 @@
           camadas: [
             { achado: 'Garrafa de plástico', epoca: 'dos nossos dias', img: 'garrafa-plastico' },
             { achado: 'Lanterna de mineiro', epoca: 'de há cerca de cem anos (século XX)', img: 'lanterna-mineiro' },
-            { achado: 'Moeda do rei D. Manuel I', epoca: 'de há uns quinhentos anos (século XVI)' },
+            { achado: 'Moeda do rei D. Manuel I', epoca: 'de há uns quinhentos anos (século XVI)', img: 'moeda-manuelina' },
             { achado: 'Candeia de barro romana', epoca: 'do tempo dos romanos, há quase dois mil anos', img: 'candeia-romana' }],
           personagem: 'arqueologa',
           feito: 'Quanto mais fundo, mais antigo — e já sabes pôr a história por ordem!',
