@@ -123,3 +123,7 @@
 @media (max-width: 700px) { .rv-memoria { grid-template-columns: repeat(3, 1fr); } .rv-ordena { grid-template-columns: repeat(2, 1fr); } }
 .rv-modos { max-width: 860px; margin: 10px auto; text-align: left; }
 .rv-coord-op { margin-top: 10px; }
+/* jogos dentro do teste */
+.rv-jogo-item { border-left: 8px solid #2b3a8f; padding-left: 14px; }
+.rv-jogo-selo { display: inline-block; padding: 3px 10px; border-radius: 12px; background: #2b3a8f; color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.rv-g-c.sel { background: #eef1ff; border-color: #2b3a8f; }

@@ -1,7 +1,7 @@
 /* Nico · Capítulo especial — O Ginásio dos Números (revisões de Matemática do 3.º ano).
  *
  * Três maneiras de treinar, sempre com exercícios novos (gerados em missoes/revisoes-3ano.js):
- *   · Teste de revisão — 22 questões de todos os temas, sem correção até entregar; no fim o resultado com a menção
+ *   · Teste de revisão — 22 questões de todos os temas + 3 jogos curtos (a rodar entre testes), sem correção até entregar; no fim o resultado com a menção
  *     (Insuficiente · Suficiente · Bom · Muito Bom), as pedras do manual, o resultado por tema e a correção.
  *   · Treino por temas — 8 exercícios; 2 tentativas, pistas do Nico, explicação.
  *   · Jogos — tabuada-relâmpago, ábaco, cartões binários, reta numérica, coordenadas, mensagem secreta, enigma, planificações.
@@ -99,7 +99,7 @@
     const bT = h('button', { type: 'button', class: 'pc-sessao prova rv-teste' },
       h('span', { class: 'ps-num' }, '🎯 Teste de revisão · como o teste da escola'),
       h('strong', null, 'Fazer um teste novo'),
-      h('span', { class: 'ps-tema' }, `${Object.values(R.PLANO).reduce((a, b) => a + b, 0)} questões de todos os temas, diferentes de cada vez. Só vês a correção no fim — depois o Nico dá-te a classificação e diz-te o que treinar.`),
+      h('span', { class: 'ps-tema' }, `${Object.values(R.PLANO).reduce((a, b) => a + b, 0) + 3} questões de todos os temas (3 delas são jogos), diferentes de cada vez. Só vês a correção no fim — depois o Nico dá-te a classificação e diz-te o que treinar.`),
       h('span', { class: 'ps-estado' }, ult ? `Último: ${ult.pct}% · ${ult.mencao}` + (P.testes.length > 1 ? ` · melhor: ${melhor}%` : '') + ' · fazer outro' : 'Começar o teste'));
     bT.onclick = abrirTeste;
     T.append(bT);
@@ -245,7 +245,7 @@
   // ------------------------------------------------------------ teste de revisão
   const MINUTOS = 45;
   function abrirTeste() {
-    janela('dica', 'Teste de revisão', `São ${Object.values(R.PLANO).reduce((a, b) => a + b, 0)} questões de todos os temas do 3.º ano. Prepara o caderno e o lápis: nas contas, resolve no caderno e escreve aqui só o resultado. Podes andar para a frente e para trás e marcar questões para rever. Tens cerca de ${MINUTOS} minutos (o relógio só avisa). A correção e a classificação aparecem quando entregares.`,
+    janela('dica', 'Teste de revisão', `São ${Object.values(R.PLANO).reduce((a, b) => a + b, 0) + 3} questões de todos os temas do 3.º ano, e 3 delas são jogos. Prepara o caderno e o lápis: nas contas, resolve no caderno e escreve aqui só o resultado. Podes andar para a frente e para trás e marcar questões para rever. Tens cerca de ${MINUTOS} minutos (o relógio só avisa). A correção e a classificação aparecem quando entregares.`,
       [['Ainda não', 'btn-texto', () => {}], ['Começar o teste', 'btn-escuro', correrTeste]]);
   }
   function correrTeste() {
@@ -253,6 +253,9 @@
     // tipos de exercício dos últimos testes: o teste novo evita-os (só os repete quando um tema já os usou todos)
     const recentes = new Set(P.testes.slice(-4).flatMap(t => t.tipos || []));
     const itens = R.teste(Math.random, recentes);
+    // alguns jogos (3) no meio do teste, a rodar entre testes
+    const JT = R.jogosTeste;
+    JT.escolher(3, recentes).forEach((j, k) => itens.splice(Math.round((k + 1) * (itens.length + 1) / 4), 0, j));
     const caixa = $('prova'); caixa.innerHTML = '';
     const resp = itens.map(() => undefined), marcadas = new Set();
     let i = 0, ctrl = null;
@@ -280,7 +283,8 @@
       const it = itens[i];
       corpo.innerHTML = '';
       const alvo = h('div', { class: 'rv-item' + (it.caderno ? ' caderno' : '') }); corpo.append(alvo);
-      ctrl = F.PC.itens.montar(alvo, Object.assign({}, it, { pergunta: `${i + 1}. ${it.pergunta}` }), { modo: 'prova', aoMudar: () => { guardar(); pintarNav(); } });
+      ctrl = it.tipo === 'jogo' ? JT.montar(alvo, Object.assign({}, it, { pergunta: `${i + 1}. ${it.pergunta}` }), () => { guardar(); pintarNav(); })
+        : F.PC.itens.montar(alvo, Object.assign({}, it, { pergunta: `${i + 1}. ${it.pergunta}` }), { modo: 'prova', aoMudar: () => { guardar(); pintarNav(); } });
       if (resp[i] !== undefined) ctrl.repor(resp[i]);
       bAnt.disabled = i === 0; bSeg.disabled = i === itens.length - 1;
       bMarcar.setAttribute('aria-pressed', String(marcadas.has(i)));
@@ -311,10 +315,10 @@
       rel.limpar();
       const porTema = {}; let certas = 0;
       const lista = itens.map((it, k) => {
-        const ok = resp[k] !== undefined && F.PC.itens.corrigir(it, resp[k]);
+        const ok = resp[k] !== undefined && (it.tipo === 'jogo' ? JT.corrigir(it, resp[k]) : F.PC.itens.corrigir(it, resp[k]));
         porTema[it.tema] = porTema[it.tema] || [0, 0]; porTema[it.tema][1]++; if (ok) { porTema[it.tema][0]++; certas++; }
         registar(it, ok);
-        return { it, ok, v: resp[k] };
+        return { it: it.tipo === 'jogo' ? Object.assign({}, it, { explica: JT.explica(it) }) : it, ok, v: resp[k] };
       });
       const total = itens.length, pct = Math.round(100 * certas / total), M = R.mencao(pct);
       const min = Math.max(1, Math.round((Date.now() - t0) / 60000));
@@ -344,7 +348,7 @@
         h('h2', null, 'Correção'),
         h('ol', { class: 'rv-correcao' }, lista.map(({ it, ok, v }) => h('li', { class: ok ? 'certo' : 'errado' },
           h('b', null, ok ? '✓ ' : '✗ '), it.pergunta,
-          ok ? null : h('div', { class: 'pe-instr' }, (v === undefined ? 'Sem resposta. ' : (it.tipo === 'curta' ? `Respondeste: ${v}. ` : '')) + 'Resposta certa: ' + F.PC.itens.respostaCerta(it)),
+          ok ? null : h('div', { class: 'pe-instr' }, (v === undefined ? 'Sem resposta. ' : (it.tipo === 'curta' ? `Respondeste: ${v}. ` : '')) + 'Resposta certa: ' + (it.tipo === 'jogo' ? JT.certa(it) : F.PC.itens.respostaCerta(it))),
           ok || !it.explica ? null : h('div', { class: 'rv-explica' }, it.explica)))),
         h('p', { class: 'rv-res-botoes' },
           h('button', { type: 'button', class: 'btn btn-texto btn-grande', onclick: menu }, 'Voltar ao ginásio'),

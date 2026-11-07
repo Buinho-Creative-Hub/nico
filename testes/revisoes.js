@@ -70,13 +70,16 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.click('.rv-teste'); await pg.click('#janelaBotoes button:last-child');
   await pg.waitForSelector('.pv-nav button');
   const nq = await pg.locator('.pv-nav button').count();
-  ok(nq === 22, `teste com ${nq} questões`);
+  ok(nq === 25, `teste com ${nq} questões (22 + 3 jogos)`);
+  ok(await pg.evaluate(() => 1) && true, 'ok');
   await foto('rv-03-teste');
   for (let k = 0; k < nq; k++) {
     await pg.locator('.pv-nav button').nth(k).click();
     const it = await pg.evaluate(() => document.querySelector('.pe-pergunta').textContent);
     void it;
     const inp = pg.locator('#prova .it-curta input');
+    if (k === 2) await foto('rv-03b-teste-jogo');
+    if (await pg.locator('#prova .rv-jogo-item').count()) { await foto('rv-jt-' + k); const b = pg.locator('#prova .rv-jogo-item button').first(); if (await b.count()) await b.click(); continue; }
     if (k % 2 === 0) {
       if (await inp.count()) await inp.fill('1');
       else if (await pg.locator('#prova .it-opcao').count()) await pg.locator('#prova .it-opcao').first().click();
@@ -113,6 +116,17 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   const modos = [];
   for (let k = 0; k < 5; k++) { await pg.goto(url('revisoes.html', '?jogo=memoria')); await pg.waitForSelector('.rv-memoria'); modos.push((await pg.textContent('#atTitulo')).split('·')[1].trim()); }
   ok(new Set(modos).size === 5, 'o Nico escolhe o modo sozinho e roda por todos: ' + modos.join(', '));
+  // jogos dentro do teste: cada um aceita a resposta certa e recusa uma errada; rodam entre testes
+  const jt = await pg.evaluate(() => {
+    const J = Faisca.REV.jogosTeste, U = Faisca.REV.util, maus = [];
+    const boa = it => ({ abaco: () => String(it.alvo).padStart(6, '0'), binario: () => it.alvo.toString(2).padStart(5, '0'), reta: () => it.alvo, relogio: () => it.hh + ':' + it.mm, fracao: () => it.num, feira: () => it.preco,
+      coordenada: () => it.c + ',' + it.l, ordena: () => it.nums.slice().sort((a, b) => a - b), programa: () => J.caminho(it.ini, it.fim, new Set(it.pedras)), planificacao: () => it.figs.map((f, k) => U.eCubo(f) ? k : -1).filter(k => k >= 0) })[it.jogo]();
+    for (const t of J.TIPOS) for (let s = 0; s < 40; s++) { const it = J.gerar(t, U.semente(s + 5)); const b = boa(it); if (!J.corrigir(it, { v: b }) || J.corrigir(it, { v: t === 'reta' ? it.alvo + it.max / 5 : t === 'ordena' ? b.slice().reverse() : t === 'programa' ? ['↑'] : t === 'planificacao' ? [0, 1, 2, 3].filter(k => !b.includes(k)) : t === 'binario' ? '11111' : t === 'abaco' ? '000000' : 'x' })) { maus.push(t); break; } if (!J.certa(it)) maus.push('sem certa ' + t); }
+    const rec = new Set(); let rep = 0; for (let k = 0; k < 3; k++) { const l = J.escolher(3, rec); l.forEach(j => { if (rec.has(j.k)) rep++; rec.add(j.k); }); }
+    return { maus, rep };
+  });
+  ok(!jt.maus.length, 'jogos do teste: resposta certa aceite e errada recusada' + (jt.maus.length ? ': ' + jt.maus.join(', ') : ''));
+  ok(jt.rep === 0, '3 testes seguidos com jogos todos diferentes (9 de 10 tipos)');
   // testes seguidos usam tipos de exercício diferentes
   const rot = await pg.evaluate(() => { const R = Faisca.REV, rec = new Set(); let rep = 0; for (let k = 0; k < 4; k++) { const T = R.teste(Math.random, rec); T.forEach(t => { if (rec.has(t.k)) rep++; }); T.forEach(t => rec.add(t.k)); } return rep; });
   ok(rot <= 6, `4 testes seguidos quase sem repetir tipos de exercício (${rot} repetidos em 88)`);

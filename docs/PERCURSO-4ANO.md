@@ -98,7 +98,7 @@ na onda das fichas do manual, as contas feitas **no caderno** (a criança escrev
 Abre em **`revisoes.html`** (cartão azul «⭐ Capítulo especial» no topo da lista do Percurso, sempre aberto, sem bilhete).
 Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mix|reforco`, `?jogo=<id>`.
 
-- **Teste de revisão:** 22 questões (Números 4 · Cálculo 4 · Problemas 2 · Frações 2 · Sequências 2 · Geometria 3 · Medidas 2 ·
+- **Teste de revisão:** 25 questões — 22 perguntas + 3 jogos — (Números 4 · Cálculo 4 · Problemas 2 · Frações 2 · Sequências 2 · Geometria 3 · Medidas 2 ·
   Dados 2 · Pensamento computacional 1), sem repetir o tipo de exercício; navegação, «marcar para rever», relógio de 45 min (só
   avisa) e entrega, como a prova-ensaio. Resultado: certas e %, **menção do 1.º ciclo** (Insuficiente < 50 · Suficiente 50–69 ·
   Bom 70–89 · Muito Bom ≥ 90), as 3 pedras do manual (cumpri parcialmente · cumpri · cumpri com distinção), comparação com o teste
@@ -107,6 +107,10 @@ Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mi
   do treino fica registada; contam as 12 mais recentes de cada competência. Mostra «neste teste falhaste em», «o que tens de
   reforçar» (< 70 % certas nas recentes; primeiro as que já falharam várias vezes, depois os erros únicos) e «já está seguro» (≥ 3 respostas e ≥ 85 %). O botão
   **💪 Reforço dos pontos fracos** gera um treino só com essas competências (também no menu). O histórico dos testes tem gráfico.
+- **Jogos dentro do teste** (pedido do Carlos, 7 Nov): cada teste leva **3 jogos curtos** como perguntas (a meio, a 1/4, 1/2 e 3/4
+  do teste), escolhidos entre 10 (ábaco, cartões binários, reta numérica, relógio, pintar frações, pagar na feira, coordenadas,
+  ordenar números, programar o Nico, planificações do cubo) e **a rodar entre testes** (evitam os dos 4 testes anteriores). Só são
+  corrigidos ao entregar; contam para a nota e para a análise por competência. Código: `js/percurso/revisoes-jogos-teste.js`.
 - **Testes sempre diferentes entre si:** cada teste evita os tipos de exercício dos 4 testes anteriores (`tipos` guardado em
   cada teste) e só os repete quando um tema os esgotou; os números são sempre novos. O treino faz o mesmo com os últimos 40.
 - **Treino por temas:** 8 exercícios; 2 tentativas, pistas do Nico em 3 níveis, explicação; exercícios de conta com faixa roxa
