@@ -130,9 +130,10 @@
     const J = $('menuJogos'); J.innerHTML = '';
     Object.entries(JOGOS).forEach(([id, j]) => {
       const rec = P.jogos[id];
-      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo' }, h('span', { class: 'ps-num' }, j.tema),
+      const nv = j.variantes ? j.variantes.length : 0, jogados = nv ? j.variantes.filter(([v]) => P.jogos[id + ':' + v]).length : 0;
+      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo' }, h('span', { class: 'ps-num' }, j.tema + (nv ? ` · ${nv} modos` : '')),
         h('strong', null, j.emoji + ' ' + j.nome), h('span', { class: 'ps-tema' }, j.desc),
-        h('span', { class: 'ps-estado' }, rec ? `Recorde: ${rec.melhor}${j.unidade ? ' ' + j.unidade : ''}` : 'Jogar'));
+        h('span', { class: 'ps-estado' }, nv ? (jogados ? `${jogados} de ${nv} modos jogados` : 'Jogar') : rec ? `Recorde: ${rec.melhor}${j.unidade ? ' ' + j.unidade : ''}` : 'Jogar'));
       b.onclick = () => jogar(id);
       J.append(b);
     });
@@ -373,12 +374,14 @@
   }
 
   // ------------------------------------------------------------ jogos
-  function jogar(id) {
-    vista('vSessao');
+  function jogar(id, v) {
     const j = JOGOS[id];
+    if (j.variantes && v == null) return escolherVariante(id);
+    vista('vSessao');
+    const chave = j.variantes ? id + ':' + v : id, nomeV = j.variantes ? (j.variantes.find(x => x[0] === v) || [])[1] : null;
     $('rodape').hidden = true;
     $('atArea').textContent = '🎮 ' + j.tema; $('atArea').style.background = '#2b3a8f';
-    $('atTitulo').textContent = j.emoji + ' ' + j.nome;
+    $('atTitulo').textContent = j.emoji + ' ' + j.nome + (nomeV ? ' · ' + nomeV : '');
     document.title = 'Nico · ' + j.nome;
     masc.pistas(j.pistas || []);
     const rel = F.PC.relogio();
@@ -387,19 +390,39 @@
     const area = h('div', { class: 'rv-jogo-palco' }); palco.append(area);
     $('btnOuvir').onclick = () => masc.ouvir(area.innerText);
     const api = {
-      rel, area, conta: t => { $('atConta').textContent = t; },
+      rel, area, v, conta: t => { $('atConta').textContent = t; },
       dizer: (e, t) => masc.dizer(e, t),
       fim(pontos, objetivo, texto) {
-        const rec = P.jogos[id] = P.jogos[id] || { melhor: 0, vezes: 0 };
+        const rec = P.jogos[chave] = P.jogos[chave] || { melhor: 0, vezes: 0 };
         rec.vezes++; const novo = pontos > rec.melhor; if (novo) rec.melhor = pontos; gravar();
         const ganhas = moedas(pontos >= objetivo ? 3 : 0);
         janela(pontos >= objetivo ? 'celebrar' : 'incentivar', `${pontos}${j.unidade ? ' ' + j.unidade : ' pontos'}` + (novo ? ' · novo recorde!' : ''),
           (texto || (pontos >= objetivo ? 'Fantástico!' : `Para ganhar moedas precisas de ${objetivo}. Tenta outra vez!`)) + txtMoedas(ganhas),
-          [['Voltar ao ginásio', 'btn-texto', menu], ['Jogar outra vez', 'btn-azul', () => jogar(id)]]);
+          [['Voltar ao ginásio', 'btn-texto', menu], ...(j.variantes ? [['Outro modo', 'btn-texto', () => jogar(id)]] : []), ['Jogar outra vez', 'btn-azul', () => jogar(id, v)]]);
       },
     };
     masc.dizer('curiosa', j.intro);
     j.iniciar(api);
+  }
+  // ecrã de escolha do modo de um jogo (as variantes)
+  function escolherVariante(id) {
+    vista('vSessao');
+    const j = JOGOS[id];
+    $('rodape').hidden = true;
+    $('atArea').textContent = '🎮 ' + j.tema; $('atArea').style.background = '#2b3a8f';
+    $('atTitulo').textContent = j.emoji + ' ' + j.nome + ' · escolhe o modo';
+    const palco = $('atPalco'); palco.innerHTML = '';
+    const g = h('div', { class: 'pc-sessoes rv-modos' });
+    j.variantes.forEach(([v, nome, desc]) => {
+      const rec = P.jogos[id + ':' + v];
+      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo' }, h('strong', null, nome), h('span', { class: 'ps-tema' }, desc),
+        h('span', { class: 'ps-estado' }, rec ? `Recorde: ${rec.melhor}${j.unidade ? ' ' + j.unidade : ''}` : 'Jogar'));
+      b.onclick = () => jogar(id, v);
+      g.append(b);
+    });
+    palco.append(h('div', { class: 'rv-jogo-palco' }, h('p', { class: 'rv-enun' }, j.desc), g));
+    masc.dizer('curiosa', 'Este jogo tem vários modos. Qual escolhes hoje?');
+    $('btnOuvir').onclick = () => masc.ouvir(palco.innerText);
   }
   const ri = (a, b) => U.ri(Math.random, a, b);
   const pickR = l => U.pick(Math.random, l);
@@ -408,12 +431,15 @@
 
   // 1. Tabuada-relâmpago
   JOGOS.tabuada = { nome: 'Tabuada-relâmpago', emoji: '⚡', tema: 'Cálculo mental', unidade: 'certas', desc: '60 segundos: quantas multiplicações e divisões consegues acertar?',
+    variantes: [['mistura', 'Mistura', '× e : das tabuadas do 2 ao 10'], ['x', 'Só multiplicações', 'tabuadas do 2 ao 10'], ['div', 'Só divisões', 'a tabuada ao contrário'], ['dificeis', 'Tabuadas difíceis', 'só do 6, 7, 8 e 9'], ['dez', '× 10, 100 e 1000', 'acrescentar zeros']],
     intro: 'Tens 60 segundos! Escreve o resultado e carrega em Enter. Objetivo: 15 certas.',
     iniciar(api) {
       let certas = 0, erradas = 0, a, b, div, fim = Date.now() + 60000;
       const q = h('div', { class: 'rv-tab-q' }), inp = entrada('160px', ver), barra = h('div', { class: 'rv-barra' }, h('b')), fb = h('p', { class: 'rv-fb', 'aria-live': 'polite' });
       api.area.append(barra, q, inp, fb);
-      function nova() { a = ri(2, 10); b = ri(2, 10); div = Math.random() < 0.3; q.textContent = div ? `${a * b} : ${a} =` : `${a} × ${b} =`; inp.value = ''; inp.focus(); }
+      function nova() {
+        const V = api.v; a = V === 'dificeis' ? ri(6, 9) : V === 'dez' ? ri(2, 99) : ri(2, 10); b = V === 'dez' ? pickR([10, 100, 1000]) : ri(2, 10);
+        div = V === 'div' ? true : V === 'mistura' ? Math.random() < 0.3 : false; q.textContent = div ? `${a * b} : ${a} =` : `${U.fmt(a)} × ${U.fmt(b)} =`; inp.value = ''; inp.focus(); }
       function ver() {
         const v = num(inp.value); if (isNaN(v)) return;
         const c = div ? b : a * b;
@@ -429,26 +455,29 @@
 
   // 2. Ábaco mágico
   JOGOS.abaco = { nome: 'Ábaco mágico', emoji: '🧮', tema: 'Números até 999 999', unidade: 'em 6', desc: 'Lê o número e representa-o no ábaco, conta a conta.',
+    variantes: [['pôr', 'Pôr as contas', 'lês o número e pões as contas'], ['ler', 'Ler o ábaco', 'vês o ábaco e escreves o número'], ['facil', 'Até 9 999', 'números mais pequenos para aquecer']],
     intro: 'Clica em + e − para pôr as contas em cada vareta. Cada vareta leva até 9 contas.', pistas: ['Começa pelas centenas de milhar (CM), à esquerda.', 'Uma ordem que não aparece no número fica com a vareta vazia.', 'Escreve o número no caderno numa tabela CM DM UM C D U.'],
     iniciar(api) {
       let ronda = 0, pontos = 0, alvo, dig;
       const enun = h('p', { class: 'rv-enun' }), fig = h('div', { class: 'rv-abaco' }), botoes = h('div', { class: 'rv-abaco-bt' }), ok = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Verificar'), fb = h('p', { class: 'rv-fb' });
       api.area.append(enun, fig, botoes, ok, fb);
       function desenhar() { fig.innerHTML = U.svgAbaco(Number(dig.join(''))); }
+      const inpA = entrada('200px', () => ok.click()); inpA.hidden = true; api.area.insertBefore(inpA, ok);
       function nova() {
-        ronda++; alvo = ri(1, 9) * 100000 + ri(0, 99999); if (Math.random() < 0.5) { const s = String(alvo).split(''); s[ri(1, 5)] = '0'; alvo = Number(s.join('')); }
+        ronda++; alvo = api.v === 'facil' ? ri(100, 9999) : ri(1, 9) * 100000 + ri(0, 99999); if (Math.random() < 0.5) { const s = String(alvo).split(''); s[ri(1, 5)] = '0'; alvo = Number(s.join('')); }
         dig = [0, 0, 0, 0, 0, 0];
         enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — representa: `, h('b', null, Math.random() < 0.5 ? U.fmt(alvo) : '«' + U.extenso(alvo) + '»'));
+        if (api.v === 'ler') { dig = String(alvo).padStart(6, '0').split('').map(Number); enun.textContent = `Ronda ${ronda} de 6 — que número está no ábaco?`; inpA.hidden = false; inpA.value = ''; setTimeout(() => inpA.focus(), 30); }
         botoes.innerHTML = '';
         ['CM', 'DM', 'UM', 'C', 'D', 'U'].forEach((o, k) => botoes.append(h('div', null,
           h('button', { type: 'button', class: 'btn btn-texto', 'aria-label': 'Mais uma conta em ' + o, onclick: () => { if (dig[k] < 9) { dig[k]++; desenhar(); som('clique'); } } }, '+'),
           h('button', { type: 'button', class: 'btn btn-texto', 'aria-label': 'Menos uma conta em ' + o, onclick: () => { if (dig[k] > 0) { dig[k]--; desenhar(); } } }, '−'))));
-        fb.textContent = ''; ok.disabled = false; desenhar();
+        fb.textContent = ''; ok.disabled = false; desenhar(); botoes.hidden = api.v === 'ler';
       }
       ok.onclick = () => {
-        const v = Number(dig.join('')); ok.disabled = true;
+        const v = api.v === 'ler' ? num(inpA.value) : Number(dig.join('')); if (isNaN(v)) return; ok.disabled = true;
         if (v === alvo) { pontos++; fb.textContent = '✓ Certinho!'; fb.className = 'rv-fb ok'; som('sucesso'); }
-        else { fb.textContent = `✗ Ficou ${U.fmt(v)}. O certo era ${U.fmt(alvo)} → ${String(alvo).padStart(6, '0').split('').join(' ')}`; fb.className = 'rv-fb mal'; }
+        else { fb.textContent = `✗ ${api.v === 'ler' ? 'Escreveste' : 'Ficou'} ${U.fmt(v)}. O certo era ${U.fmt(alvo)} → ${String(alvo).padStart(6, '0').split('').join(' ')}`; fb.className = 'rv-fb mal'; }
         api.conta(`${pontos} certas`);
         api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), v === alvo ? 1000 : 2600);
       };
@@ -457,23 +486,31 @@
 
   // 3. Cartões binários
   JOGOS.binario = { nome: 'Cartões binários', emoji: '💡', tema: 'Pensamento computacional', unidade: 'em 8', desc: 'Vira os cartões 16 · 8 · 4 · 2 · 1 para mostrar o número — como num computador.',
+    variantes: [['mostrar', 'Mostrar o número', '5 cartões, números até 31'], ['ler', 'Ler os cartões', 'vês os cartões e escreves o número'], ['grande', '6 cartões', 'com o cartão do 32: números até 63']],
     intro: 'Clica nos cartões para os virar. Cartão com pintas = 1, cartão escuro = 0. Quantas pintas fazem o número?', pistas: ['Começa pelo maior cartão que cabe no número.', 'Vê quanto falta e continua com os mais pequenos.', 'Cada cartão só se usa uma vez.'],
     iniciar(api) {
       let ronda = 0, pontos = 0, alvo, bits;
       const enun = h('p', { class: 'rv-enun' }), cartas = h('div', { class: 'rv-cartas' }), soma = h('p', { class: 'rv-soma' }), ok = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Verificar'), fb = h('p', { class: 'rv-fb' });
       api.area.append(enun, cartas, soma, ok, fb);
-      const V = [16, 8, 4, 2, 1];
+      const V = api.v === 'grande' ? [32, 16, 8, 4, 2, 1] : [16, 8, 4, 2, 1];
+      const inpB = entrada('120px', () => ok.click()); inpB.hidden = api.v !== 'ler'; api.area.insertBefore(inpB, ok);
       function desenhar() {
         cartas.innerHTML = '';
-        V.forEach((v, k) => { const b = h('button', { type: 'button', class: 'rv-carta', 'aria-pressed': String(bits[k] === '1'), 'aria-label': 'Cartão ' + v, html: U.svgCartoes(bits[k]).replace(/width="\d+"/, 'width="96"') }); b.onclick = () => { bits[k] = bits[k] === '1' ? '0' : '1'; desenhar(); som('clique'); }; cartas.append(b); });
+        V.forEach((v, k) => { const b = h('button', { type: 'button', class: 'rv-carta', 'aria-pressed': String(bits[k] === '1'), 'aria-label': 'Cartão ' + v, html: U.svgCartao(v, bits[k] === '1') }); b.onclick = () => { if (api.v === 'ler') return; bits[k] = bits[k] === '1' ? '0' : '1'; desenhar(); som('clique'); }; cartas.append(b); });
         const s = V.reduce((t, v, k) => t + (bits[k] === '1' ? v : 0), 0);
-        soma.textContent = `Pintas à vista: ${s}  ·  em binário: ${bits.join('')}`;
+        soma.textContent = api.v === 'ler' ? `Em binário: ${bits.join('')}` : `Pintas à vista: ${s}  ·  em binário: ${bits.join('')}`;
       }
-      function nova() { ronda++; alvo = ri(3, 31); bits = ['0', '0', '0', '0', '0']; enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 8 — mostra o número `, h('b', null, String(alvo))); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      function nova() {
+        ronda++; alvo = ri(3, api.v === 'grande' ? 63 : 31); bits = V.map(() => '0'); enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 8 — mostra o número `, h('b', null, String(alvo)));
+        if (api.v === 'ler') { bits = alvo.toString(2).padStart(5, '0').split(''); enun.textContent = `Ronda ${ronda} de 8 — que número mostram os cartões?`; inpB.value = ''; setTimeout(() => inpB.focus(), 30); }
+        fb.textContent = ''; ok.disabled = false; desenhar();
+      }
       ok.onclick = () => {
-        const s = V.reduce((t, v, k) => t + (bits[k] === '1' ? v : 0), 0); ok.disabled = true;
+        let s = V.reduce((t, v, k) => t + (bits[k] === '1' ? v : 0), 0);
+        if (api.v === 'ler') { const n = num(inpB.value); if (isNaN(n)) return; s = n === alvo ? alvo : n; }
+        ok.disabled = true;
         if (s === alvo) { pontos++; fb.textContent = `✓ ${alvo} em binário é ${bits.join('')}!`; fb.className = 'rv-fb ok'; som('sucesso'); }
-        else { fb.textContent = `✗ Mostraste ${s}. ${alvo} = ${alvo.toString(2).padStart(5, '0')}`; fb.className = 'rv-fb mal'; }
+        else { fb.textContent = `✗ ${api.v === 'ler' ? 'Escreveste' : 'Mostraste'} ${s}. ${alvo} = ${alvo.toString(2).padStart(V.length, '0')}`; fb.className = 'rv-fb mal'; }
         api.conta(`${pontos} certas`);
         api.rel.depois(() => ronda < 8 ? nova() : api.fim(pontos, 7), s === alvo ? 1200 : 2600);
       };
@@ -482,6 +519,7 @@
 
   // 4. Reta numérica
   JOGOS.reta = { nome: 'Pontaria na reta', emoji: '🎯', tema: 'Números até 999 999', unidade: 'pontos', desc: 'Clica no sítio certo da reta numérica. Quanto mais perto, mais pontos!',
+    variantes: [['mistura', 'Mistura', 'retas de 0 a 1000 até 0 a 1 000 000'], ['facil', 'Retas pequenas', 'de 0 a 100 e de 0 a 1000'], ['dificil', 'Retas grandes', 'de 0 a 100 000 e de 0 a 1 000 000']],
     intro: 'Onde fica o número na reta? Clica no sítio. Até 3 pontos por ronda — objetivo: 12 pontos em 6 rondas.', pistas: ['Olha para o meio da reta: que número fica lá?', 'Divide a reta em partes iguais com os olhos.', 'Compara com os números marcados.'],
     iniciar(api) {
       let ronda = 0, pontos = 0, max, alvo, bloq = false;
@@ -507,7 +545,7 @@
         api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 12), 1800);
       });
       function nova() {
-        ronda++; bloq = false; max = pickR([1000, 10000, 100000, 1000000]); alvo = Math.round(ri(5, 95) * max / 100 / (max / 1000)) * (max / 1000);
+        ronda++; bloq = false; max = pickR(api.v === 'facil' ? [100, 1000] : api.v === 'dificil' ? [100000, 1000000] : [1000, 10000, 100000, 1000000]); alvo = max <= 100 ? ri(3, 97) : Math.round(ri(5, 95) * max / 100 / (max / 1000)) * (max / 1000);
         if (max === 1000000) { max = 1000000; }
         enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — onde fica o `, h('b', null, U.fmt(alvo)), '?'); fb.textContent = ''; desenhar();
       }
@@ -516,6 +554,7 @@
 
   // 5. Caça ao tesouro nas coordenadas
   JOGOS.coordenadas = { nome: 'Caça ao tesouro', emoji: '🗺️', tema: 'Geometria', unidade: 'em 10', desc: 'Encontra as casas da grelha pelas coordenadas — primeiro a letra, depois o número.',
+    variantes: [['clicar', 'Encontrar a casa', 'digo-te a coordenada e tu clicas'], ['dizer', 'Dizer a coordenada', 'vês o tesouro e escolhes a coordenada certa']],
     intro: 'Clica na casa que te digo. Primeiro a letra (coluna), depois o número (linha).', pistas: ['A letra está em baixo: é a coluna.', 'O número está à esquerda: é a linha.', 'Desliza o dedo para cima pela coluna até chegares à linha.'],
     iniciar(api) {
       const L = 'abcdefgh'; let ronda = 0, pontos = 0, c, l, bloq = false;
@@ -526,30 +565,47 @@
         for (let k = 0; k < 8; k++) { const b = h('button', { type: 'button', class: 'rv-g-c', 'aria-label': `(${L[k]}, ${r + 1})` }); b.onclick = () => clique(k, r, b); grade.append(b); }
       }
       grade.append(h('span'), ...L.split('').map(x => h('span', { class: 'rv-g-l' }, x)));
+      const escolhas = h('div', { class: 'rv-ordena rv-coord-op' }); api.area.insertBefore(escolhas, fb);
       function clique(k, r, b) {
-        if (bloq) return; bloq = true;
+        if (bloq || api.v === 'dizer') return; bloq = true;
         const ok = k === c && r === l; if (ok) { pontos++; b.textContent = pickR(['🪙', '💎', '⭐']); b.classList.add('ok'); som('apanhar'); fb.textContent = '✓ Tesouro!'; fb.className = 'rv-fb ok'; }
         else { b.classList.add('mal'); const cert = grade.querySelector(`[aria-label="(${L[c]}, ${l + 1})"]`); cert.classList.add('ok'); cert.textContent = '🪙'; fb.textContent = `✗ Clicaste em (${L[k]}, ${r + 1}).`; fb.className = 'rv-fb mal'; }
         api.conta(`${pontos} tesouros`);
         api.rel.depois(() => { grade.querySelectorAll('.rv-g-c').forEach(x => { x.className = 'rv-g-c'; x.textContent = ''; }); ronda < 10 ? nova() : api.fim(pontos, 9); }, ok ? 700 : 1800);
       }
-      function nova() { ronda++; bloq = false; c = ri(0, 7); l = ri(0, 7); enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 10 — o tesouro está em `, h('b', null, `(${L[c]}, ${l + 1})`)); fb.textContent = ''; }
+      function nova() {
+        ronda++; bloq = false; c = ri(0, 7); l = ri(0, 7); enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 10 — o tesouro está em `, h('b', null, `(${L[c]}, ${l + 1})`)); fb.textContent = ''; escolhas.innerHTML = '';
+        if (api.v !== 'dizer') return;
+        if (ronda === 1) api.dizer('curiosa', 'Vê onde está a moeda e escolhe a coordenada certa: primeiro a letra (coluna), depois o número (linha).');
+        enun.textContent = `Ronda ${ronda} de 10 — em que casa está a moeda?`;
+        const casa = grade.querySelector(`[aria-label="(${L[c]}, ${l + 1})"]`); casa.textContent = '🪙';
+        const certa = `(${L[c]}, ${l + 1})`, ops = U.misturar(Math.random, [...new Set([certa, `(${L[(c + 1) % 8]}, ${l + 1})`, `(${L[c]}, ${(l + 1) % 8 + 1})`, `(${l + 1}, ${L[c]})`])]);
+        ops.forEach(o => escolhas.append(h('button', { type: 'button', class: 'rv-num', onclick: ev => {
+          if (bloq) return; bloq = true; const ok = o === certa;
+          ev.currentTarget.classList.add(ok ? 'ok' : 'mal'); if (ok) { pontos++; som('apanhar'); fb.textContent = '✓ Isso!'; fb.className = 'rv-fb ok'; } else { fb.textContent = `✗ Era ${certa}: primeiro a letra, depois o número.`; fb.className = 'rv-fb mal'; }
+          api.conta(`${pontos} tesouros`);
+          api.rel.depois(() => { grade.querySelectorAll('.rv-g-c').forEach(x => { x.className = 'rv-g-c'; x.textContent = ''; }); ronda < 10 ? nova() : api.fim(pontos, 9); }, ok ? 700 : 1800);
+        } }, o)));
+      }
       api.conta('0 tesouros'); nova();
     } };
 
   // 6. Mensagem secreta
   const PALAVRAS = ['CASTELO', 'MONTADO', 'FABLAB', 'MINA', 'NICO', 'ERVIDEL', 'SOBREIRO', 'CORTIÇA', 'ALJUSTREL', 'GUITARRA', 'MICROBIT', 'PIRÂMIDE', 'PRISMA', 'FRAÇÃO', 'MOINHO'];
   JOGOS.secreta = { nome: 'Mensagem secreta', emoji: '🔐', tema: 'Cálculo', unidade: 'letras', desc: 'Cada letra está escondida atrás de uma conta. Resolve-as no caderno e descobre a palavra!',
+    variantes: [['mistura', 'Contas misturadas', '+ − × : com números até mil'], ['tabuadas', 'Tabuadas', 'só × e : das tabuadas'], ['grandes', 'Contas grandes', '+ e − com milhares (caderno!)']],
     intro: 'Resolve cada conta (no caderno, se precisares) e escreve o resultado. As letras certas aparecem!', pistas: ['Começa pela conta que te parecer mais fácil.', 'Faz a conta no caderno com o algoritmo.', 'Se falhares, a conta fica vermelha: confirma no caderno.'],
     iniciar(api) {
       const palavra = pickR(PALAVRAS).split(''); let certas = 0, erros = 0;
       const sec = h('div', { class: 'rv-secreta' }), fb = h('p', { class: 'rv-fb' });
       api.area.append(h('p', { class: 'rv-enun' }, `Uma palavra com ${palavra.length} letras ligada ao mundo do Nico…`), sec, fb);
       palavra.forEach(letra => {
-        const t = pickR(['+', '−', '×', ':']); let a, b, v;
-        if (t === '+') { a = ri(120, 899); b = ri(50, 899); v = a + b; } else if (t === '−') { a = ri(300, 999); b = ri(50, a - 20); v = a - b; } else if (t === '×') { a = ri(12, 99); b = ri(2, 9); v = a * b; } else { b = ri(2, 9); v = ri(11, 99); a = b * v; }
+        const t = pickR(api.v === 'tabuadas' ? ['×', ':'] : api.v === 'grandes' ? ['+', '−'] : ['+', '−', '×', ':']); let a, b, v;
+        if (api.v === 'tabuadas') { b = ri(2, 10); v = ri(2, 10); a = t === '×' ? v : b * v; if (t === '×') v = a * b; }
+        else if (api.v === 'grandes') { a = ri(2000, 9999); b = ri(500, t === '+' ? 9999 : a - 100); v = t === '+' ? a + b : a - b; }
+        else if (t === '+') { a = ri(120, 899); b = ri(50, 899); v = a + b; } else if (t === '−') { a = ri(300, 999); b = ri(50, a - 20); v = a - b; } else if (t === '×') { a = ri(12, 99); b = ri(2, 9); v = a * b; } else { b = ri(2, 9); v = ri(11, 99); a = b * v; }
         const caixa = h('div', { class: 'rv-sec-l' }), L = h('b', null, '?'), inp = entrada('92px', ver);
-        caixa.append(L, h('span', null, `${a} ${t} ${b}`), inp); sec.append(caixa);
+        caixa.append(L, h('span', null, `${U.fmt(a)} ${t} ${U.fmt(b)}`), inp); sec.append(caixa);
         function ver() {
           const n = num(inp.value); if (isNaN(n) || caixa.classList.contains('ok')) return;
           if (n === v) { caixa.classList.add('ok'); caixa.classList.remove('mal'); L.textContent = letra; inp.disabled = true; certas++; som('apanhar'); const prox = sec.querySelector('.rv-sec-l:not(.ok) input'); if (prox) prox.focus(); }
@@ -564,6 +620,7 @@
 
   // 7. Enigma dos símbolos
   JOGOS.enigma = { nome: 'Enigma dos símbolos', emoji: '🌰', tema: 'Pensamento computacional', unidade: 'em 4', desc: 'Cada símbolo vale um número. Descobre quanto vale cada um!',
+    variantes: [['normal', '3 símbolos', 'para começar'], ['dificil', '4 símbolos', 'mais uma linha e uma divisão']],
     intro: 'Descobre o valor de cada símbolo, um de cada vez. Começa pela linha mais fácil!', pistas: ['Há uma linha com o mesmo símbolo repetido: começa por aí.', 'Quando souberes um símbolo, substitui-o nas outras linhas.', 'Faz as contas no caderno.'],
     iniciar(api) {
       let ronda = 0, pontos = 0;
@@ -573,8 +630,9 @@
         const s = U.misturar(Math.random, ['🌰', '🍄', '⭐', '🐌', '🍓', '🔩']), a = ri(2, 12) * 5, b = ri(2, 15), c = ri(3, 20);
         const L = [`${s[0]} + ${s[0]} + ${s[0]} = ${3 * a}`, `${s[0]} + ${s[1]} = ${a + b}`, `${s[2]} × ${s[1]} = ${b * c}`];
         const vals = [a, b, c]; let falhas = 0;
+        if (api.v === 'dificil') { const k = ri(2, 6); L.push(`${s[3]} : ${s[0]} = ${k}`); vals.push(a * k); }
         corpo.append(h('p', { class: 'rv-enun' }, `Enigma ${ronda} de 4`), h('div', { class: 'rv-enigma' }, L.map(t => h('div', null, t))));
-        const linhas = s.slice(0, 3).map((x, k) => { const inp = entrada('100px', () => ver(k)); const d = h('div', { class: 'rv-en-r' }, h('span', null, `${x} =`), inp); corpo.append(d); return { inp, d }; });
+        const linhas = s.slice(0, vals.length).map((x, k) => { const inp = entrada('100px', () => ver(k)); const d = h('div', { class: 'rv-en-r' }, h('span', null, `${x} =`), inp); corpo.append(d); return { inp, d }; });
         const fb = h('p', { class: 'rv-fb' }); corpo.append(fb);
         function ver(k) {
           const n = num(linhas[k].inp.value); if (isNaN(n)) return;
@@ -627,10 +685,17 @@
   // ============================================================ 2.ª fornada de jogos (7 Nov 2026)
   // 9. Memória das contas: pares conta ↔ resultado
   JOGOS.memoria = { nome: 'Memória das contas', emoji: '🃏', tema: 'Cálculo mental', unidade: 'jogadas', desc: 'Vira as cartas e junta cada conta ao seu resultado. Menos jogadas = melhor!',
+    variantes: [['contas', 'Contas', '+ − × misturadas'], ['tabuadas', 'Tabuadas', 'multiplicações ↔ produtos'], ['medidas', 'Medidas', '1 kg ↔ 1000 g, 1 h ↔ 60 min…'], ['fracoes', 'Frações e decimais', '1/2 ↔ 0,5, 1/4 ↔ 25/100…'], ['romanos', 'Números romanos', 'XIV ↔ 14…']],
     intro: 'Vira duas cartas de cada vez. Se a conta e o resultado combinarem, ficam viradas!', pistas: ['Lembra-te de onde estão os resultados que já viste.', 'Faz a conta na cabeça antes de virar a segunda carta.', 'Começa pelos cantos e vai memorizando.'],
     iniciar(api) {
       const pares = []; const usados = new Set();
-      while (pares.length < 6) { const a = ri(2, 10), b = ri(2, 10), t = pickR(['×', '+', '−']); const v = t === '×' ? a * b : t === '+' ? a * 10 + b : a * 10 - b; if (usados.has(v)) continue; usados.add(v); pares.push([t === '×' ? `${a} × ${b}` : t === '+' ? `${a * 10} + ${b}` : `${a * 10} − ${b}`, String(v)]); }
+      const BANCO = {
+        medidas: [['1 kg', '1000 g'], ['½ kg', '500 g'], ['¼ kg', '250 g'], ['1 h', '60 min'], ['½ h', '30 min'], ['1 km', '1000 m'], ['1 m', '100 cm'], ['1 cm', '10 mm'], ['1 l', '100 cl'], ['1 dia', '24 h'], ['1 semana', '7 dias'], ['1 século', '100 anos'], ['1 €', '100 cêntimos']],
+        fracoes: [['1/2', '0,5'], ['1/4', '25/100'], ['3/4', '0,75'], ['1/10', '0,1'], ['2/4', '1/2'], ['5/10', '1/2'], ['3/10', '0,3'], ['1/100', '0,01'], ['2/8', '1/4'], ['10/10', '1'], ['7/10', '0,7'], ['4/8', '0,5']],
+        romanos: [['IV', '4'], ['IX', '9'], ['XIV', '14'], ['XIX', '19'], ['XL', '40'], ['LX', '60'], ['XC', '90'], ['CD', '400'], ['MD', '1500'], ['XXV', '25'], ['LV', '55'], ['CC', '200']],
+      };
+      if (BANCO[api.v]) { const vistos = new Set(); U.misturar(Math.random, BANCO[api.v]).forEach(p => { if (pares.length < 6 && !vistos.has(p[1])) { vistos.add(p[1]); pares.push(p); } }); }
+      while (pares.length < 6) { const a = ri(2, 10), b = ri(2, 10), t = api.v === 'tabuadas' ? '×' : pickR(['×', '+', '−']); const v = t === '×' ? a * b : t === '+' ? a * 10 + b : a * 10 - b; if (usados.has(v)) continue; usados.add(v); pares.push([t === '×' ? `${a} × ${b}` : t === '+' ? `${a * 10} + ${b}` : `${a * 10} − ${b}`, String(v)]); }
       const cartas = U.misturar(Math.random, pares.flatMap(([c, v], k) => [{ t: c, k }, { t: v, k }]));
       let abertas = [], jog = 0, feitos = 0, bloq = false;
       const g = h('div', { class: 'rv-memoria' }); api.area.append(g);
@@ -650,6 +715,7 @@
   // 10. A banca da feira: pagar a quantia certa com moedas e notas
   const DIN = [[2000, '20 €', 'nota'], [1000, '10 €', 'nota'], [500, '5 €', 'nota'], [200, '2 €', 'moeda'], [100, '1 €', 'moeda'], [50, '50 c', 'moeda'], [20, '20 c', 'moeda'], [10, '10 c', 'moeda'], [5, '5 c', 'moeda']];
   JOGOS.feira = { nome: 'A banca da feira', emoji: '🪙', tema: 'Dinheiro', unidade: 'em 6', desc: 'Paga exatamente o preço com notas e moedas — sem dar a mais!',
+    variantes: [['pagar', 'Pagar', 'dá a quantia certa'], ['troco', 'Dar o troco', 'és tu o vendedor: dá o troco certo'], ['euros', 'Só euros', 'preços sem cêntimos, para aquecer']],
     intro: 'Clica nas notas e moedas para pagar o preço certinho. Se te enganares, clica no que puseste para o tirar.', pistas: ['Começa pela nota ou moeda maior que cabe no preço.', 'Vê quanto falta e continua.', 'Os cêntimos pagam-se com as moedas pequenas.'],
     iniciar(api) {
       const PROD = ['um frasco de mel', 'um queijo', 'um pão alentejano', 'um saco de laranjas', 'azeitonas', 'um bolo'];
@@ -659,11 +725,16 @@
       DIN.forEach(([v, t, tipo]) => caixa.append(h('button', { type: 'button', class: 'rv-din ' + tipo, onclick: () => { pago.push(v); desenhar(); som('clique'); } }, t)));
       const eur = c => U.euros(c / 100);
       function desenhar() { mesa.innerHTML = ''; pago.forEach((v, i) => { const d = DIN.find(x => x[0] === v); mesa.append(h('button', { type: 'button', class: 'rv-din ' + d[2], onclick: () => { pago.splice(i, 1); desenhar(); } }, d[1])); }); tot.textContent = 'Na mesa: ' + eur(pago.reduce((a, b) => a + b, 0)); }
-      function nova() { ronda++; preco = ri(1, 40) * 5 + ri(0, 1) * ri(1, 18) * 100; pago = []; enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — ${pickR(PROD)} custa `, h('b', null, eur(preco))); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      function nova() {
+        ronda++; pago = []; enun.innerHTML = ''; fb.textContent = ''; ok.disabled = false;
+        if (api.v === 'troco') { const c = ri(1, 18) * 50 + ri(0, 9) * 5, nota = c < 500 ? 500 : c < 1000 ? 1000 : 2000; preco = nota - c; enun.append(`Ronda ${ronda} de 6 — ${pickR(PROD)} custa ${eur(c)}; o cliente pagou com ${eur(nota)}. Dá o troco: `, h('b', null, '?')); ok.textContent = 'Dar o troco'; }
+        else { preco = api.v === 'euros' ? ri(2, 38) * 100 : ri(1, 40) * 5 + ri(0, 1) * ri(1, 18) * 100; enun.append(`Ronda ${ronda} de 6 — ${pickR(PROD)} custa `, h('b', null, eur(preco))); }
+        desenhar();
+      }
       ok.onclick = () => {
         const s = pago.reduce((a, b) => a + b, 0); if (!s) return; ok.disabled = true;
         if (s === preco) { pontos++; fb.textContent = '✓ Conta certa! Obrigado!'; fb.className = 'rv-fb ok'; som('sucesso'); }
-        else { fb.textContent = s > preco ? `✗ Deste ${eur(s - preco)} a mais.` : `✗ Faltam ${eur(preco - s)}.`; fb.className = 'rv-fb mal'; }
+        else { fb.textContent = (s > preco ? `✗ Deste ${eur(s - preco)} a mais.` : `✗ Faltam ${eur(preco - s)}.`) + (api.v === 'troco' ? ` O troco era ${eur(preco)}.` : ''); fb.className = 'rv-fb mal'; }
         api.conta(`${pontos} certas`); api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), s === preco ? 1100 : 2400);
       };
       api.conta('0 certas'); nova();
@@ -671,6 +742,7 @@
 
   // 11. Acerta o relógio
   JOGOS.relogio = { nome: 'Acerta o relógio', emoji: '🕰️', tema: 'Medidas de tempo', unidade: 'em 6', desc: 'Põe os ponteiros na hora certa.',
+    variantes: [['acertar', 'Acertar o relógio', 'mexe nos ponteiros'], ['ler', 'Ler as horas', 'vês o relógio e escreves a hora'], ['quartos', 'Horas, quartos e meias', 'só 00, 15, 30 e 45 minutos']],
     intro: 'Usa os botões para mexer nas horas e nos minutos até o relógio marcar a hora pedida.', pistas: ['O ponteiro grande (azul) marca os minutos; o pequeno marca as horas.', 'Cada número do relógio são 5 minutos para o ponteiro grande.', '«e um quarto» = 15 minutos; «e meia» = 30.'],
     iniciar(api) {
       let ronda = 0, pontos = 0, alvo, hh, mm;
@@ -681,9 +753,15 @@
         h('span', null, 'Minutos'), h('button', { type: 'button', class: 'btn btn-texto', onclick: () => mexer(0, -5) }, '− 5'), h('button', { type: 'button', class: 'btn btn-texto', onclick: () => mexer(0, 5) }, '+ 5'));
       function desenhar() { fig.innerHTML = ''; fig.append(F.PC.itens.figura({ tipo: 'relogio', h: hh, m: mm })); }
       const dizerHora = (h1, m1) => m1 === 0 ? (h1 === 1 ? '1 hora' : `${h1} horas`) : m1 === 15 ? `${h1} e um quarto` : m1 === 30 ? `${h1} e meia` : m1 === 45 ? `um quarto para as ${h1 % 12 + 1}` : `${h1}h${String(m1).padStart(2, '0')}`;
-      function nova() { ronda++; alvo = [ri(1, 12), pickR([0, 15, 30, 45, 5, 10, 20, 25, 35, 40, 50, 55])]; hh = ri(1, 12); mm = 5 * ri(0, 11); if (hh === alvo[0] && mm === alvo[1]) hh = hh % 12 + 1; enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — põe o relógio nas `, h('b', null, dizerHora(...alvo))); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      const inpR = entrada('140px', () => ok.click()); inpR.hidden = api.v !== 'ler'; inpR.setAttribute('inputmode', 'text'); inpR.placeholder = '3h45'; api.area.insertBefore(inpR, ok);
+      if (api.v === 'ler') bt.hidden = true;
+      function nova() { ronda++; alvo = [ri(1, 12), pickR(api.v === 'quartos' ? [0, 15, 30, 45] : [0, 15, 30, 45, 5, 10, 20, 25, 35, 40, 50, 55])]; hh = ri(1, 12); mm = 5 * ri(0, 11); if (hh === alvo[0] && mm === alvo[1]) hh = hh % 12 + 1; enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — põe o relógio nas `, h('b', null, dizerHora(...alvo))); fb.textContent = ''; ok.disabled = false;
+        if (api.v === 'ler') { hh = alvo[0]; mm = alvo[1]; enun.textContent = `Ronda ${ronda} de 6 — que horas marca o relógio? (escreve assim: 3h45)`; inpR.value = ''; setTimeout(() => inpR.focus(), 30); }
+        desenhar(); }
       ok.onclick = () => {
-        ok.disabled = true; const c = hh === alvo[0] && mm === alvo[1];
+        let c = hh === alvo[0] && mm === alvo[1];
+        if (api.v === 'ler') { const m = String(inpR.value).trim().match(/^(\d{1,2})\s*[h:.]\s*(\d{0,2})/); if (!m) return; const H = Number(m[1]) % 12 || 12, M = Number(m[2] || 0); c = H === alvo[0] && M === alvo[1]; hh = c ? hh : H; mm = c ? mm : M; }
+        ok.disabled = true;
         if (c) { pontos++; fb.textContent = '✓ Hora certa!'; fb.className = 'rv-fb ok'; som('sucesso'); } else { fb.textContent = `✗ Marcaste ${hh}h${String(mm).padStart(2, '0')}; era ${alvo[0]}h${String(alvo[1]).padStart(2, '0')}.`; fb.className = 'rv-fb mal'; }
         api.conta(`${pontos} certas`); api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), c ? 1000 : 2400);
       };
@@ -692,22 +770,35 @@
 
   // 12. Pinta a fração
   JOGOS.fracoes = { nome: 'Pinta a fração', emoji: '🍕', tema: 'Frações', unidade: 'em 6', desc: 'Pinta as partes certas da figura para mostrar a fração pedida.',
+    variantes: [['piza', 'Piza', 'círculos divididos em partes iguais'], ['barra', 'Tablete', 'retângulos divididos em partes iguais'], ['equivalentes', 'Frações equivalentes', 'pinta 1/2 numa figura com 8 partes…']],
     intro: 'Clica nas partes para as pintar. O denominador diz em quantas partes está dividida; o numerador, quantas pintas.', pistas: ['Em baixo (denominador): o total de partes.', 'Em cima (numerador): quantas pintas.', 'Clica outra vez numa parte para a despintar.'],
     iniciar(api) {
       let ronda = 0, pontos = 0, n, d, pint;
       const enun = h('p', { class: 'rv-enun' }), fig = h('div', { class: 'rv-frac' }), ok = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Verificar'), fb = h('p', { class: 'rv-fb' });
       api.area.append(enun, fig, ok, fb);
+      let pede = null;
       function desenhar() {
+        if (api.v === 'barra') {
+          let g = ''; const w = 400 / d; for (let i = 0; i < d; i++) g += `<rect data-i="${i}" x="${10 + i * w}" y="10" width="${w}" height="110" fill="${pint.has(i) ? '#8a5a2b' : '#fff'}" stroke="#222" stroke-width="3" style="cursor:pointer"/>`;
+          fig.innerHTML = `<svg viewBox="0 0 420 130" width="420">${g}</svg>`;
+          fig.querySelectorAll('rect').forEach(p => p.addEventListener('click', () => { const i = +p.dataset.i; pint.has(i) ? pint.delete(i) : pint.add(i); desenhar(); som('clique'); }));
+          return;
+        }
         const c = 110, R = 100; let g = '';
         for (let i = 0; i < d; i++) { const a0 = (i / d) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / d) * 2 * Math.PI - Math.PI / 2;
           g += `<path data-i="${i}" d="M${c},${c} L${(c + R * Math.cos(a0)).toFixed(1)},${(c + R * Math.sin(a0)).toFixed(1)} A${R},${R} 0 0 1 ${(c + R * Math.cos(a1)).toFixed(1)},${(c + R * Math.sin(a1)).toFixed(1)} Z" fill="${pint.has(i) ? '#f29d32' : '#fff'}" stroke="#222" stroke-width="3" style="cursor:pointer"/>`; }
         fig.innerHTML = `<svg viewBox="0 0 220 220" width="260">${g}</svg>`;
         fig.querySelectorAll('path').forEach(p => p.addEventListener('click', () => { const i = +p.dataset.i; pint.has(i) ? pint.delete(i) : pint.add(i); desenhar(); som('clique'); }));
       }
-      function nova() { ronda++; d = pickR([3, 4, 5, 6, 8, 10]); n = ri(1, d - 1); pint = new Set(); enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — pinta `, h('b', null, `${n}/${d}`), ' da piza'); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      function nova() {
+        ronda++; d = pickR([3, 4, 5, 6, 8, 10]); n = ri(1, d - 1); pint = new Set(); pede = `${n}/${d}`; fb.textContent = ''; ok.disabled = false; enun.innerHTML = '';
+        if (api.v === 'equivalentes') { const [a, b] = pickR([[1, 2], [1, 4], [3, 4], [1, 3], [2, 3], [1, 5], [2, 5]]), k = pickR([2, 3]).valueOf(); d = b * (b * k > 12 ? 2 : k); n = a * d / b; pede = `${a}/${b}`; enun.append(`Ronda ${ronda} de 6 — a figura tem ${d} partes. Pinta `, h('b', null, pede), ' dela'); }
+        else enun.append(`Ronda ${ronda} de 6 — pinta `, h('b', null, pede), api.v === 'barra' ? ' da tablete' : ' da piza');
+        desenhar();
+      }
       ok.onclick = () => {
         ok.disabled = true; const c = pint.size === n;
-        if (c) { pontos++; fb.textContent = `✓ ${n} partes em ${d}!`; fb.className = 'rv-fb ok'; som('sucesso'); } else { fb.textContent = `✗ Pintaste ${pint.size}/${d}; eram ${n}/${d}.`; fb.className = 'rv-fb mal'; }
+        if (c) { pontos++; fb.textContent = `✓ ${n}/${d}${pede !== n + '/' + d ? ' = ' + pede : ''}!`; fb.className = 'rv-fb ok'; som('sucesso'); } else { fb.textContent = `✗ Pintaste ${pint.size}/${d}; ${pede} são ${n}/${d}.`; fb.className = 'rv-fb mal'; }
         api.conta(`${pontos} certas`); api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), c ? 1000 : 2200);
       };
       api.conta('0 certas'); nova();
@@ -715,12 +806,19 @@
 
   // 13. Corrida das sequências (60 s)
   JOGOS.sequencias = { nome: 'Corrida das sequências', emoji: '🔁', tema: 'Sequências', unidade: 'certas', desc: '60 segundos: descobre o número seguinte de cada sequência.',
+    variantes: [['mistura', 'Mistura', 'a subir, a descer e dobros'], ['faceis', 'Saltos pequenos', 'de 2 em 2 até de 10 em 10'], ['grandes', 'Números grandes', 'de 1000 em 1000, de 10 000 em 10 000…']],
     intro: 'Descobre a regra e escreve o número seguinte. Tens 60 segundos! Objetivo: 8 certas.',
     iniciar(api) {
       let certas = 0, v; const fim = Date.now() + 60000;
       const barra = h('div', { class: 'rv-barra' }, h('b')), q = h('div', { class: 'rv-seq-q' }), inp = entrada('180px', ver), fb = h('p', { class: 'rv-fb' });
       api.area.append(barra, q, inp, fb);
-      function nova() { const s = ri(1, 60), k = pickR([2, 3, 4, 5, 10, 25, 50, 100, -2, -5, -10]), m = Math.random() < 0.15; const t = [0, 1, 2, 3, 4].map(i => m ? s * Math.pow(2, i) : s * 10 + i * k + 100); v = t[4]; q.textContent = t.slice(0, 4).join(' · ') + ' · ?'; inp.value = ''; inp.focus(); }
+      function nova() {
+        let t; const V = api.v;
+        if (V === 'grandes') { const k = pickR([1000, 5000, 10000, 25000, 100000, -1000, -10000]), s = ri(2, 6) * 100000 + ri(0, 9) * 1000; t = [0, 1, 2, 3, 4].map(i => s + i * k); }
+        else if (V === 'faceis') { const k = pickR([2, 3, 4, 5, 10, -2, -5]), s = ri(20, 80); t = [0, 1, 2, 3, 4].map(i => s + i * k); }
+        else { const s = ri(1, 60), k = pickR([2, 3, 4, 5, 10, 25, 50, 100, -2, -5, -10]), m = Math.random() < 0.15; t = [0, 1, 2, 3, 4].map(i => m ? s * Math.pow(2, i) : s * 10 + i * k + 100); }
+        v = t[4]; q.textContent = t.slice(0, 4).map(U.fmt).join(' · ') + ' · ?'; inp.value = ''; inp.focus();
+      }
       function ver() { const n = num(inp.value); if (isNaN(n)) return; if (n === v) { certas++; fb.textContent = '✓'; fb.className = 'rv-fb ok'; som('apanhar'); } else { fb.textContent = `✗ era ${v}`; fb.className = 'rv-fb mal'; } api.conta(`${certas} certas`); nova(); }
       api.rel.cada(() => { const r = Math.max(0, fim - Date.now()); barra.firstChild.style.width = (r / 600) + '%'; if (r <= 0) { api.rel.limpar(); inp.disabled = true; api.fim(certas, 8); } }, 100);
       api.conta('0 certas'); nova();
@@ -728,48 +826,55 @@
 
   // 14. Ordena depressa
   JOGOS.ordena = { nome: 'Ordena depressa', emoji: '📶', tema: 'Números até 999 999', unidade: 'segundos', desc: 'Clica nos números do menor para o maior, o mais depressa que conseguires.',
+    variantes: [['crescente', 'Do menor para o maior', 'números até 999 999'], ['decrescente', 'Do maior para o menor', 'ao contrário!'], ['fracoes', 'Frações', 'com o mesmo denominador e frações unitárias'], ['decimais', 'Decimais e dinheiro', '3,45 € , 3,5 € , 0,9 € …']],
     intro: 'Clica nos 6 números do MENOR para o MAIOR. São 5 rondas. Se te enganares, levas mais 3 segundos.', pistas: ['Compara primeiro quantos algarismos tem cada número.', 'Com o mesmo número de algarismos, compara da esquerda para a direita.', 'Procura sempre o mais pequeno que sobra.'],
     iniciar(api) {
       let ronda = 0, castigo = 0; const t0 = Date.now();
       const enun = h('p', { class: 'rv-enun' }), g = h('div', { class: 'rv-ordena' }), fb = h('p', { class: 'rv-fb' }); api.area.append(enun, g, fb);
       function nova() {
         ronda++; g.innerHTML = ''; fb.textContent = '';
-        const base = pickR([1000, 10000, 100000]), ns = new Set(); while (ns.size < 6) ns.add(ri(base / 10 * 9, base * 9));
-        const ord = [...ns].sort((a, b) => a - b); let prox = 0;
-        enun.textContent = `Ronda ${ronda} de 5 — do menor para o maior`;
-        U.misturar(Math.random, ord).forEach(n => { const b = h('button', { type: 'button', class: 'rv-num' }, U.fmt(n)); b.onclick = () => {
+        const V = api.v, ns = new Map();
+        if (V === 'fracoes') { if (Math.random() < 0.5) { const d = ri(7, 12); while (ns.size < 6) { const n = ri(1, d - 1); ns.set(n / d, `${n}/${d}`); } } else while (ns.size < 6) { const d = ri(2, 12); ns.set(1 / d, `1/${d}`); } }
+        else if (V === 'decimais') while (ns.size < 6) { const c = ri(5, 999); ns.set(c / 100, U.euros(c / 100)); }
+        else { const base = pickR([1000, 10000, 100000]); while (ns.size < 6) { const n = ri(base / 10 * 9, base * 9); ns.set(n, U.fmt(n)); } }
+        const ord = [...ns.keys()].sort((a, b) => V === 'decrescente' ? b - a : a - b); let prox = 0;
+        enun.textContent = `Ronda ${ronda} de 5 — ${V === 'decrescente' ? 'do maior para o menor' : 'do menor para o maior'}`;
+        U.misturar(Math.random, ord).forEach(n => { const b = h('button', { type: 'button', class: 'rv-num' }, ns.get(n)); b.onclick = () => {
           if (b.disabled) return;
-          if (n === ord[prox]) { b.disabled = true; b.classList.add('ok'); b.textContent = (prox + 1) + '.º ' + U.fmt(n); prox++; som('clique'); if (prox === 6) { som('apanhar'); api.rel.depois(() => ronda < 5 ? nova() : acabar(), 500); } }
-          else { castigo += 3; b.classList.add('mal'); setTimeout(() => b.classList.remove('mal'), 400); fb.textContent = '+3 s: esse não é o mais pequeno que sobra.'; fb.className = 'rv-fb mal'; }
+          if (n === ord[prox]) { b.disabled = true; b.classList.add('ok'); b.textContent = (prox + 1) + '.º ' + ns.get(n); prox++; som('clique'); if (prox === 6) { som('apanhar'); api.rel.depois(() => ronda < 5 ? nova() : acabar(), 500); } }
+          else { castigo += 3; b.classList.add('mal'); setTimeout(() => b.classList.remove('mal'), 400); fb.textContent = V === 'decrescente' ? '+3 s: esse não é o maior que sobra.' : '+3 s: esse não é o mais pequeno que sobra.'; fb.className = 'rv-fb mal'; }
         }; g.append(b); });
       }
-      function acabar() { const s = Math.round((Date.now() - t0) / 1000) + castigo; P.jogos.ordena = P.jogos.ordena || { melhor: 999, vezes: 0 }; if (P.jogos.ordena.melhor === 0) P.jogos.ordena.melhor = 999;
-        const rec = P.jogos.ordena; rec.vezes++; const novo = s < rec.melhor; if (novo) rec.melhor = s; gravar();
+      function acabar() { const s = Math.round((Date.now() - t0) / 1000) + castigo, K = 'ordena:' + api.v; P.jogos[K] = P.jogos[K] || { melhor: 999, vezes: 0 }; if (P.jogos[K].melhor === 0) P.jogos[K].melhor = 999;
+        const rec = P.jogos[K]; rec.vezes++; const novo = s < rec.melhor; if (novo) rec.melhor = s; gravar();
         const ganhas = moedas(s <= 60 ? 3 : 0);
         janela(s <= 60 ? 'celebrar' : 'incentivar', `${s} segundos` + (novo ? ' · novo recorde!' : ''), (s <= 60 ? 'Rapidíssimo!' : 'Para ganhar moedas tens de fazer em 60 segundos ou menos.') + txtMoedas(ganhas),
-          [['Voltar ao ginásio', 'btn-texto', menu], ['Jogar outra vez', 'btn-azul', () => jogar('ordena')]]); }
+          [['Voltar ao ginásio', 'btn-texto', menu], ['Outro modo', 'btn-texto', () => jogar('ordena')], ['Jogar outra vez', 'btn-azul', () => jogar('ordena', api.v)]]); }
       api.rel.cada(() => api.conta(`${Math.round((Date.now() - t0) / 1000) + castigo} s`), 500);
       nova();
     } };
 
   // 15. Pares que fazem 100 (ou 1000)
   JOGOS.pares = { nome: 'Amigos do 100', emoji: '🤝', tema: 'Cálculo mental', unidade: 'pares', desc: 'Encontra os pares de números que somados dão 100 (e depois 1000).',
+    variantes: [['100', 'Amigos do 100 e do 1000', '37 + 63, 250 + 750…'], ['1000', 'Só amigos do 1000', '2 rondas com milhares'], ['um', 'Amigos do 1 (decimais)', '0,25 + 0,75, 0,4 + 0,6…'], ['euro', 'Amigos dos 10 €', '3,50 € + 6,50 €…']],
     intro: 'Clica em dois números que juntos façam o número pedido. 6 pares em cada ronda!', pistas: ['Olha primeiro para as unidades: têm de somar 10 (ou 0).', 'Depois vê as dezenas.', 'Por exemplo, 37 + 63 = 100.'],
     iniciar(api) {
       let ronda = 0, pares = 0, erros = 0;
       const enun = h('p', { class: 'rv-enun' }), g = h('div', { class: 'rv-ordena' }), fb = h('p', { class: 'rv-fb' }); api.area.append(enun, g, fb);
       function nova() {
-        ronda++; g.innerHTML = ''; const alvo = ronda === 1 ? 100 : 1000, passo = alvo === 100 ? 1 : 10;
+        ronda++; g.innerHTML = ''; const V = api.v;
+        const alvo = V === 'um' ? 100 : V === 'euro' ? 1000 : V === '1000' || ronda === 2 ? 1000 : 100, passo = V === 'um' ? 1 : V === 'euro' ? 10 : alvo === 100 ? 1 : 10;
+        const mostra = x => V === 'um' ? (x / 100).toFixed(2).replace('.', ',').replace(/0$/, '') : V === 'euro' ? U.euros(x / 100) : U.fmt(x), mostraAlvo = V === 'um' ? '1' : V === 'euro' ? '10 €' : U.fmt(alvo);
         const ns = []; const usados = new Set(); while (ns.length < 12) { const a = ri(1, alvo / passo - 1) * passo; if (usados.has(a) || usados.has(alvo - a) || a * 2 === alvo) continue; usados.add(a); usados.add(alvo - a); ns.push(a, alvo - a); }
-        enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 2 — pares que somam `, h('b', null, U.fmt(alvo)));
+        enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 2 — pares que somam `, h('b', null, mostraAlvo));
         let sel = null, feitos = 0;
-        U.misturar(Math.random, ns).forEach(n => { const b = h('button', { type: 'button', class: 'rv-num' }, U.fmt(n)); b.onclick = () => {
+        U.misturar(Math.random, ns).forEach(n => { const b = h('button', { type: 'button', class: 'rv-num' }, mostra(n)); b.onclick = () => {
           if (b.disabled) return;
           if (!sel) { sel = { n, b }; b.classList.add('sel'); return; }
           if (sel.b === b) { b.classList.remove('sel'); sel = null; return; }
-          if (sel.n + n === alvo) { [sel.b, b].forEach(x => { x.disabled = true; x.classList.remove('sel'); x.classList.add('ok'); }); pares++; feitos++; som('apanhar'); fb.textContent = `✓ ${U.fmt(sel.n)} + ${U.fmt(n)} = ${U.fmt(alvo)}`; fb.className = 'rv-fb ok';
+          if (sel.n + n === alvo) { [sel.b, b].forEach(x => { x.disabled = true; x.classList.remove('sel'); x.classList.add('ok'); }); pares++; feitos++; som('apanhar'); fb.textContent = `✓ ${mostra(sel.n)} + ${mostra(n)} = ${mostraAlvo}`; fb.className = 'rv-fb ok';
             if (feitos === 6) api.rel.depois(() => ronda < 2 ? nova() : api.fim(Math.max(0, 12 - erros), 10, `12 pares com ${erros} ${erros === 1 ? 'erro' : 'erros'} (pontos = 12 − erros).`), 700); }
-          else { erros++; fb.textContent = `✗ ${U.fmt(sel.n)} + ${U.fmt(n)} = ${U.fmt(sel.n + n)}`; fb.className = 'rv-fb mal'; sel.b.classList.remove('sel'); }
+          else { erros++; fb.textContent = `✗ ${mostra(sel.n)} + ${mostra(n)} = ${mostra(sel.n + n)}`; fb.className = 'rv-fb mal'; sel.b.classList.remove('sel'); }
           api.conta(`${pares} pares`); sel = null;
         }; g.append(b); });
       }
@@ -778,21 +883,22 @@
 
   // 16. Programa o Nico (pensamento computacional)
   JOGOS.programa = { nome: 'Programa o Nico', emoji: '🐾', tema: 'Pensamento computacional', unidade: 'em 5', desc: 'Monta um programa com setas para levar o Nico até à moeda, sem bater nas pedras.',
+    variantes: [['normal', 'Grelha 6 × 6', 'para começar'], ['grande', 'Grelha 8 × 8', 'mais pedras e caminhos mais longos'], ['curto', 'Programa mais curto', 'tens um número máximo de setas!']],
     intro: 'Junta setas ao programa e carrega em ▶ Correr. O Nico segue as setas pela ordem!', pistas: ['Conta quantas casas tem de andar em cada direção.', 'Contorna as pedras.', 'Usa «Apagar» para tirar a última seta.'],
     iniciar(api) {
       let ronda = 0, pontos = 0;
       const corpo = h('div'); api.area.append(corpo);
       function nova() {
         ronda++; corpo.innerHTML = '';
-        const N = 6; let ini, fimP, pedras;
-        do { ini = [ri(0, 5), ri(0, 5)]; fimP = [ri(0, 5), ri(0, 5)]; pedras = new Set(); for (let k = 0; k < 4 + ronda; k++) pedras.add(ri(0, 5) + ',' + ri(0, 5)); pedras.delete(ini.join(',')); pedras.delete(fimP.join(',')); }
+        const N = api.v === 'grande' ? 8 : 6; let ini, fimP, pedras;
+        do { ini = [ri(0, N - 1), ri(0, N - 1)]; fimP = [ri(0, N - 1), ri(0, N - 1)]; pedras = new Set(); for (let k = 0; k < (N === 8 ? 9 : 4) + ronda; k++) pedras.add(ri(0, N - 1) + ',' + ri(0, N - 1)); pedras.delete(ini.join(',')); pedras.delete(fimP.join(',')); }
         while (Math.abs(ini[0] - fimP[0]) + Math.abs(ini[1] - fimP[1]) < 4 || !alcanca(ini, fimP, pedras, N));
-        const prog = [];
-        const grade = h('div', { class: 'rv-prog-g' }), lista = h('div', { class: 'rv-prog-l', 'aria-live': 'polite' }), fb = h('p', { class: 'rv-fb' });
+        const prog = [], limite = api.v === 'curto' ? distancia(ini, fimP, pedras, N) : 16;
+        const grade = h('div', { class: 'rv-prog-g', style: `grid-template-columns: repeat(${N}, 54px)` }), lista = h('div', { class: 'rv-prog-l', 'aria-live': 'polite' }), fb = h('p', { class: 'rv-fb' });
         const desenhar = (pos, rasto) => { grade.innerHTML = ''; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { const k = r + ',' + c; grade.append(h('span', { class: 'rv-prog-c' + (rasto && rasto.has(k) ? ' rasto' : '') }, pos[0] === r && pos[1] === c ? '🐾' : fimP[0] === r && fimP[1] === c ? '🪙' : pedras.has(k) ? '🪨' : '')); } };
-        const pintarProg = () => { lista.textContent = prog.length ? 'Programa: ' + prog.join(' ') : 'Programa: (vazio)'; };
+        const pintarProg = () => { lista.textContent = (prog.length ? 'Programa: ' + prog.join(' ') : 'Programa: (vazio)') + (api.v === 'curto' ? `  ·  ${prog.length} de ${limite} setas` : ''); };
         const SET = { '↑': [-1, 0], '↓': [1, 0], '←': [0, -1], '→': [0, 1] };
-        const bts = h('div', { class: 'rv-prog-bt' }, ...Object.keys(SET).map(s => h('button', { type: 'button', class: 'btn btn-texto', onclick: () => { if (prog.length < 16) { prog.push(s); pintarProg(); som('clique'); } } }, s)),
+        const bts = h('div', { class: 'rv-prog-bt' }, ...Object.keys(SET).map(s => h('button', { type: 'button', class: 'btn btn-texto', onclick: () => { if (prog.length < limite) { prog.push(s); pintarProg(); som('clique'); } } }, s)),
           h('button', { type: 'button', class: 'btn btn-texto', onclick: () => { prog.pop(); pintarProg(); } }, '⌫ Apagar'));
         const correr = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, '▶ Correr');
         corpo.append(h('p', { class: 'rv-enun' }, `Nível ${ronda} de 5 — leva o Nico até à moeda 🪙`), grade, lista, bts, correr, fb);
@@ -809,6 +915,11 @@
       }
       api.conta('0 níveis'); nova();
     } };
+  function distancia(a, b, pedras, N) {   // número mínimo de setas (caminho mais curto)
+    const dist = new Map([[a.join(','), 0]]), fila = [a];
+    while (fila.length) { const [r, c] = fila.shift(), d = dist.get(r + ',' + c); if (r === b[0] && c === b[1]) return d; for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = [r + dr, c + dc], k = q.join(','); if (q[0] >= 0 && q[1] >= 0 && q[0] < N && q[1] < N && !pedras.has(k) && !dist.has(k)) { dist.set(k, d + 1); fila.push(q); } } }
+    return 16;
+  }
   function alcanca(a, b, pedras, N) {
     const vis = new Set([a.join(',')]), fila = [a];
     while (fila.length) { const [r, c] = fila.shift(); if (r === b[0] && c === b[1]) return true; for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = [r + dr, c + dc], k = q.join(','); if (q[0] >= 0 && q[1] >= 0 && q[0] < N && q[1] < N && !pedras.has(k) && !vis.has(k)) { vis.add(k); fila.push(q); } } }
@@ -825,7 +936,7 @@
     const q = new URLSearchParams(location.search);
     if (q.get('teste')) correrTeste();
     else if (q.get('treino') && (R.TEMAS[q.get('treino')] || NOME_TREINO[q.get('treino')])) treino(q.get('treino'));
-    else if (q.get('jogo') && JOGOS[q.get('jogo')]) jogar(q.get('jogo'));
+    else if (q.get('jogo') && JOGOS[q.get('jogo')]) jogar(q.get('jogo'), q.get('modo') || undefined);
     else menu();
   });
   F.REV.ui = { menu, treino, correrTeste, jogar, JOGOS };

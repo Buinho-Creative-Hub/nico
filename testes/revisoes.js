@@ -26,9 +26,9 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   await pg.waitForSelector('.rv-teste');
   const r = await pg.evaluate(() => {
     const F = window.Faisca, R = F.REV, C = F.PC.itens;
-    const certo = it => ({ escolha: () => it.certa, vf: () => it.afirmacoes.map(a => a[1]), ordenar: () => it.itens.map((_, i) => i),
+    const certo = it => ({ escolha: () => it.certa, varias: () => it.certas, vf: () => it.afirmacoes.map(a => a[1]), ordenar: () => it.itens.map((_, i) => i),
       curta: () => it.numero != null ? String(it.numero).replace('.', ',') : it.aceitar[0] })[it.tipo]();
-    const errado = it => ({ escolha: () => (it.certa + 1) % it.opcoes.length, vf: () => it.afirmacoes.map(a => !a[1]), ordenar: () => it.itens.map((_, i) => it.itens.length - 1 - i),
+    const errado = it => ({ escolha: () => (it.certa + 1) % it.opcoes.length, varias: () => [], vf: () => it.afirmacoes.map(a => !a[1]), ordenar: () => it.itens.map((_, i) => it.itens.length - 1 - i),
       curta: () => it.numero != null ? String(it.numero + 1) : 'zzz' })[it.tipo]();
     let n = 0, maus = [], tipos = new Set(), mesmoTeste = 0;
     const assin = new Set();
@@ -100,12 +100,20 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   // jogos
   for (const j of ['tabuada', 'abaco', 'binario', 'reta', 'coordenadas', 'secreta', 'enigma', 'planificacoes', 'memoria', 'feira', 'relogio', 'fracoes', 'sequencias', 'ordena', 'pares', 'programa']) {
     await pg.goto(url('revisoes.html', '?jogo=' + j)); await pg.waitForTimeout(400);
-    ok(await pg.locator('.rv-jogo-palco *').count() > 3, 'jogo abre: ' + j);
+    ok(await pg.locator('.rv-jogo-palco *').count() > 1, 'jogo abre (modo ou jogo): ' + j);
     await foto('rv-j-' + j);
   }
+  // todas as variantes de todos os jogos abrem sem erros
+  const vars = await pg.evaluate(() => Object.entries(Faisca.REV.ui.JOGOS).flatMap(([id, j]) => (j.variantes || []).map(v => [id, v[0]])));
+  let abriram = 0;
+  for (const [id, v] of vars) { await pg.goto(url('revisoes.html', `?jogo=${id}&modo=${encodeURIComponent(v)}`)); await pg.waitForTimeout(250); if (await pg.locator('.rv-jogo-palco *').count() > 3 && /·/.test(await pg.textContent('#atTitulo'))) abriram++; else console.log('    não abriu: ' + id + ':' + v); await foto('rv-v-' + id + '-' + v); }
+  ok(abriram === vars.length, `todas as ${vars.length} variantes dos jogos abrem`);
+  await pg.goto(url('revisoes.html', '?jogo=memoria')); await pg.waitForSelector('.rv-modos');
+  ok(await pg.locator('.rv-modos .pc-sessao').count() === 5, 'ao abrir um jogo aparece a escolha do modo');
+  await foto('rv-08-modos');
   // jogar a tabuada com respostas certas
-  await pg.goto(url('revisoes.html', '?jogo=tabuada')); await pg.waitForSelector('.rv-tab-q');
-  for (let k = 0; k < 5; k++) { const q = await pg.textContent('.rv-tab-q'); const m = q.match(/(\d+)\s*([×:])\s*(\d+)/); const v = m[2] === '×' ? m[1] * m[3] : m[1] / m[3]; await pg.fill('.rv-inp', String(v)); await pg.press('.rv-inp', 'Enter'); }
+  await pg.goto(url('revisoes.html', '?jogo=tabuada&modo=mistura')); await pg.waitForSelector('.rv-tab-q');
+  for (let k = 0; k < 5; k++) { const q = await pg.textContent('.rv-tab-q'); const m = q.replace(/\u00a0/g, '').match(/(\d+)\s*([×:])\s*(\d+)/); const v = m[2] === '×' ? m[1] * m[3] : m[1] / m[3]; await pg.fill('.rv-inp', String(v)); await pg.press('.rv-inp', 'Enter'); }
   ok((await pg.textContent('#atConta')) === '5 certas', 'tabuada-relâmpago conta as certas');
   // mapa do percurso
   await pg.goto(url('percurso.html')); await pg.waitForSelector('.pc-sessao.especial');

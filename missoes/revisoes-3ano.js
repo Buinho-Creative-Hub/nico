@@ -124,6 +124,13 @@
     });
     return `<svg xmlns="${NS}" viewBox="0 0 ${valores.length * 96 + 14} 152" width="${Math.min(480, valores.length * 96 + 14)}" font-family="Asap, sans-serif">${g}</svg>`;
   }
+  function svgCartao(v, on) {   // um cartão de pintas (para os jogos)
+    let g = `<rect x="4" y="4" width="84" height="110" rx="8" fill="${on ? '#fff' : '#264653'}" stroke="#222" stroke-width="2"/>`;
+    if (on) { const cols = v >= 16 ? 8 : v >= 8 ? 4 : v >= 4 ? 2 : v, rows = Math.ceil(v / cols), esp = v >= 16 ? 9 : 16, r = v >= 16 ? 3.5 : 6;
+      for (let k = 0; k < v; k++) g += `<circle cx="${46 + ((k % cols) - (cols - 1) / 2) * esp}" cy="${59 + (Math.floor(k / cols) - (rows - 1) / 2) * esp}" r="${r}" fill="#e9a23b"/>`; }
+    g += `<text x="46" y="138" text-anchor="middle" font-size="18" font-weight="700" font-family="Asap, sans-serif">${v}</text>`;
+    return `<svg xmlns="${NS}" viewBox="0 0 92 146" width="92">${g}</svg>`;
+  }
   function svgPlanificacao(cels) {
     const s = 28, maxr = Math.max(...cels.map(c => c[0])), maxc = Math.max(...cels.map(c => c[1]));
     let g = '';
@@ -854,6 +861,140 @@
       explica: `${n} vezes ${k} = ${n * k}; ${ini} + ${n * k} = ${ini + n * k}.` };
   });
 
+  // ============================================================ 3.ª fornada (7 Nov 2026)
+  // ===== Números
+  def('num', 'ordens-baralhadas', r => {
+    const p = misturar(r, [[100000, 'CM'], [10000, 'DM'], [1000, 'UM'], [100, 'C'], [10, 'D'], [1, 'U']]).slice(0, ri(r, 3, 5)).map(([v, o]) => [v, o, ri(r, 1, 9)]);
+    const n = p.reduce((t, [v, , d]) => t + v * d, 0);
+    return { tipo: 'curta', pergunta: `Que número é ${p.map(([, o, d]) => `${d} ${o}`).join(' + ')}?`, instr: 'Atenção: as ordens estão baralhadas! Arruma-as numa tabela CM DM UM C D U.', numero: n, largura: '180px',
+      explica: `Arrumado: ${p.slice().sort((a, b) => b[0] - a[0]).map(([v, , d]) => fmt(v * d)).join(' + ')} = ${fmt(n)}.` };
+  });
+  def('num', 'ordens-trocas', r => {
+    const a = ri(r, 2, 9), b = ri(r, 11, 19), t = pick(r, [[1000, 'unidades de milhar', 100, 'centenas'], [100, 'centenas', 10, 'dezenas'], [10000, 'dezenas de milhar', 1000, 'unidades de milhar']]);
+    const n = a * t[0] + b * t[2];
+    return { tipo: 'curta', pergunta: `Que número é ${a} ${t[1]} e ${b} ${t[3]}?`, numero: n, largura: '180px', explica: `${b} ${t[3]} = ${fmt(b * t[2])}. ${fmt(a * t[0])} + ${fmt(b * t[2])} = ${fmt(n)}. (10 ${t[3]} fazem 1 da ordem seguinte!)` };
+  });
+  def('num', 'contar-de', r => {
+    const k = pick(r, [25, 50, 250, 500, 1000, 5000]), s = ri(r, 1, 30) * k, n = ri(r, 3, 6);
+    return { tipo: 'curta', pergunta: `Conta de ${fmt(k)} em ${fmt(k)}, começando em ${fmt(s)}. Que número dizes ao fim de ${n} saltos?`, numero: s + n * k, largura: '180px', explica: `${fmt(s)} + ${n} × ${fmt(k)} = ${fmt(s + n * k)}.` };
+  });
+  def('num', 'numero-entre', r => {
+    const a = ri(r, 10, 990) * 1000, b = a + pick(r, [1000, 2000, 10000]), c = ri(r, a + 1, b - 1);
+    const er = [a - ri(r, 1, 500), b + ri(r, 1, 500), b + 1000];
+    return Object.assign({ tipo: 'escolha', pergunta: `Que número está entre ${fmt(a)} e ${fmt(b)}?` }, opcoes(r, fmt(c), er.map(fmt)), { explica: `${fmt(a)} < ${fmt(c)} < ${fmt(b)}.` });
+  });
+  def('num', 'algarismos-iguais', r => {
+    const d = ri(r, 1, 9), p1 = ri(r, 0, 2), p2 = ri(r, 3, 5), outros = misturar(r, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(x => x !== d));
+    const s = [0, 1, 2, 3, 4, 5].map(i => i === p1 || i === p2 ? d : outros[i]); if (s[0] === 0) s[0] = outros.find(x => x);
+    const n = Number(s.join('')), v1 = d * Math.pow(10, 5 - p1), v2 = d * Math.pow(10, 5 - p2);
+    return { tipo: 'curta', pergunta: `No número ${fmt(n)} há dois algarismos ${d}. Qual é a diferença entre os valores que eles representam?`, numero: v1 - v2, largura: '180px', caderno: true, instr: CADERNO,
+      explica: `O primeiro ${d} vale ${fmt(v1)} e o segundo ${fmt(v2)}: ${fmt(v1)} − ${fmt(v2)} = ${fmt(v1 - v2)}. O mesmo algarismo vale mais quanto mais à esquerda está.` };
+  });
+  def('num', 'quantas-dezenas', r => {
+    const n = grande(r), t = pick(r, [[10000, 'dezenas de milhar'], [1000, 'unidades de milhar (milhares)'], [100, 'centenas']]);
+    return { tipo: 'curta', pergunta: `Quantas ${t[1]} completas tem o número ${fmt(n)}?`, numero: Math.floor(n / t[0]), largura: '160px', explica: `Tapa os ${String(t[0]).length - 1} últimos algarismos: ${fmt(Math.floor(n / t[0]))}.` };
+  });
+
+  // ===== Cálculo (métodos do manual)
+  def('ops', 'sub-decompor-subtrativo', r => {
+    const a = ri(r, 400, 999), b = ri(r, 1, Math.floor((a - 100) / 100)) * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9), [c, d, u] = [Math.floor(b / 100) * 100, Math.floor(b % 100 / 10) * 10, b % 10];
+    return conta2(`Subtrai decompondo o subtrativo: ${a} − ${b} = ${a} − ${c} − ${d} − ${u} = ?`, a - b, `${a} − ${c} = ${a - c}; − ${d} = ${a - c - d}; − ${u} = ${a - b}.`);
+  });
+  def('ops', 'adi-decompor', r => {
+    const a = ri(r, 1100, 4999), b = ri(r, 1100, 4999);
+    return conta2(`Adiciona decompondo as parcelas: ${fmt(a)} + ${fmt(b)}`, a + b, `Milhares com milhares, centenas com centenas…: ${fmt(Math.floor(a / 1000) * 1000 + Math.floor(b / 1000) * 1000)} + ${a % 1000 + b % 1000} = ${fmt(a + b)}.`);
+  });
+  def('ops', 'div-decompor', r => {
+    const b = ri(r, 2, 6), x = ri(r, 1, 3) * 100 / 1, x2 = b * ri(r, 2, 9), D = b * x + x2;
+    return conta2(`Divide decompondo o dividendo: ${D} : ${b} = (${b * x} : ${b}) + (${x2} : ${b}) = ?`, D / b, `${b * x} : ${b} = ${x}; ${x2} : ${b} = ${x2 / b}; ${x} + ${x2 / b} = ${D / b}.`);
+  });
+  def('ops', 'mul-decompor', r => {
+    const a = ri(r, 3, 9), b = ri(r, 1, 4) * 100 + ri(r, 1, 9) * 10 + ri(r, 1, 9);
+    return conta2(`Multiplica decompondo: ${a} × ${b} = (${a} × ${Math.floor(b / 100) * 100}) + (${a} × ${Math.floor(b % 100 / 10) * 10}) + (${a} × ${b % 10})`, a * b, `${a * Math.floor(b / 100) * 100} + ${a * Math.floor(b % 100 / 10) * 10} + ${a * (b % 10)} = ${fmt(a * b)}.`);
+  });
+  def('ops', 'algarismo-falta', r => {
+    const a = ri(r, 120, 699), b = ri(r, 120, 299), s = String(a), p = ri(r, 0, 2);
+    const mostra = s.split('').map((c, i) => i === p ? '?' : c).join('');
+    return { tipo: 'curta', pergunta: `Que algarismo falta? ${mostra} + ${b} = ${a + b}`, numero: Number(s[p]), largura: '80px', caderno: true, instr: CADERNO,
+      explica: `${a + b} − ${b} = ${a}, por isso o algarismo é ${s[p]}.`, pistas: ['A adição desfaz-se com uma subtração.', `Faz ${a + b} − ${b}.`, 'Compara o resultado com o número que tem o «?».'] };
+  });
+  def('ops', 'parenteses', r => {
+    const a = ri(r, 2, 9), b = ri(r, 2, 9), c = ri(r, 2, 9), t = pick(r, [0, 1, 2]);
+    const [e, v] = [[`(${a} + ${b}) × ${c}`, (a + b) * c], [`${a} × (${b} + ${c})`, a * (b + c)], [`(${a * 10} − ${b}) × 2`, (a * 10 - b) * 2]][t];
+    return { tipo: 'curta', pergunta: `Calcula: ${e}`, numero: v, largura: '100px', explica: `Primeiro o que está dentro dos parênteses. ${e} = ${v}.` };
+  });
+  def('ops', 'tabuada-inversa', r => {
+    const v = pick(r, [12, 16, 18, 20, 24, 30, 36, 40, 48]); const ops = [];
+    for (let a = 2; a <= 9; a++) if (v % a === 0 && v / a <= 10 && v / a >= 2 && a <= v / a) ops.push(`${a} × ${v / a}`);
+    const er = []; while (er.length < 4 - Math.min(2, ops.length)) { const a = ri(r, 2, 9), b = ri(r, 2, 9); if (a * b !== v && !er.includes(`${a} × ${b}`)) er.push(`${a} × ${b}`); }
+    const cert = ops.slice(0, 2), lista = misturar(r, [...cert, ...er]);
+    return { tipo: 'varias', pergunta: `Quais destas multiplicações dão ${v}? (pode haver mais do que uma)`, opcoes: lista, certas: cert.map(c => lista.indexOf(c)).sort((a, b) => a - b), explica: `${cert.join(' e ')} dão ${v}.` };
+  });
+
+  // ===== Problemas
+  def('pro', 'piscar', r => { const p = pick(r, [15, 20, 25]), h2 = ri(r, 1, 3); return prob(`Uma pessoa pisca os olhos cerca de ${p} vezes por minuto. Quantas vezes pisca em ${h2 === 1 ? 'uma hora' : h2 + ' horas'}?`, p * 60 * h2, `1 hora = 60 minutos: ${p} × 60${h2 > 1 ? ' × ' + h2 : ''} = ${fmt(p * 60 * h2)}.`, 'vezes'); });
+  def('pro', 'fatias', r => { const b = ri(r, 2, 6), f = pick(r, [6, 8, 10, 12]), c = ri(r, 5, b * f - 2); return prob(`Para a festa da escola fizeram ${b} bolos, cada um cortado em ${f} fatias. Comeram-se ${c} fatias. Quantas sobraram?`, b * f - c, `${b} × ${f} = ${b * f} fatias; ${b * f} − ${c} = ${b * f - c}.`, 'fatias'); });
+  def('pro', 'ida-volta', r => { const d = ri(r, 12, 95), dias = ri(r, 2, 5); return prob(`De Messejana a Beja são ${d} km. O carteiro faz a viagem de ida e volta ${dias} vezes por semana. Quantos km faz por semana?`, d * 2 * dias, `Ida e volta = ${d} × 2 = ${2 * d} km; × ${dias} = ${2 * d * dias} km.`, 'km'); });
+  def('pro', 'excursao', r => { const al = ri(r, 18, 26), pa = pick(r, [3, 4, 5, 6]), aut = pa * al + ri(r, 1, 9) * 10; return prob(`A visita de estudo custa ${aut}${NB}€ de autocarro e ${pa}${NB}€ de entrada por aluno. Vão ${al} alunos. Quanto custa tudo?`, aut + pa * al, `${pa} × ${al} = ${pa * al}${NB}€; + ${aut}${NB}€ = ${aut + pa * al}${NB}€.`, '€'); });
+  def('pro', 'comboio', r => { const c = ri(r, 4, 9), l = pick(r, [48, 56, 64, 72]), v = ri(r, 20, c * l - 20); return prob(`Um comboio tem ${c} carruagens com ${l} lugares cada. Já vão sentadas ${v} pessoas. Quantos lugares estão livres?`, c * l - v, `${c} × ${l} = ${c * l}; ${c * l} − ${v} = ${c * l - v}.`, 'lugares'); });
+  def('pro', 'cabelos', r => { const f = pick(r, [50, 80, 100]), d = 7; return prob(`Cada dia caem cerca de ${f} fios de cabelo e nascem outros tantos. Quantos fios caem numa semana?`, f * d, `Uma semana tem 7 dias: ${f} × 7 = ${f * 7}.`, 'fios'); });
+  def('pro', 'agua-dias', r => { const l = ri(r, 2, 5), p = ri(r, 3, 6), d = 7; return prob(`Uma família de ${p} pessoas bebe ${l} litros de água por pessoa e por dia. Quantos litros bebe numa semana?`, l * p * d, `${l} × ${p} = ${l * p} litros por dia; × 7 = ${l * p * 7} litros.`, 'litros'); });
+  def('pro', 'grupos', r => { const g = ri(r, 3, 6), t = g * ri(r, 4, 8); return prob(`Na aula de Educação Física, ${t} alunos fazem equipas de ${g}. Quantas equipas se formam?`, t / g, `${t} : ${g} = ${t / g} equipas.`, 'equipas'); });
+
+  // ===== Frações
+  def('fra', 'fracao-vida', r => { const t = pick(r, [[3, 'a dormir'], [4, 'na escola e a estudar'], [6, 'a comer']]), a = t[0] * ri(r, 4, 20); return { tipo: 'curta', pergunta: `Uma pessoa passa cerca de 1/${t[0]} da vida ${t[1]}. Se viver ${a} anos, quantos anos passa ${t[1]}?`, numero: a / t[0], largura: '100px', depois: NB + 'anos', caderno: true, instr: CADERNO, explica: `1/${t[0]} de ${a} = ${a} : ${t[0]} = ${a / t[0]} anos.` }; });
+  def('fra', 'fracao-maior', r => { const d = ri(r, 5, 12), ns = misturar(r, [1, 2, 3, 4].map(k => k * Math.floor((d - 1) / 4) || k)).filter((x, i, l) => l.indexOf(x) === i && x < d); if (ns.length < 3) return null; const mx = Math.max(...ns);
+    return Object.assign({ tipo: 'escolha', pergunta: 'Qual destas frações é a maior?' }, opcoes(r, `${mx}/${d}`, ns.filter(x => x !== mx).map(x => `${x}/${d}`)), { explica: `Com o mesmo denominador, é maior a que tem mais partes (numerador maior): ${mx}/${d}.` }); });
+  def('fra', 'fracao-reta', r => { const d = pick(r, [2, 4, 5, 10]), n = ri(r, 1, d - 1);
+    let g = `<line x1="20" y1="40" x2="520" y2="40" stroke="#222" stroke-width="3"/>`; for (let i = 0; i <= d; i++) { const x = 20 + i * 500 / d; g += `<line x1="${x}" y1="30" x2="${x}" y2="50" stroke="#222" stroke-width="2"/>`; }
+    g += `<text x="20" y="74" text-anchor="middle" font-size="16" font-weight="700">0</text><text x="520" y="74" text-anchor="middle" font-size="16" font-weight="700">1</text><path d="M${20 + n * 500 / d},24 l-8,-14 h16 z" fill="#e05a47"/>`;
+    return Object.assign({ tipo: 'escolha', pergunta: 'Que fração está a seta a indicar?', figura: { tipo: 'svg', svg: `<svg xmlns="${NS}" viewBox="0 0 540 84" width="520" font-family="Asap, sans-serif">${g}</svg>` } },
+      opcoes(r, `${n}/${d}`, [`${d}/${n}`, `${n}/${d + 1}`, `${Math.min(d - 1, n + 1)}/${d}`, `1/${n + 1}`]), { explica: `De 0 a 1 há ${d} partes iguais; a seta está na ${n}.ª: ${n}/${d}.` }); });
+
+  // ===== Sequências
+  def('seq', 'seq-dupla', r => { const a = ri(r, 2, 6), b = ri(r, 1, 3), t = [ri(r, 1, 9)]; for (let i = 1; i < 6; i++) t.push(t[i - 1] + (i % 2 ? a : -b)); return { tipo: 'curta', pergunta: `A regra muda: +${a}, −${b}, +${a}, −${b}… Continua: ${t.slice(0, 5).join(', ')}, ?`, numero: t[5], largura: '100px', explica: `${t[4]} + ${a} = ${t[5]}.` }; });
+  def('seq', 'triangulos-palitos', r => { const n = pick(r, [5, 6, 8, 10]); return { tipo: 'curta', pergunta: `Com palitos fazem-se triângulos seguidos (lado a lado, a partilhar um palito): 1 triângulo = 3 palitos, 2 = 5, 3 = 7… Quantos palitos são precisos para ${n} triângulos?`, numero: 2 * n + 1, largura: '100px', explica: `Cada triângulo novo junta 2 palitos: 3 + ${n - 1} × 2 = ${2 * n + 1}.` }; });
+
+  // ===== Geometria
+  def('geo', 'eixos-simetria', r => { const t = pick(r, [['um quadrado', 4], ['um retângulo (não quadrado)', 2], ['um triângulo equilátero', 3], ['um hexágono regular', 6], ['um círculo', 'infinitos']]);
+    if (t[1] === 'infinitos') return Object.assign({ tipo: 'escolha', pergunta: `Quantos eixos de simetria tem ${t[0]}?` }, opcoes(r, 'Infinitos', ['1', '2', '4']), { explica: 'Qualquer reta que passe pelo centro divide o círculo em duas partes iguais.' });
+    return { tipo: 'curta', pergunta: `Quantos eixos de simetria tem ${t[0]}?`, numero: t[1], largura: '80px', explica: `${Maiusc(t[0])} tem ${t[1]} eixos de simetria.` }; });
+  def('geo', 'angulo-relogio', r => { const t = pick(r, [[3, 'Ângulo reto'], [9, 'Ângulo reto'], [6, 'Ângulo raso'], [1, 'Ângulo agudo'], [2, 'Ângulo agudo'], [4, 'Ângulo obtuso'], [5, 'Ângulo obtuso']]);
+    return Object.assign({ tipo: 'escolha', pergunta: `Às ${t[0]} horas em ponto, que ângulo fazem os ponteiros do relógio?`, figura: { tipo: 'relogio', h: t[0], m: 0 } }, opcoes(r, t[1], ['Ângulo reto', 'Ângulo agudo', 'Ângulo obtuso', 'Ângulo raso'].filter(x => x !== t[1])), { explica: 'Às 3 e às 9 é reto; às 6 é raso; menos de 3 «horas» de abertura é agudo; entre 3 e 6 é obtuso.' }); });
+  def('geo', 'solido-planificacao', r => { const t = pick(r, [['6 quadrados iguais', 'Cubo'], ['2 triângulos e 3 retângulos', 'Prisma triangular'], ['1 quadrado e 4 triângulos', 'Pirâmide quadrangular'], ['2 pentágonos e 5 retângulos', 'Prisma pentagonal'], ['1 hexágono e 6 triângulos', 'Pirâmide hexagonal'], ['2 círculos e 1 retângulo', 'Cilindro']]);
+    return Object.assign({ tipo: 'escolha', pergunta: `Uma planificação tem ${t[0]}. De que sólido é?` }, opcoes(r, t[1], ['Cubo', 'Prisma triangular', 'Pirâmide quadrangular', 'Prisma pentagonal', 'Pirâmide hexagonal', 'Cilindro', 'Cone'].filter(x => x !== t[1]).sort(() => r() - 0.5)), { explica: `${t[0]} → ${t[1].toLowerCase()}.` }); });
+  def('geo', 'quadrados-cabem', r => { const c = ri(r, 3, 9), l = ri(r, 2, 6); return { tipo: 'curta', pergunta: `Quantos quadrados de 1 cm de lado cabem num retângulo de ${c} cm por ${l} cm?`, numero: c * l, largura: '100px', caderno: true, instr: CADERNO, explica: `${l} filas de ${c} quadrados: ${c} × ${l} = ${c * l} (é a área em cm²).` }; });
+
+  // ===== Medidas
+  def('med', 'horas-24', r => { const h = ri(r, 13, 23), m = pick(r, [0, 15, 30, 45]); const tarde = h < 20 ? 'da tarde' : 'da noite';
+    return Object.assign({ tipo: 'escolha', pergunta: `${hm(h, m)} é o mesmo que…` }, opcoes(r, `${h - 12}h${String(m).padStart(2, '0')} ${tarde}`, [`${h - 10}h${String(m).padStart(2, '0')} ${tarde}`, `${h - 12}h${String(m).padStart(2, '0')} da manhã`, `${h - 2}h${String(m).padStart(2, '0')} ${tarde}`]), { explica: `Depois do meio-dia tira-se 12: ${h} − 12 = ${h - 12}.` }); });
+  def('med', 'dias-mes', r => { const M = [['janeiro', 31], ['fevereiro (num ano comum)', 28], ['março', 31], ['abril', 30], ['maio', 31], ['junho', 30], ['julho', 31], ['agosto', 31], ['setembro', 30], ['outubro', 31], ['novembro', 30], ['dezembro', 31]], m = pick(r, M);
+    return { tipo: 'curta', pergunta: `Quantos dias tem o mês de ${m[0]}?`, numero: m[1], largura: '80px', explica: '«Trinta dias tem novembro, abril, junho e setembro; de vinte e oito só há um; os outros têm trinta e um.»' }; });
+  def('med', 'peso-pena', r => Object.assign({ tipo: 'escolha', pergunta: 'O que pesa mais: 1 kg de palha ou 1000 g de ferro?' }, opcoes(r, 'Pesam o mesmo', ['1 kg de palha', '1000 g de ferro']), { explica: '1 kg = 1000 g. A quantidade é a mesma: pesam o mesmo (a palha ocupa é muito mais espaço!).' }));
+  def('med', 'comparar-medidas', r => { const t = pick(r, [[ri(r, 2, 9) * 100, 'cm', 'm', 100], [ri(r, 2, 9) * 1000, 'g', 'kg', 1000], [ri(r, 2, 9) * 1000, 'm', 'km', 1000], [ri(r, 2, 9) * 100, 'cl', 'l', 100]]);
+    const a = t[0], b = a / t[3] + pick(r, [-1, 0, 1]), s = a / t[3] > b ? '>' : a / t[3] < b ? '<' : '=';
+    return { tipo: 'escolha', pergunta: `Que sinal fica bem? ${fmt(a)} ${t[1]} ___ ${b} ${t[2]}`, opcoes: ['<', '>', '='], certa: ['<', '>', '='].indexOf(s), explica: `${fmt(a)} ${t[1]} = ${a / t[3]} ${t[2]}, por isso ${fmt(a)} ${t[1]} ${s} ${b} ${t[2]}.` }; });
+
+  // ===== Dados
+  def('dad', 'tracinhos', r => { const n = ri(r, 7, 23), marca = '卌'.repeat(Math.floor(n / 5)) + '|'.repeat(n % 5);
+    return { tipo: 'curta', pergunta: `Na contagem com tracinhos, cada 卌 vale 5. Quanto vale: ${marca}`, numero: n, largura: '80px', explica: `${Math.floor(n / 5)} × 5 + ${n % 5} = ${n}.` }; });
+  def('dad', 'roleta', r => { const max = pick(r, [6, 8, 10]), t = pick(r, [[`sair um número maior do que ${max}`, 'Impossível'], [`sair um número menor do que ${max + 1}`, 'Certo'], ['sair um número par', 'Possível, mas não certo'], [`sair o ${ri(r, 1, max)}`, 'Possível, mas não certo']]);
+    return Object.assign({ tipo: 'escolha', pergunta: `Uma roleta tem os números de 1 a ${max}. Rodar e ${t[0]} é…` }, opcoes(r, t[1], ['Impossível', 'Possível, mas não certo', 'Certo'].filter(x => x !== t[1])), { explica: `${t[1]}: a roleta só tem os números de 1 a ${max}.` }); });
+  def('dad', 'tabela-freq', r => { const cats = ['Gato', 'Cão', 'Peixe', 'Pássaro'], q = cats.map(() => ri(r, 1, 9)); const mx = Math.max(...q); if (q.filter(x => x === mx).length > 1) return null; const t = pick(r, [0, 1]);
+    const tab = { cab: ['Animal preferido', 'Frequência absoluta'], linhas: cats.map((c, i) => [c, q[i]]) };
+    if (t) return { tipo: 'curta', pergunta: 'Observa a tabela de frequências. Quantos alunos responderam?', tabela: tab, numero: q.reduce((a, b) => a + b, 0), largura: '80px', explica: `${q.join(' + ')} = ${q.reduce((a, b) => a + b, 0)}.` };
+    return Object.assign({ tipo: 'escolha', pergunta: 'Observa a tabela de frequências. Qual é a moda?', tabela: tab }, opcoes(r, cats[q.indexOf(mx)], cats.filter((_, i) => q[i] !== mx)), { explica: `A moda é a categoria com maior frequência: ${cats[q.indexOf(mx)]} (${mx}).` }); });
+
+  // ===== Pensamento computacional
+  def('pc', 'binario-maior', r => { const ns = misturar(r, Array.from({ length: 31 }, (_, k) => k + 1)).slice(0, 4), mx = Math.max(...ns), b = n => n.toString(2).padStart(5, '0');
+    return Object.assign({ tipo: 'escolha', pergunta: 'Qual destes números em binário (cartões 16 8 4 2 1) é o maior?' }, opcoes(r, b(mx), ns.filter(x => x !== mx).map(b)), { explica: `${b(mx)} = ${mx}. Os outros: ${ns.filter(x => x !== mx).map(x => b(x) + ' = ' + x).join(', ')}.` }); });
+  def('pc', 'algoritmo-inverso', r => { const s = ri(r, 2, 20), k = ri(r, 2, 5), a = ri(r, 3, 15), v = s * k + a;
+    return { tipo: 'curta', pergunta: `Uma máquina multiplica por ${k} e depois soma ${a}. Saiu o número ${v}. Que número entrou?`, numero: s, largura: '100px', explica: `Andar para trás: ${v} − ${a} = ${v - a}; ${v - a} : ${k} = ${s}.`, pistas: ['Desfaz os passos do fim para o princípio.', `O contrário de «somar ${a}» é «tirar ${a}».`, `O contrário de «multiplicar por ${k}» é «dividir por ${k}».`] }; });
+  def('pc', 'depurar', r => { const n = ri(r, 3, 6), lado = ri(r, 2, 9);
+    return Object.assign({ tipo: 'escolha', pergunta: `O Nico quer desenhar um quadrado de lado ${lado}. O programa é «repete ${n} vezes: anda ${lado}, vira 90°». O que está errado?` },
+      n === 4 ? opcoes(r, 'Nada: o programa está certo', ['Devia virar 60°', 'Devia andar 4', 'Devia repetir 3 vezes']) : opcoes(r, 'Devia repetir 4 vezes', ['Devia virar 45°', `Devia andar ${lado * 2}`, 'Nada: o programa está certo']),
+      { explica: 'Um quadrado tem 4 lados iguais e 4 ângulos retos: repete 4 vezes, anda o lado, vira 90°.' }); });
+
   // competência treinada por cada tipo de exercício — é o que a análise final usa para dizer onde a criança falha mais
   const COMPETENCIAS = {
     'extenso-algarismos': 'Escrever números com algarismos', 'algarismos-extenso': 'Ler números por extenso', 'valor-posicional': 'Valor de cada algarismo (posição)',
@@ -889,6 +1030,20 @@
     'tempo-converter': 'Medidas de tempo', calendario: 'Calendário e dias da semana', seculo: 'Séculos', 'menos-moedas': 'Contar dinheiro',
     pictograma: 'Pictogramas', venn: 'Diagramas de Venn', 'tabela-dupla': 'Tabelas de dupla entrada',
     'caminho-setas': 'Programar caminhos (setas)', 'ordenar-passos': 'Ordenar os passos de um algoritmo', condicao: 'Condições «se… senão»', repete: 'Repetições (ciclos)',
+  });
+  Object.assign(COMPETENCIAS, {   // 3.ª fornada
+    'ordens-baralhadas': 'Compor e decompor números', 'ordens-trocas': 'Trocas entre ordens (10 C = 1 UM…)', 'contar-de': 'Contar de 25 em 25, de 500 em 500…', 'numero-entre': 'Comparar e ordenar números',
+    'algarismos-iguais': 'Valor de cada algarismo (posição)', 'quantas-dezenas': 'Outras leituras (centenas, milhares)',
+    'sub-decompor-subtrativo': 'Subtrair por decomposição', 'adi-decompor': 'Adicionar por decomposição', 'div-decompor': 'Dividir por decomposição', 'mul-decompor': 'Multiplicação por um algarismo',
+    'algarismo-falta': 'Termo em falta numa operação', parenteses: 'Expressões com parênteses', 'tabuada-inversa': 'Tabuadas',
+    piscar: 'Problemas com horas', fatias: 'Problemas com vários passos', 'ida-volta': 'Problemas com vários passos', excursao: 'Problemas de dinheiro e troco', comboio: 'Problemas com vários passos',
+    cabelos: 'Problemas de multiplicação', 'agua-dias': 'Problemas com vários passos', grupos: 'Problemas de divisão',
+    'fracao-vida': 'Fração de uma quantidade', 'fracao-maior': 'Comparar frações', 'fracao-reta': 'Frações na reta numérica',
+    'seq-dupla': 'Sequências com duas regras', 'triangulos-palitos': 'Sequências de figuras',
+    'eixos-simetria': 'Simetria', 'angulo-relogio': 'Classificar ângulos', 'solido-planificacao': 'Planificações de sólidos', 'quadrados-cabem': 'Área e perímetro',
+    'horas-24': 'Ler as horas', 'dias-mes': 'Calendário e dias da semana', 'peso-pena': 'Medidas de massa', 'comparar-medidas': 'Comparar medidas (unidades diferentes)',
+    tracinhos: 'Tabela de frequências', roleta: 'Probabilidades', 'tabela-freq': 'Moda e tabela de frequências',
+    'binario-maior': 'Sistema binário', 'algoritmo-inverso': 'Seguir um algoritmo', depurar: 'Depurar (encontrar o erro num programa)',
   });
   const competencia = k => COMPETENCIAS[k] || k;
   // tipos de exercício de uma competência (para o treino dirigido aos pontos fracos)
@@ -940,5 +1095,5 @@
     return { nome: 'Insuficiente', gemas: 0, frase: 'Ainda não. Treina os temas a vermelho e volta a tentar — o teste muda sempre!', estado: 'calma' };
   }
 
-  F.REV = { TEMAS, PLANO, G, gerar, gerarTipo, teste, mencao, COMPETENCIAS, competencia, tiposDe, util: { semente, ri, pick, misturar, fmt, euros, extenso, svgAbaco, svgCartoes, eCubo, hexomino, perimetro } };
+  F.REV = { TEMAS, PLANO, G, gerar, gerarTipo, teste, mencao, COMPETENCIAS, competencia, tiposDe, util: { semente, ri, pick, misturar, fmt, euros, extenso, svgAbaco, svgCartoes, svgCartao, eCubo, hexomino, perimetro } };
 })();

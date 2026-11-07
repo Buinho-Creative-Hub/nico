@@ -121,3 +121,5 @@
 .rv-prog-bt { display: flex; gap: 8px; justify-content: center; margin: 8px 0 12px; }
 .rv-prog-bt .btn { font-size: 24px; min-width: 60px; }
 @media (max-width: 700px) { .rv-memoria { grid-template-columns: repeat(3, 1fr); } .rv-ordena { grid-template-columns: repeat(2, 1fr); } }
+.rv-modos { max-width: 860px; margin: 10px auto; text-align: left; }
+.rv-coord-op { margin-top: 10px; }
