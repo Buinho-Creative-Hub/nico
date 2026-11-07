@@ -331,9 +331,9 @@
   }
 
   // ------------------------------------------------------------ teste de revisão
-  const MINUTOS = 45;
+  const MINUTOS = 25;   // limite de tempo do teste (pedido do Carlos, 7 Nov 2026): ao fim, o teste é entregue sozinho
   function abrirTeste() {
-    janela('dica', 'Teste de revisão', `São ${Object.values(R.PLANO).reduce((a, b) => a + b, 0) + 3} questões de todos os temas do 3.º ano, e 3 delas são jogos. Prepara o caderno e o lápis: nas contas, resolve no caderno e escreve aqui só o resultado. Podes andar para a frente e para trás e marcar questões para rever. Tens cerca de ${MINUTOS} minutos (o relógio só avisa). A correção e a classificação aparecem quando entregares.`,
+    janela('dica', 'Teste de revisão', `São ${Object.values(R.PLANO).reduce((a, b) => a + b, 0) + 3} questões de todos os temas do 3.º ano, e 3 delas são jogos. Prepara o caderno e o lápis: nas contas, resolve no caderno e escreve aqui só o resultado. Podes andar para a frente e para trás e marcar questões para rever. Tens ${MINUTOS} minutos: o Nico avisa quando faltarem 5 minutos e 1 minuto, e quando o tempo acabar o teste é entregue sozinho, com o que tiveres respondido. A correção e a classificação aparecem quando entregares.`,
       [['Ainda não', 'btn-texto', () => {}], ['Começar o teste', 'btn-escuro', correrTeste]]);
   }
   function correrTeste() {
@@ -358,10 +358,19 @@
     const bSair = h('button', { type: 'button', class: 'btn btn-texto' }, 'Sair');
     caixa.append(h('div', { class: 'pv-topo' }, h('strong', null, '🎯 Teste de revisão'), nav, relogio), corpo,
       h('div', { class: 'pv-pe' }, bSair, bAnt, bMarcar, h('span', { class: 'pv-esp' }), bSeg, bEntregar));
+    const avisos = new Set(); let acabou = false;
     const tick = () => {
-      const s = Math.floor((Date.now() - t0) / 1000), rest = MINUTOS * 60 - s;
-      relogio.textContent = rest >= 0 ? `Faltam ${Math.floor(rest / 60)}:${String(rest % 60).padStart(2, '0')}` : `Tempo esgotado (+${Math.floor(-rest / 60)} min)`;
-      relogio.style.background = rest < 300 ? '#fff1c2' : '#fff';
+      if (acabou) return;
+      const s = Math.floor((Date.now() - t0) / 1000), rest = Math.max(0, MINUTOS * 60 - s);
+      relogio.textContent = `Faltam ${Math.floor(rest / 60)}:${String(rest % 60).padStart(2, '0')}`;
+      relogio.style.background = rest < 60 ? '#fde2df' : rest < 300 ? '#fff1c2' : '#fff';
+      [[300, 'Faltam 5 minutos! Vê se há perguntas por responder (os números sem cor na barra de cima).'], [60, 'Falta 1 minuto! Quando o tempo acabar, o teste é entregue sozinho.']].forEach(([t, txt]) => {
+        if (rest <= t && rest > 0 && !avisos.has(t)) { avisos.add(t); masc.dizer('dica', txt); som('ajuda'); relogio.classList.remove('rv-pisca'); void relogio.offsetWidth; relogio.classList.add('rv-pisca'); }
+      });
+      if (rest <= 0) {   // tempo esgotado: entrega com o que estiver respondido
+        acabou = true; guardar(); $('janela').hidden = true;
+        resultado(true);
+      }
     };
     const rel = F.PC.relogio(); tick(); rel.cada(tick, 500);
     atual = { relogio: rel };
@@ -400,8 +409,9 @@
       janela('a_pensar', 'Entregar o teste?', avisos + ' Depois de entregar já não podes mudar as respostas.',
         [['Voltar ao teste', 'btn-texto', () => {}], ['Entregar', 'btn-azul', resultado]]);
     };
-    function resultado() {
-      rel.limpar();
+    function resultado(porTempo) {
+      if (porTempo !== true) porTempo = false;
+      acabou = true; rel.limpar();
       const porTema = {}; let certas = 0;
       const lista = itens.map((it, k) => {
         const ok = resp[k] !== undefined && (it.tipo === 'jogo' ? JT.corrigir(it, resp[k]) : F.PC.itens.corrigir(it, resp[k]));
@@ -411,7 +421,7 @@
       });
       const total = itens.length, pct = Math.round(100 * certas / total), M = R.mencao(pct);
       const min = Math.max(1, Math.round((Date.now() - t0) / 60000));
-      P.testes.push({ quando: new Date().toISOString().slice(0, 16), certas, total, pct, mencao: M.nome, porTema, minutos: min, erros: lista.filter(x => !x.ok).map(x => x.it.k), tipos: itens.map(x => x.k) });
+      P.testes.push({ quando: new Date().toISOString().slice(0, 16), certas, total, pct, mencao: M.nome, porTema, minutos: min, porTempo, erros: lista.filter(x => !x.ok).map(x => x.it.k), tipos: itens.map(x => x.k) });
       gravar();
       const ganhas = moedas([0, 2, 5, 8][M.gemas]);
       corpo.innerHTML = '';
@@ -426,6 +436,7 @@
           h('div', null,
             h('p', { class: 'rv-res-n' }, `${certas} de ${total} certas · ${pct}%`, anterior != null && pct > anterior ? h('img', { src: ART + 'medalha-subiu.webp', alt: 'Subiste em relação ao teste anterior', class: 'rv-medalha', title: 'Subiste em relação ao teste anterior' }) : null),
             h('h1', { class: 'rv-mencao m' + M.gemas }, M.nome), gemas,
+            porTempo ? h('p', { class: 'rv-tempo-acabou' }, `⏰ O tempo acabou (${MINUTOS} minutos) e o teste foi entregue sozinho. As perguntas sem resposta contam como erradas.`) : null,
             h('p', null, M.frase + (anterior != null ? (pct > anterior ? ` Subiste ${pct - anterior} pontos desde o teste anterior! 🚀` : pct === anterior ? ' Igual ao teste anterior.' : '') : '') + txtMoedas(ganhas)))),
         h('h2', null, 'Por tema'),
         h('div', { class: 'rv-temas-res' }, Object.entries(porTema).map(([t, [c, n]]) => {

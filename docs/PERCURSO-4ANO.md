@@ -99,8 +99,8 @@ Abre em **`revisoes.html`** (cartão azul «⭐ Capítulo especial» no topo da 
 Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mix|reforco`, `?jogo=<id>`.
 
 - **Teste de revisão:** 25 questões — 22 perguntas + 3 jogos — (Números 4 · Cálculo 4 · Problemas 2 · Frações 2 · Sequências 2 · Geometria 3 · Medidas 2 ·
-  Dados 2 · Pensamento computacional 1), sem repetir o tipo de exercício; navegação, «marcar para rever», relógio de 45 min (só
-  avisa) e entrega, como a prova-ensaio. Resultado: certas e %, **menção do 1.º ciclo** (Insuficiente < 50 · Suficiente 50–69 ·
+  Dados 2 · Pensamento computacional 1), sem repetir o tipo de exercício; navegação, «marcar para rever», **limite de 25 min** (pedido do Carlos,
+  7 Nov: avisos aos 5 e a 1 minuto; ao fim é entregue sozinho e o resultado diz que foi por tempo) e entrega, como a prova-ensaio. Resultado: certas e %, **menção do 1.º ciclo** (Insuficiente < 50 · Suficiente 50–69 ·
   Bom 70–89 · Muito Bom ≥ 90), as 3 pedras do manual (cumpri parcialmente · cumpri · cumpri com distinção), comparação com o teste
   anterior, barras por tema com «Treinar», **análise** e a correção com a resposta certa e a explicação.
 - **Análise:** cada exercício pertence a uma **competência** (111, em `COMPETENCIAS`; 154 tipos de exercício). Cada resposta do teste e da 1.ª tentativa

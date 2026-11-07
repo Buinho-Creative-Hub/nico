@@ -196,3 +196,6 @@
 .rv-jogo-faixa b { display: block; font-size: 24px; color: var(--sol, #f2b632); }
 .pv-nav button.rv-nav-jogo { background: #2b3a8f; color: #fff; }
 .pv-nav button.rv-nav-jogo.resp { background: #2fa36b; }
+.rv-tempo-acabou { background: #fde2df; border-radius: 8px; padding: 6px 10px; font-weight: 700; }
+@keyframes rv-pisca { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+.rv-pisca { animation: rv-pisca .5s ease 3; }
