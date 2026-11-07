@@ -131,9 +131,9 @@
     Object.entries(JOGOS).forEach(([id, j]) => {
       const rec = P.jogos[id];
       const nv = j.variantes ? j.variantes.length : 0, jogados = nv ? j.variantes.filter(([v]) => P.jogos[id + ':' + v]).length : 0;
-      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo' }, h('span', { class: 'ps-num' }, j.tema + (nv ? ` · ${nv} modos` : '')),
+      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo' }, h('span', { class: 'ps-num' }, j.tema),
         h('strong', null, j.emoji + ' ' + j.nome), h('span', { class: 'ps-tema' }, j.desc),
-        h('span', { class: 'ps-estado' }, nv ? (jogados ? `${jogados} de ${nv} modos jogados` : 'Jogar') : rec ? `Recorde: ${rec.melhor}${j.unidade ? ' ' + j.unidade : ''}` : 'Jogar'));
+        h('span', { class: 'ps-estado' }, nv ? (jogados ? `Já jogaste ${jogados} das ${nv} versões · cada vez é diferente` : 'Jogar · cada vez é diferente') : rec ? `Recorde: ${rec.melhor}${j.unidade ? ' ' + j.unidade : ''}` : 'Jogar'));
       b.onclick = () => jogar(id);
       J.append(b);
     });
@@ -173,9 +173,10 @@
     const temas = Object.keys(R.TEMAS);
     for (let i = 0; i < 8; i++) {
       const t = tema === 'mix' ? temas[i] : tema;
-      const it = R.gerar(t, Math.random, usados.size < R.G[t].length ? usados : null);
+      const ev = new Set([...usados, ...(P.recTreino || [])]), it = R.gerar(t, Math.random, R.G[t].some(g => !ev.has(g.k)) ? ev : usados.size < R.G[t].length ? usados : null);
       usados.add(it.k); out.push(it);
     }
+    P.recTreino = [...(P.recTreino || []), ...out.map(x => x.k)].slice(-40);
     return tema === 'mix' ? U.misturar(Math.random, out) : out;
   }
   const NOME_TREINO = { mix: ['🎲', 'Mistura de tudo', '#444'], reforco: ['💪', 'Reforço dos pontos fracos', '#c2410c'] };
@@ -249,7 +250,9 @@
   }
   function correrTeste() {
     vista('vProva');
-    const itens = R.teste();
+    // tipos de exercício dos últimos testes: o teste novo evita-os (só os repete quando um tema já os usou todos)
+    const recentes = new Set(P.testes.slice(-4).flatMap(t => t.tipos || []));
+    const itens = R.teste(Math.random, recentes);
     const caixa = $('prova'); caixa.innerHTML = '';
     const resp = itens.map(() => undefined), marcadas = new Set();
     let i = 0, ctrl = null;
@@ -315,7 +318,7 @@
       });
       const total = itens.length, pct = Math.round(100 * certas / total), M = R.mencao(pct);
       const min = Math.max(1, Math.round((Date.now() - t0) / 60000));
-      P.testes.push({ quando: new Date().toISOString().slice(0, 16), certas, total, pct, mencao: M.nome, porTema, minutos: min, erros: lista.filter(x => !x.ok).map(x => x.it.k) });
+      P.testes.push({ quando: new Date().toISOString().slice(0, 16), certas, total, pct, mencao: M.nome, porTema, minutos: min, erros: lista.filter(x => !x.ok).map(x => x.it.k), tipos: itens.map(x => x.k) });
       gravar();
       const ganhas = moedas([0, 2, 5, 8][M.gemas]);
       corpo.innerHTML = '';
@@ -376,7 +379,7 @@
   // ------------------------------------------------------------ jogos
   function jogar(id, v) {
     const j = JOGOS[id];
-    if (j.variantes && v == null) return escolherVariante(id);
+    if (j.variantes && v == null) v = proximaVariante(id);   // a criança não escolhe: o Nico vai variando o modo
     vista('vSessao');
     const chave = j.variantes ? id + ':' + v : id, nomeV = j.variantes ? (j.variantes.find(x => x[0] === v) || [])[1] : null;
     $('rodape').hidden = true;
@@ -398,14 +401,22 @@
         const ganhas = moedas(pontos >= objetivo ? 3 : 0);
         janela(pontos >= objetivo ? 'celebrar' : 'incentivar', `${pontos}${j.unidade ? ' ' + j.unidade : ' pontos'}` + (novo ? ' · novo recorde!' : ''),
           (texto || (pontos >= objetivo ? 'Fantástico!' : `Para ganhar moedas precisas de ${objetivo}. Tenta outra vez!`)) + txtMoedas(ganhas),
-          [['Voltar ao ginásio', 'btn-texto', menu], ...(j.variantes ? [['Outro modo', 'btn-texto', () => jogar(id)]] : []), ['Jogar outra vez', 'btn-azul', () => jogar(id, v)]]);
+          [['Voltar ao ginásio', 'btn-texto', menu], ['Jogar outra vez', 'btn-azul', () => jogar(id)]]);
       },
     };
     masc.dizer('curiosa', j.intro);
     j.iniciar(api);
   }
-  // ecrã de escolha do modo de um jogo (as variantes)
-  function escolherVariante(id) {
+  // o modo de cada jogo é escolhido pelo Nico: primeiro os que ainda não saíram, depois os menos jogados, nunca o mesmo duas vezes seguidas
+  function proximaVariante(id) {
+    const j = JOGOS[id], G = P.jogos[id] = P.jogos[id] || { melhor: 0, vezes: 0 }, todas = j.variantes.map(x => x[0]);
+    let por = todas.filter(v => !(G.saidos || []).includes(v));   // uma volta completa por todas as versões antes de repetir
+    if (!por.length) { G.saidos = []; por = todas.filter(v => v !== G.ultimo); }
+    const v = pickR(por.length ? por : todas);
+    G.saidos = [...(G.saidos || []), v]; G.ultimo = v; gravar();
+    return v;
+  }
+  function escolherVariante(id) {   // (já não é usado no menu; fica para o professor, com ?jogo=<id>&modo=escolher)
     vista('vSessao');
     const j = JOGOS[id];
     $('rodape').hidden = true;
@@ -936,7 +947,7 @@
     const q = new URLSearchParams(location.search);
     if (q.get('teste')) correrTeste();
     else if (q.get('treino') && (R.TEMAS[q.get('treino')] || NOME_TREINO[q.get('treino')])) treino(q.get('treino'));
-    else if (q.get('jogo') && JOGOS[q.get('jogo')]) jogar(q.get('jogo'), q.get('modo') || undefined);
+    else if (q.get('jogo') && JOGOS[q.get('jogo')]) q.get('modo') === 'escolher' && JOGOS[q.get('jogo')].variantes ? escolherVariante(q.get('jogo')) : jogar(q.get('jogo'), q.get('modo') || undefined);
     else menu();
   });
   F.REV.ui = { menu, treino, correrTeste, jogar, JOGOS };

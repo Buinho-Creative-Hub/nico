@@ -107,13 +107,18 @@ Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mi
   do treino fica registada; contam as 12 mais recentes de cada competência. Mostra «neste teste falhaste em», «o que tens de
   reforçar» (< 70 % certas nas recentes; primeiro as que já falharam várias vezes, depois os erros únicos) e «já está seguro» (≥ 3 respostas e ≥ 85 %). O botão
   **💪 Reforço dos pontos fracos** gera um treino só com essas competências (também no menu). O histórico dos testes tem gráfico.
+- **Testes sempre diferentes entre si:** cada teste evita os tipos de exercício dos 4 testes anteriores (`tipos` guardado em
+  cada teste) e só os repete quando um tema os esgotou; os números são sempre novos. O treino faz o mesmo com os últimos 40.
 - **Treino por temas:** 8 exercícios; 2 tentativas, pistas do Nico em 3 níveis, explicação; exercícios de conta com faixa roxa
   e o aviso «📝 Faz a conta no caderno».
 - **Jogos (16):** tabuada-relâmpago (60 s), ábaco mágico, cartões binários, pontaria na reta numérica, caça ao tesouro nas
   coordenadas, mensagem secreta (contas escondem letras), enigma dos símbolos, caça às planificações do cubo; e (2.ª fornada)
   memória das contas, a banca da feira (pagar a quantia certa), acerta o relógio, pinta a fração, corrida das sequências (60 s),
   ordena depressa, amigos do 100/1000 e programa o Nico (setas numa grelha com pedras).
-  **Variantes (3.ª fornada):** quase todos os jogos abrem com a escolha do modo (49 modos ao todo), por exemplo tabuada só ×, só :,
+  **Variantes (3.ª fornada):** quase todos os jogos têm várias versões (49 ao todo). **A criança não escolhe** (decisão do Carlos,
+  7 Nov): cada vez que abre um jogo, o Nico escolhe a versão — dá uma volta completa por todas antes de repetir e nunca repete a
+  mesma duas vezes seguidas (`P.jogos[id].saidos` / `.ultimo`). O professor pode forçar com `?jogo=<id>&modo=<modo>` ou ver a lista
+  com `&modo=escolher`. Versões: por exemplo tabuada só ×, só :,
   difíceis ou × 10/100/1000; ábaco «ler» e até 9 999; cartões «ler» e 6 cartões (até 63); retas pequenas/grandes; coordenadas
   «dizer»; mensagem secreta só tabuadas ou contas grandes; enigma com 4 símbolos; memória de medidas, frações↔decimais e romanos;
   feira «dar o troco» e «só euros»; relógio «ler» e «quartos»; frações em tablete e equivalentes; ordenar decrescente, frações e

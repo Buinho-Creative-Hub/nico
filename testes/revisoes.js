@@ -108,16 +108,21 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   let abriram = 0;
   for (const [id, v] of vars) { await pg.goto(url('revisoes.html', `?jogo=${id}&modo=${encodeURIComponent(v)}`)); await pg.waitForTimeout(250); if (await pg.locator('.rv-jogo-palco *').count() > 3 && /·/.test(await pg.textContent('#atTitulo'))) abriram++; else console.log('    não abriu: ' + id + ':' + v); await foto('rv-v-' + id + '-' + v); }
   ok(abriram === vars.length, `todas as ${vars.length} variantes dos jogos abrem`);
-  await pg.goto(url('revisoes.html', '?jogo=memoria')); await pg.waitForSelector('.rv-modos');
-  ok(await pg.locator('.rv-modos .pc-sessao').count() === 5, 'ao abrir um jogo aparece a escolha do modo');
-  await foto('rv-08-modos');
+  // a criança não escolhe o modo: 5 vezes a memória dão os 5 modos, sem repetir
+  await pg.evaluate(() => localStorage.clear());
+  const modos = [];
+  for (let k = 0; k < 5; k++) { await pg.goto(url('revisoes.html', '?jogo=memoria')); await pg.waitForSelector('.rv-memoria'); modos.push((await pg.textContent('#atTitulo')).split('·')[1].trim()); }
+  ok(new Set(modos).size === 5, 'o Nico escolhe o modo sozinho e roda por todos: ' + modos.join(', '));
+  // testes seguidos usam tipos de exercício diferentes
+  const rot = await pg.evaluate(() => { const R = Faisca.REV, rec = new Set(); let rep = 0; for (let k = 0; k < 4; k++) { const T = R.teste(Math.random, rec); T.forEach(t => { if (rec.has(t.k)) rep++; }); T.forEach(t => rec.add(t.k)); } return rep; });
+  ok(rot <= 6, `4 testes seguidos quase sem repetir tipos de exercício (${rot} repetidos em 88)`);
   // jogar a tabuada com respostas certas
   await pg.goto(url('revisoes.html', '?jogo=tabuada&modo=mistura')); await pg.waitForSelector('.rv-tab-q');
   for (let k = 0; k < 5; k++) { const q = await pg.textContent('.rv-tab-q'); const m = q.replace(/\u00a0/g, '').match(/(\d+)\s*([×:])\s*(\d+)/); const v = m[2] === '×' ? m[1] * m[3] : m[1] / m[3]; await pg.fill('.rv-inp', String(v)); await pg.press('.rv-inp', 'Enter'); }
   ok((await pg.textContent('#atConta')) === '5 certas', 'tabuada-relâmpago conta as certas');
   // mapa do percurso
   await pg.goto(url('percurso.html')); await pg.waitForSelector('.pc-sessao.especial');
-  ok(/Último teste/.test(await pg.textContent('.pc-sessao.especial')), 'cartão do capítulo especial no mapa do Percurso, com o último teste');
+  ok(/Ginásio dos Números/.test(await pg.textContent('.pc-sessao.especial')), 'cartão do capítulo especial no mapa do Percurso');
   await foto('rv-06-percurso');
   ok(erros.length === 0, 'sem erros na consola' + (erros.length ? ': ' + erros.slice(0, 4).join(' | ') : ''));
   await br.close();

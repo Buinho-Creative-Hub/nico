@@ -1081,10 +1081,18 @@
   }
   // teste: 22 questões de todas as áreas, sem repetir o tipo de exercício
   const PLANO = { num: 4, ops: 4, pro: 2, fra: 2, seq: 2, geo: 3, med: 2, dad: 2, pc: 1 };
-  function teste(r) {
-    r = r || Math.random;
+  // recentes = tipos que saíram nos últimos testes: evitam-se enquanto o tema tiver outros por usar
+  function teste(r, recentes) {
+    r = r || Math.random; recentes = recentes || new Set();
     const out = [];
-    Object.entries(PLANO).forEach(([t, n]) => { const usados = new Set(); for (let i = 0; i < n; i++) { const it = gerar(t, r, usados); usados.add(it.k); out.push(it); } });
+    Object.entries(PLANO).forEach(([t, n]) => {
+      const usados = new Set();
+      for (let i = 0; i < n; i++) {
+        const ev = new Set([...usados, ...recentes]);
+        const it = gerar(t, r, G[t].some(g => !ev.has(g.k)) ? ev : usados);
+        usados.add(it.k); out.push(it);
+      }
+    });
     return out;
   }
   // classificação do 1.º ciclo e as «pedras» do manual
