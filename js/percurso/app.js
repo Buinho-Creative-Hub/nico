@@ -66,6 +66,7 @@
     const L = $('listaSessoes'); L.innerHTML = '';
     pintarBolotas();
     trilho();
+    L.append(cartaoEspecial());
     const caps = capitulos();
     caps.forEach((c, ci) => {
       const aberto = capAberto(c);
@@ -119,6 +120,15 @@
     return b;
   }
   const resultadosDe = Pv => P.provas.filter(r => (r.id || 'final') === Pv.id);
+  // capítulo especial (7 Nov 2026): revisões de Matemática do 3.º ano em revisoes.html — sempre aberto, fora dos bilhetes
+  function cartaoEspecial() {
+    let ult = null; try { const d = JSON.parse(localStorage.getItem(F.chaveMissao({ chave: 'nico.revisoes3.v1' }))) || {}; ult = (d.testes || []).slice(-1)[0]; } catch (e) { /* */ }
+    const b = h('a', { class: 'pc-sessao especial', href: 'revisoes.html' },
+      h('span', { class: 'ps-num' }, '⭐ Capítulo especial · sempre aberto'), h('strong', null, 'O Ginásio dos Números do Nico'),
+      h('span', { class: 'ps-tema' }, 'Revisões de toda a Matemática do 3.º ano: treinos por tema, jogos e testes sempre diferentes, com classificação e análise do que reforçar.'),
+      h('span', { class: 'ps-estado' }, ult ? `Último teste: ${ult.pct}% · ${ult.mencao}` : 'Entrar no ginásio'));
+    return b;
+  }
 
   // ------------------------------------------------------------ capítulos (Montes Velhos → Ervidel → Aljustrel → Messejana)
   const TODOS = new URLSearchParams(location.search).get('cap') === 'todos';   // o professor abre tudo com ?cap=todos

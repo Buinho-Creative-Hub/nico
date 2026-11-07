@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nico · Capítulo especial · Revisões de Matemática</title>
+<script src="js/escolha.js"></script>
+<script>/* como no percurso, o avatar é sempre o Nico */ Faisca.MASCOTE_ID = 'nico'; document.documentElement.setAttribute('data-mascote', 'nico');</script>
+<link rel="icon" href="img/nico/01_boas_vindas.png">
+<link rel="stylesheet" href="css/faisca.css">
+<link rel="stylesheet" href="css/percurso.css">
+<link rel="stylesheet" href="css/revisoes.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2b3a8f">
+<script src="js/offline.js"></script>
+</head>
+<body class="percurso revisoes">
+<header class="topo">
+  <a class="btn-missoes" href="percurso.html" title="Voltar ao Percurso 4.º ano">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <span>Percurso</span>
+  </a>
+  <div class="marca">
+    <span class="marca-icone-caixa" id="marcaIcone"></span>
+    <span class="marca-nome">Nico</span>
+    <span class="marca-sub">Capítulo especial · Revisões de Matemática</span>
+    <a class="logo-buinho logo-topo" href="https://buinho.pt" target="_blank" rel="noopener" title="Buinho — Messejana"><img src="img/buinho/buinho-logo-branco.svg" alt="Buinho"></a>
+  </div>
+  <nav class="pc-estacoes" id="estacoes" aria-label="Capítulo especial"></nav>
+  <div class="ligacao">
+    <span class="turma-barra" data-turma="missao"></span>
+    <div class="sons" data-sons></div>
+  </div>
+</header>
+
+<main class="pc-main">
+  <!-- menu do capítulo -->
+  <section class="pc-vista pc-mapa" id="vMenu" aria-label="Capítulo especial">
+    <div class="pc-mapa-dentro">
+      <div class="pc-cabeca rv-cabeca">
+        <img id="menuMasc" src="" alt="">
+        <div>
+          <span class="rv-selo">⭐ Capítulo especial</span>
+          <h1>O Ginásio dos Números do Nico</h1>
+          <p>Antes de partir para Montes Velhos, o Nico vai à oficina aquecer o cérebro com <b>toda a Matemática do 3.º ano</b>: números até 999 999, contas, problemas, frações, sequências, sólidos, medidas, gráficos e o sistema binário. <b>As contas fazes no caderno</b> e escreves aqui só o resultado — o Nico verifica.</p>
+        </div>
+      </div>
+      <div class="rv-grande" id="menuTeste"></div>
+      <h2 class="rv-h2">🏋️ Treinar por temas <small>8 exercícios novos de cada vez · corrige logo</small></h2>
+      <div class="pc-sessoes rv-temas" id="menuTemas"></div>
+      <h2 class="rv-h2">🎮 Jogos <small>ganha moedas de cobre para a loja do Percurso</small></h2>
+      <div class="pc-sessoes rv-jogos" id="menuJogos"></div>
+      <h2 class="rv-h2">📈 Os meus testes</h2>
+      <div id="menuHist"></div>
+    </div>
+  </section>
+
+  <!-- treino e jogos: uma atividade de cada vez, com o Nico ao lado -->
+  <section class="pc-vista" id="vSessao" hidden>
+    <div class="pc-trabalho">
+      <div class="pc-barra">
+        <button type="button" class="btn btn-texto rv-voltar" id="btnMenu">← Ginásio</button>
+        <span class="pb-area" id="atArea"></span>
+        <h1 id="atTitulo"></h1>
+        <div class="pc-pontos" id="atPontos" aria-hidden="true"></div>
+        <span class="pb-conta" id="atConta"></span>
+      </div>
+      <div class="pc-palco" id="atPalco"></div>
+      <div class="pc-rodape" id="rodape">
+        <span class="pr-msg" id="atMsg" role="status" aria-live="polite"></span>
+        <button type="button" class="btn btn-texto" id="btnSaltar">Saltar</button>
+        <button type="button" class="btn btn-azul btn-grande" id="btnVerificar">Verificar</button>
+        <button type="button" class="btn btn-escuro btn-grande" id="btnSeguinte" hidden>Seguinte →</button>
+      </div>
+    </div>
+    <aside class="pc-lado" aria-label="Mascote">
+      <div class="pc-balao" id="balao" role="status" aria-live="polite"></div>
+      <div class="pc-masc"><img id="mascImg" src="" alt=""></div>
+      <div class="pc-masc-botoes">
+        <button type="button" class="btn btn-escuro" id="btnAjuda">Ajuda</button>
+        <button type="button" class="btn btn-texto" id="btnOuvir" title="Ouvir o enunciado">🔊 Ouvir</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- o teste -->
+  <section class="pc-vista" id="vProva" hidden>
+    <div class="pv" id="prova"></div>
+  </section>
+</main>
+
+<div class="pc-janela" id="janela" hidden><div>
+  <img id="janelaImg" src="" alt="">
+  <h2 id="janelaTitulo"></h2>
+  <p id="janelaTexto"></p>
+  <div class="pj-botoes" id="janelaBotoes"></div>
+</div></div>
+
+<script src="js/fonte.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/som.js"></script>
+<script src="js/desafios.js"></script>
+<script src="mascotes/gabi.js"></script>
+<script src="mascotes/nico.js"></script>
+<script src="js/percurso/mascote.js"></script>
+<script src="js/percurso/itens.js"></script>
+<script src="missoes/revisoes-3ano.js"></script>
+<script src="js/turma.js"></script>
+<script src="js/inicio.js"></script>
+<script src="js/percurso/revisoes.js"></script>
+</body>
+</html>

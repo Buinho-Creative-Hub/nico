@@ -20,6 +20,9 @@ vivia na rua do Buinho.
   quadrícula (pontos cardeais, repetir, se), Matemática e Português (texto à esquerda, pergunta à direita, como nas provas;
   Estudo do Meio como tema) — e uma **prova-ensaio** com navegação, «marcar para rever», tempo e entrega. Abre em
   `percurso.html`. Ver `docs/PERCURSO-4ANO.md`.
+- **Capítulo especial · O Ginásio dos Números** (`revisoes.html`): revisões da Matemática do 3.º ano com 73 tipos de exercícios
+  gerados ao acaso (testes sempre diferentes), contas feitas no caderno, 8 jogos, teste de 22 questões com classificação
+  (Insuficiente a Muito Bom) e análise do que reforçar por competência.
 - **Modo livre**: todos os blocos arrumados por categorias, como no MakeCode, incluindo os sensores (ruído, luz,
   PIR, BME280) e o ecrã OLED do **ELECFREAKS Smart Science IoT Kit**, e a extensão **Sensory OLED** do Buinho
   (barra de intensidade, gráfico, número grande, medidor de atividade).
@@ -39,7 +42,7 @@ vivia na rua do Buinho.
 
 ### Documentação
 `docs/PLATAFORMA.md` (como está feita, como acrescentar missões e mascotes), `docs/PERCURSO-4ANO.md` (Percurso 4.º ano), `docs/TESTES-MASCOTE.md`.
-Testes automáticos: `node testes/testar.js`, `node testes/blocos-novos.js`, `node testes/palco.js` (Missão 0) e `node testes/percurso.js` (Percurso 4.º ano) (playwright-core + Chromium).
+Testes automáticos: `node testes/testar.js`, `node testes/blocos-novos.js`, `node testes/palco.js` (Missão 0) e `node testes/percurso.js` (Percurso 4.º ano), `node testes/revisoes.js` (capítulo especial) (playwright-core + Chromium).
 
 ---
 

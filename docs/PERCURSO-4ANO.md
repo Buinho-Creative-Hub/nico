@@ -84,6 +84,41 @@ de Matemática em 2025), mas é currículo do 4.º ano e dá contexto aos textos
   interpretações ilustradas: confirmar com a escola e as Juntas.
 
 
+## 0.1 Capítulo especial · «O Ginásio dos Números do Nico» — revisões do 3.º ano (7 Nov 2026)
+
+Pedido do Carlos para o **Jaime**, que vai ter um teste de recapitulação da Matemática do 3.º ano: muitos exercícios e jogos
+na onda das fichas do manual, as contas feitas **no caderno** (a criança escreve só o resultado e o Nico verifica), um
+**resultado final com classificação**, testes **sempre diferentes** e, no fim, **onde está a falhar e o que tem de reforçar**.
+
+Abre em **`revisoes.html`** (cartão azul «⭐ Capítulo especial» no topo da lista do Percurso, sempre aberto, sem bilhete).
+Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mix|reforco`, `?jogo=<id>`.
+
+- **Teste de revisão:** 22 questões (Números 4 · Cálculo 4 · Problemas 2 · Frações 2 · Sequências 2 · Geometria 3 · Medidas 2 ·
+  Dados 2 · Pensamento computacional 1), sem repetir o tipo de exercício; navegação, «marcar para rever», relógio de 45 min (só
+  avisa) e entrega, como a prova-ensaio. Resultado: certas e %, **menção do 1.º ciclo** (Insuficiente < 50 · Suficiente 50–69 ·
+  Bom 70–89 · Muito Bom ≥ 90), as 3 pedras do manual (cumpri parcialmente · cumpri · cumpri com distinção), comparação com o teste
+  anterior, barras por tema com «Treinar», **análise** e a correção com a resposta certa e a explicação.
+- **Análise:** cada exercício pertence a uma **competência** (64, em `COMPETENCIAS`). Cada resposta do teste e da 1.ª tentativa
+  do treino fica registada; contam as 12 mais recentes de cada competência. Mostra «neste teste falhaste em», «o que tens de
+  reforçar» (≥ 2 respostas e < 70 % certas, as piores primeiro) e «já está seguro» (≥ 3 respostas e ≥ 85 %). O botão
+  **💪 Reforço dos pontos fracos** gera um treino só com essas competências (também no menu). O histórico dos testes tem gráfico.
+- **Treino por temas:** 8 exercícios; 2 tentativas, pistas do Nico em 3 níveis, explicação; exercícios de conta com faixa roxa
+  e o aviso «📝 Faz a conta no caderno».
+- **Jogos (8):** tabuada-relâmpago (60 s), ábaco mágico, cartões binários, pontaria na reta numérica, caça ao tesouro nas
+  coordenadas, mensagem secreta (contas escondem letras), enigma dos símbolos, caça às planificações do cubo.
+- **Moedas de cobre:** vão para a mesma carteira do Percurso (`nico.percurso4.v1`), no máximo 30 por dia neste capítulo
+  (treino ≥ 6/8: 3 · jogo com objetivo: 3 · teste: 2/5/8 conforme a menção). O progresso fica em `nico.revisoes3.v1`, por aluno.
+- **Geometria e figuras exatas em SVG** (ábaco, frações, quadrícula, ângulos, cartões binários, planificações, coordenadas); a
+  planificação do cubo é verificada a sério (o cubo «rola» sobre a figura), e o teste confirma as 11 de 35 hexaminós.
+
+**Acrescentar exercícios (para os testes irem ficando cada vez mais variados):** em `missoes/revisoes-3ano.js`, uma linha
+`def('<tema>', '<tipo>', r => ({ tipo: 'curta'|'escolha'|'vf'|'ordenar', pergunta, …, explica }))` e o nome da competência em
+`COMPETENCIAS`. Os números vêm sempre de `r` (acaso). Contas: `caderno: true` e `instr: CADERNO`. Entra logo nos treinos, no teste
+e na análise. **Acrescentar um jogo:** `JOGOS.<id> = { nome, emoji, tema, desc, intro, iniciar(api) }` em `js/percurso/revisoes.js`
+(`api.area`, `api.rel` para temporizadores, `api.conta`, `api.fim(pontos, objetivo)`). Correr `node testes/revisoes.js` (verifica
+300 testes gerados: cada item aceita a resposta certa e recusa uma errada; todos os tipos aparecem; nenhum teste repetido) e
+`python3 ferramentas/gerar-sw.py` antes de publicar.
+
 ## 1. Porquê assim
 
 - **A ModA do 4.º ano é digital** e avalia **Português e Matemática** todos os anos, mais uma disciplina rotativa

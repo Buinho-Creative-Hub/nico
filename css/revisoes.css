@@ -1,0 +1,99 @@
+/* Nico · Capítulo especial — O Ginásio dos Números (sobre css/faisca.css e css/percurso.css) */
+.rv-selo { display: inline-block; padding: 4px 12px; border-radius: 14px; background: var(--sol, #f2b632); color: #111; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+.rv-h2 { margin: 30px 0 12px; font-size: 26px; }
+.rv-h2 small { font-size: 15px; font-weight: 400; color: var(--cinza, #555); margin-left: 8px; }
+.rv-grande .pc-sessao { width: 100%; }
+.rv-teste strong { font-size: 30px; }
+.rv-tema { border-left: 10px solid var(--cor, #444); }
+.rv-tema.fraco .ps-num { color: #c2410c; }
+.rv-reforco-cartao { background: #fff4e8; border-color: #c2410c; border-left-color: #c2410c; }
+.rv-vazio { font-size: 17px; color: var(--cinza, #555); }
+.rv-grafico { margin: 0 0 12px; background: #fff; border: 2px solid #ddd; border-radius: 8px; padding: 8px; max-width: 700px; }
+.rv-hist td, .rv-hist th { padding: 6px 12px; }
+
+/* exercício: aviso do caderno */
+.rv-item { max-width: 900px; }
+.rv-item.caderno .pc-enunciado { border-left: 8px solid #8a5bd6; padding-left: 14px; }
+.rv-item .pe-instr:first-of-type { white-space: pre-line; }
+
+/* resultado do teste */
+.rv-res { padding: 18px 26px 60px; max-width: 1000px; }
+.rv-res-topo { display: flex; gap: 22px; align-items: center; }
+.rv-res-topo img { width: 150px; height: 150px; object-fit: contain; }
+.rv-res-n { font-size: 22px; font-weight: 700; margin: 0; }
+.rv-mencao { font-size: 52px; margin: 2px 0; line-height: 1; }
+.rv-mencao.m0 { color: #c0392b; } .rv-mencao.m1 { color: #b7791f; } .rv-mencao.m2 { color: #2f855a; } .rv-mencao.m3 { color: #2b3a8f; }
+.rv-gemas span { font-size: 36px; color: #d9d9d9; margin-right: 6px; }
+.rv-gemas span.on { color: #18a999; text-shadow: 0 0 6px #18a99966; }
+.rv-temas-res { display: grid; gap: 8px; }
+.rv-tr { display: grid; grid-template-columns: 260px 1fr 70px auto; gap: 12px; align-items: center; font-size: 17px; }
+.rv-tr i { height: 14px; background: #eee; border-radius: 7px; overflow: hidden; }
+.rv-tr i b { display: block; height: 100%; }
+.rv-tr.bom i b { background: #2fa36b; } .rv-tr.medio i b { background: #f2b632; } .rv-tr.fraco i b { background: #e05a47; }
+.rv-tr .btn { padding: 4px 12px; min-height: 0; }
+.rv-correcao li { margin: 8px 0; font-size: 17px; line-height: 1.35; }
+.rv-correcao li.certo b { color: #2f855a; } .rv-correcao li.errado b { color: #c0392b; }
+.rv-explica { font-size: 15px; color: #333; background: #f4f6fb; border-radius: 6px; padding: 6px 10px; margin-top: 4px; }
+.rv-res-botoes { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+
+/* análise */
+.rv-analise { margin: 22px 0; padding: 16px 20px; border: 3px solid #c2410c; border-radius: 10px; background: #fffaf4; }
+.rv-analise h2 { margin: 0 0 10px; font-size: 24px; }
+.rv-analise h3 { margin: 0 0 8px; font-size: 18px; }
+.rv-an-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.rv-an-col ul { margin: 0; padding-left: 20px; font-size: 16px; line-height: 1.5; }
+.rv-reforco { list-style: none; padding: 0 !important; }
+.rv-reforco li { display: grid; grid-template-columns: 1fr 90px; gap: 2px 10px; align-items: center; margin-bottom: 8px; }
+.rv-reforco li i { height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+.rv-reforco li i b { display: block; height: 100%; background: #e05a47; }
+.rv-reforco li small { grid-column: 1 / -1; color: #666; }
+.rv-seguro { font-size: 15px; color: #2f855a; line-height: 1.5; }
+.rv-an-menu { max-width: 700px; }
+
+/* jogos */
+.rv-jogo-palco { max-width: 900px; margin: 0 auto; padding: 10px 0 40px; text-align: center; }
+.rv-enun { font-size: 22px; margin: 6px 0 16px; }
+.rv-enun b { font-size: 28px; color: #2b3a8f; }
+.rv-fb { font-size: 21px; font-weight: 700; min-height: 30px; }
+.rv-fb.ok { color: #2f855a; } .rv-fb.mal { color: #c0392b; }
+.rv-inp { font: 700 26px 'Asap', sans-serif; padding: 6px 10px; border: 3px solid var(--tinta, #111); border-radius: 6px; text-align: center; }
+.rv-tab-q { font: 700 64px 'Asap', sans-serif; margin: 18px 0; }
+.rv-barra { height: 14px; background: #eee; border-radius: 7px; overflow: hidden; max-width: 600px; margin: 0 auto; }
+.rv-barra b { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #e05a47, #f2b632, #2fa36b); transition: width .1s linear; }
+.rv-abaco svg { max-width: 100%; height: auto; }
+.rv-abaco-bt { display: grid; grid-template-columns: repeat(6, 74px); justify-content: center; margin: 0 auto 14px; width: 460px; max-width: 100%; }
+.rv-abaco-bt div { display: flex; gap: 4px; justify-content: center; }
+.rv-abaco-bt .btn { padding: 2px 10px; min-height: 36px; font-size: 22px; }
+.rv-cartas { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.rv-carta { border: 3px solid transparent; background: none; border-radius: 10px; padding: 2px; cursor: pointer; }
+.rv-carta:focus-visible { border-color: #2b3a8f; }
+.rv-soma { font-size: 19px; color: #444; }
+.rv-reta { max-width: 760px; margin: 0 auto; background: #fff; border: 2px solid #ddd; border-radius: 8px; padding: 10px; }
+.rv-grade { display: grid; grid-template-columns: 28px repeat(8, 52px); gap: 3px; justify-content: center; margin: 0 auto 12px; }
+.rv-g-l { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+.rv-g-c { width: 52px; height: 52px; border: 2px solid #9fb3cc; background: #fff; border-radius: 4px; cursor: pointer; font-size: 26px; }
+.rv-g-c:hover { background: #fff6dd; }
+.rv-g-c.ok { background: #d8f5e3; border-color: #2f855a; } .rv-g-c.mal { background: #fde2df; border-color: #c0392b; }
+.rv-secreta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.rv-sec-l { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border: 3px solid #ccc; border-radius: 10px; background: #fff; min-width: 120px; }
+.rv-sec-l b { font: 700 40px 'Asap', sans-serif; color: #999; }
+.rv-sec-l span { font-size: 19px; }
+.rv-sec-l.ok { border-color: #2f855a; background: #effaf3; } .rv-sec-l.ok b { color: #2f855a; }
+.rv-sec-l.mal { border-color: #c0392b; }
+.rv-enigma { display: inline-block; text-align: left; font-size: 30px; line-height: 1.6; background: #fff8e6; border: 3px dashed #b07a45; border-radius: 12px; padding: 10px 26px; margin-bottom: 16px; }
+.rv-en-r { display: flex; gap: 10px; justify-content: center; align-items: center; font-size: 30px; margin: 6px 0; }
+.rv-en-r.ok .rv-inp { border-color: #2f855a; background: #effaf3; } .rv-en-r.mal .rv-inp { border-color: #c0392b; background: #fde2df; }
+.rv-planif { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; max-width: 720px; margin: 0 auto 16px; }
+.rv-pl { border: 3px solid #ccc; border-radius: 10px; background: #fff; padding: 8px; cursor: pointer; min-height: 130px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.rv-pl[aria-pressed="true"] { border-color: #2b3a8f; background: #eef1ff; }
+.rv-pl.ok { border-color: #2f855a; background: #effaf3; } .rv-pl.mal { border-color: #c0392b; background: #fde2df; } .rv-pl.nao { opacity: .55; }
+.rv-voltar { padding: 4px 12px; min-height: 0; }
+
+/* cartão no mapa do Percurso */
+.pc-sessao.especial { grid-column: 1 / -1; background: linear-gradient(100deg, #2b3a8f, #4651b8); color: #fff; border-color: #2b3a8f; }
+.pc-sessao.especial .ps-num { color: var(--sol, #f2b632); }
+.pc-sessao.especial .ps-tema { color: #e3e6ff; }
+.pc-sessao.especial:hover { background: linear-gradient(100deg, #24317a, #3b45a3); }
+
+@media (max-width: 700px) { .rv-tr { grid-template-columns: 1fr 60px; } .rv-tr i { grid-column: 1 / -1; } .rv-planif { grid-template-columns: repeat(2, 1fr); } .rv-grade { grid-template-columns: 22px repeat(8, 36px); } .rv-g-c { width: 36px; height: 36px; } }
+.revisoes .pc-rodape[hidden], .revisoes .pv-pe[hidden], .revisoes .btn[hidden] { display: none !important; }

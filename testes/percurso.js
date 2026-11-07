@@ -138,7 +138,8 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   const fecharJanela = async () => { if (await pg.locator('#janela:not([hidden])').count()) await pg.click('#janelaBotoes .btn:last-child'); };
   const seguinte = async () => { await pg.click('#btnSeguinte'); await pg.waitForTimeout(80); await fecharJanela(); };
   const P = () => pg.evaluate(() => JSON.parse(JSON.stringify(window.Faisca.PC.app.progresso())));
-  ok(await pg.locator('.pc-sessao').count() === 14 && await pg.locator('.pc-cap').count() === 4 && await pg.locator('.pc-mapa-arte .ma-no').count() === 12, '4 capítulos · 11 missões + 2 provas-ensaio + loja na lista; 12 destinos no mapa do concelho');
+  ok(await pg.locator('.pc-sessao:not(.especial)').count() === 14 && await pg.locator('.pc-cap').count() === 4 && await pg.locator('.pc-mapa-arte .ma-no').count() === 12, '4 capítulos · 11 missões + 2 provas-ensaio + loja na lista (mais o cartão do capítulo especial); 12 destinos no mapa do concelho');
+  ok(await pg.locator('.pc-sessao.especial[href="revisoes.html"]').count() === 1, 'capítulo especial (revisões do 3.º ano) no mapa, sempre aberto');
   const caixaMapa = await pg.locator('.pc-mapa-arte').boundingBox();
   const nos = await pg.$$eval('.pc-mapa-arte .ma-no', l => l.map(b => { const r = b.getBoundingClientRect(); return [b.getAttribute('aria-label'), r.left, r.right, r.top, r.bottom]; }));
   const cortados = nos.filter(([, l, r, t, b]) => l < caixaMapa.x || r > caixaMapa.x + caixaMapa.width || t < caixaMapa.y);
@@ -151,7 +152,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
 
   // ------------------------------------------------------------ 3. Missão 2 (sessão 1) de ponta a ponta pela interface
   console.log('Missão 2 · As placas da Mostra (sessão 1)');
-  await pg.locator('.pc-sessao').nth(0).click();
+  await pg.locator('.pc-sessao:not(.especial)').nth(0).click();
   await pg.waitForSelector('#janela:not([hidden])');
   ok((await pg.textContent('#janelaTitulo')).includes('Montes Velhos'), 'a primeira vez, o capítulo abre com a história: ' + (await pg.textContent('#janelaTitulo')));
   await pg.click('#janelaBotoes .btn');
