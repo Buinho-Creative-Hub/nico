@@ -145,20 +145,99 @@
     const t = P.testes[P.testes.length - 1]; if (!t) return [];
     return Object.entries(t.porTema).filter(([, [c, n]]) => c / n < 0.6).map(([k]) => k);
   }
+  function graficoTestes(lista, W) {
+    W = W || 640; const Hh = 200, m = 36, dir = 96, passo = lista.length > 1 ? (W - m - dir - 14) / (lista.length - 1) : 0;
+    const y = p => Hh - 30 - (p / 100) * (Hh - 56);
+    let g = '';
+    [['Insuficiente', 0, 50, '#fde2df'], ['Suficiente', 50, 70, '#fff1c2'], ['Bom', 70, 90, '#e3f5ea'], ['Muito Bom', 90, 100, '#dfe8ff']].forEach(([n, a, b, c]) => {
+      g += `<rect x="${m - 10}" y="${y(b)}" width="${W - m - dir + 10}" height="${y(a) - y(b)}" fill="${c}"/><text x="${W - dir + 6}" y="${(y(a) + y(b)) / 2 + 4}" font-size="12" fill="#555">${n}</text>`; });
+    [50, 70, 90].forEach(v => { g += `<text x="${m - 6}" y="${y(v) + 4}" font-size="12" text-anchor="end" fill="#666">${v}%</text>`; });
+    if (lista.length > 1) g += `<polyline fill="none" stroke="#2b3a8f" stroke-width="3" points="${lista.map((t, i) => `${m + i * passo},${y(t.pct)}`).join(' ')}"/>`;
+    lista.forEach((t, i) => { g += `<circle cx="${m + i * passo}" cy="${y(t.pct)}" r="6" fill="${t.pct >= 70 ? '#2fa36b' : t.pct >= 50 ? '#f2b632' : '#e05a47'}"/><text x="${m + i * passo}" y="${y(t.pct) - 11}" text-anchor="middle" font-size="13" font-weight="700">${t.pct}</text><text x="${m + i * passo}" y="${Hh - 10}" text-anchor="middle" font-size="11" fill="#555">T${P.testes.indexOf(t) + 1}</text>`; });
+    return h('figure', { class: 'rv-grafico', html: `<svg viewBox="0 0 ${W} ${Hh}" width="100%" font-family="Asap, sans-serif" role="img" aria-label="Percentagem de certas em cada teste">${g}</svg>` });
+  }
   function historico() {
     const H = $('menuHist'); H.innerHTML = '';
     const fr = reforcar(6);
     if (fr.length) H.append(h('div', { class: 'rv-analise rv-an-menu' }, h('h3', null, '💪 O que tens de reforçar (somando todos os testes e treinos)'), listaReforco(fr)));
     if (!P.testes.length) { H.append(h('p', { class: 'rv-vazio' }, 'Ainda não fizeste nenhum teste. Quando fizeres, aparecem aqui os resultados para veres como vais melhorando.')); return; }
-    const ult = P.testes.slice(-12), W = 640, Hh = 190, m = 34, passo = ult.length > 1 ? (W - 2 * m) / (ult.length - 1) : 0;
-    const y = p => Hh - 26 - (p / 100) * (Hh - 50);
-    let g = '';
-    [50, 70, 90].forEach(v => { g += `<line x1="${m}" x2="${W - 10}" y1="${y(v)}" y2="${y(v)}" stroke="#ddd" stroke-dasharray="4 4"/><text x="${m - 6}" y="${y(v) + 4}" font-size="12" text-anchor="end" fill="#666">${v}%</text>`; });
-    g += `<polyline fill="none" stroke="#2b3a8f" stroke-width="3" points="${ult.map((t, i) => `${m + i * passo},${y(t.pct)}`).join(' ')}"/>`;
-    ult.forEach((t, i) => { g += `<circle cx="${m + i * passo}" cy="${y(t.pct)}" r="6" fill="${t.pct >= 70 ? '#2fa36b' : t.pct >= 50 ? '#f2b632' : '#e05a47'}"/><text x="${m + i * passo}" y="${y(t.pct) - 11}" text-anchor="middle" font-size="13" font-weight="700">${t.pct}</text>`; });
-    H.append(h('figure', { class: 'rv-grafico', html: `<svg viewBox="0 0 ${W} ${Hh}" width="100%" font-family="Asap, sans-serif" role="img" aria-label="Percentagem de certas nos últimos testes">${g}</svg>` }));
-    H.append(h('table', { class: 'it-tabela rv-hist' }, h('thead', null, h('tr', null, ['Dia', 'Certas', '%', 'Classificação', 'Tempo'].map(c => h('th', null, c)))),
-      h('tbody', null, P.testes.slice().reverse().slice(0, 10).map(t => h('tr', null, h('td', null, t.quando.replace('T', ' ')), h('td', null, `${t.certas} / ${t.total}`), h('td', null, t.pct + '%'), h('td', null, h('b', null, t.mencao)), h('td', null, t.minutos + ' min'))))));
+    H.append(graficoTestes(P.testes.slice(-12)));
+    H.append(h('p', null, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: percurso }, '📈 Ver a análise completa do percurso')));
+  }
+
+  // ------------------------------------------------------------ análise do percurso: comparar as avaliações entre si
+  const seta = d => d == null ? '' : d > 0.05 ? ' ▲' : d < -0.05 ? ' ▼' : ' ＝';
+  function evolucaoComp() {   // por competência, a partir das respostas por ordem (testes e 1.ª tentativa nos treinos)
+    const melhorou = [], falha = [], segura = [];
+    Object.entries(P.comp).forEach(([nome, c]) => {
+      const u = c.ult; if (u.length < 2) return;
+      const meio = Math.floor(u.length / 2), antes = u.slice(0, meio), depois = u.slice(meio), ta = antes.reduce((a, b) => a + b, 0) / antes.length, td = depois.reduce((a, b) => a + b, 0) / depois.length;
+      if (antes.includes(0) && u.slice(-2).every(x => x)) melhorou.push({ nome, de: Math.round(100 * ta), para: Math.round(100 * td), n: u.length });
+      else if (u.slice(-2).every(x => !x) || (u.length >= 3 && taxa(c) < 0.5)) falha.push({ nome, p: Math.round(100 * taxa(c)), n: u.length });
+      else if (u.length >= 3 && taxa(c) >= 0.85) segura.push({ nome, n: u.length });
+    });
+    return { melhorou: melhorou.sort((a, b) => (b.para - b.de) - (a.para - a.de)), falha: falha.sort((a, b) => a.p - b.p), segura };
+  }
+  function percurso() {
+    vista('vProva');
+    document.title = 'Nico · O meu percurso';
+    const caixa = $('prova'); caixa.innerHTML = '';
+    const T = P.testes, corpo = h('div', { class: 'pv-corpo' }), R2 = h('div', { class: 'pv-res rv-res rv-percurso' });
+    caixa.append(h('div', { class: 'pv-topo' }, h('strong', null, '📈 O meu percurso no Ginásio dos Números'), h('span', { class: 'pv-esp' }),
+      h('button', { type: 'button', class: 'btn btn-texto', onclick: () => window.print() }, '🖨 Imprimir'), h('button', { type: 'button', class: 'btn btn-escuro', onclick: menu }, '← Ginásio')), corpo);
+    corpo.append(R2);
+    if (!T.length) { R2.append(h('p', { class: 'rv-vazio' }, 'Ainda não há testes. Faz o primeiro teste e volta aqui!')); return; }
+    // 1. resumo
+    const pcts = T.map(t => t.pct), media = Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length), melhor = Math.max(...pcts);
+    const ini = pcts.slice(0, Math.min(3, Math.ceil(pcts.length / 2))), fim = pcts.slice(-Math.min(3, Math.floor(pcts.length / 2)) || -1);
+    const mi = ini.reduce((a, b) => a + b, 0) / ini.length, mf = fim.reduce((a, b) => a + b, 0) / fim.length, tend = T.length < 2 ? null : Math.round(mf - mi);
+    const desde = P.treinoLog ? P.treinoLog.length : Object.values(P.treinos).reduce((a, t) => a + t.rondas, 0);
+    const jogos = (P.jogoLog || []).length || Object.entries(P.jogos).filter(([k]) => k.includes(':') || !JOGOS[k] || !JOGOS[k].variantes).reduce((a, [, j]) => a + (j.vezes || 0), 0);
+    R2.append(h('div', { class: 'rv-cartoes' },
+      cartaoN('Testes feitos', T.length), cartaoN('Último', T[T.length - 1].pct + '%', T[T.length - 1].mencao), cartaoN('Melhor', melhor + '%', R.mencao(melhor).nome), cartaoN('Média', media + '%', R.mencao(media).nome),
+      cartaoN('Tendência', tend == null ? '—' : (tend > 0 ? '+' : '') + tend + ' pontos', tend == null ? 'faz mais testes' : tend > 2 ? 'a melhorar ▲' : tend < -2 ? 'a descer ▼' : 'estável ＝'),
+      cartaoN('Treinos e jogos', desde + ' · ' + jogos, 'treinos · jogos jogados')));
+    R2.append(h('p', { class: 'rv-frase' }, fraseResumo(T, tend)));
+    // 2. gráfico
+    R2.append(h('h2', null, 'A nota em cada teste'), graficoTestes(T.slice(-15), 760));
+    // 3. temas × testes
+    const ult = T.slice(-8), temas = Object.keys(R.TEMAS);
+    const cel = (t, k) => { const v = t.porTema && t.porTema[k]; return v ? v[0] / v[1] : null; };
+    R2.append(h('h2', null, 'Cada tema, teste a teste'), h('p', { class: 'pe-instr' }, 'Percentagem de certas em cada tema. ▲ subiu e ▼ desceu em relação ao primeiro teste mostrado.'));
+    R2.append(h('div', { class: 'rv-tab-scroll' }, h('table', { class: 'it-tabela rv-mapa-temas' },
+      h('thead', null, h('tr', null, h('th', null, 'Tema'), ...ult.map(t => h('th', null, `T${T.indexOf(t) + 1}`, h('br'), h('small', null, t.quando.slice(5, 10).split('-').reverse().join('/')))), h('th', null, 'Evolução'))),
+      h('tbody', null, temas.map(k => {
+        const vals = ult.map(t => cel(t, k)), conh = vals.filter(v => v != null), d = conh.length > 1 ? conh[conh.length - 1] - conh[0] : null;
+        return h('tr', null, h('td', null, R.TEMAS[k].emoji + ' ' + R.TEMAS[k].nome),
+          ...vals.map(v => h('td', { class: 'rv-cel ' + (v == null ? '' : v >= 0.75 ? 'bom' : v >= 0.5 ? 'medio' : 'fraco') }, v == null ? '—' : Math.round(100 * v) + '%')),
+          h('td', { class: 'rv-evo' }, d == null ? '—' : (d > 0 ? '+' : '') + Math.round(100 * d) + seta(d)));
+      })))));
+    // 4. competências
+    const ev = evolucaoComp();
+    const lst = (l, f) => l.length ? h('ul', null, l.slice(0, 10).map(x => h('li', null, f(x)))) : h('p', { class: 'pe-instr' }, 'Ainda nada aqui.');
+    R2.append(h('h2', null, 'Competências'), h('div', { class: 'rv-an-col rv-analise' },
+      h('div', null, h('h3', null, '🚀 Melhorou'), h('p', { class: 'pe-instr' }, 'Falhava antes e acertou as últimas vezes.'), lst(ev.melhorou, x => [x.nome, h('small', null, ` (${x.de}% → ${x.para}%)`)])),
+      h('div', null, h('h3', null, '⚠ Continua a falhar'), h('p', { class: 'pe-instr' }, 'Errou as últimas vezes ou acerta menos de metade.'), lst(ev.falha, x => [x.nome, h('small', null, ` (${x.p}% em ${x.n})`)]),
+        ev.falha.length ? h('button', { type: 'button', class: 'btn btn-azul', onclick: () => treino('reforco') }, '💪 Treino de reforço') : null),
+      h('div', null, h('h3', null, '✅ Seguro'), h('p', { class: 'pe-instr' }, 'Acerta quase sempre (pelo menos 3 vezes).'), lst(ev.segura, x => x.nome))));
+    // 5. tabela dos testes
+    R2.append(h('h2', null, 'Todos os testes'), h('div', { class: 'rv-tab-scroll' }, h('table', { class: 'it-tabela rv-hist' },
+      h('thead', null, h('tr', null, ['Teste', 'Dia', 'Certas', '%', 'Classificação', 'Tempo', 'Diferença', 'Treinos antes'].map(c => h('th', null, c)))),
+      h('tbody', null, T.map((t, i) => {
+        const ant = T[i - 1], dif = ant ? t.pct - ant.pct : null;
+        const tr = (P.treinoLog || []).filter(x => x.quando > (ant ? ant.quando : '') && x.quando <= t.quando).length;
+        return h('tr', null, h('td', null, 'T' + (i + 1)), h('td', null, t.quando.replace('T', ' ')), h('td', null, `${t.certas} / ${t.total}`), h('td', null, t.pct + '%'), h('td', null, h('b', null, t.mencao)),
+          h('td', null, t.minutos + ' min'), h('td', { class: dif > 0 ? 'rv-sobe' : dif < 0 ? 'rv-desce' : '' }, dif == null ? '—' : (dif > 0 ? '+' : '') + dif), h('td', null, P.treinoLog ? String(tr) : '—'));
+      }).reverse()))));
+    masc.dizer && masc.dizer('boas_vindas', fraseResumo(T, tend));
+  }
+  const cartaoN = (t, v, sub) => h('div', { class: 'rv-cartao-n' }, h('small', null, t), h('b', null, String(v)), sub ? h('span', null, sub) : null);
+  function fraseResumo(T, tend) {
+    const u = T[T.length - 1];
+    if (T.length === 1) return `Primeiro teste: ${u.pct}% (${u.mencao}). A partir do próximo já dá para ver a evolução.`;
+    const ev = evolucaoComp();
+    return `${T.length} testes. O último deu ${u.pct}% (${u.mencao})` + (tend > 2 ? `, e a tendência é para subir (+${tend} pontos desde o início).` : tend < -2 ? `; a tendência está a descer (${tend} pontos) — vale a pena treinar mais antes do próximo teste.` : ', com resultados estáveis.')
+      + (ev.melhorou.length ? ` Melhorou em ${ev.melhorou.length} ${ev.melhorou.length === 1 ? 'competência' : 'competências'}` + (ev.falha.length ? ` e ainda falha em ${ev.falha.length}.` : '.') : ev.falha.length ? ` Ainda falha em ${ev.falha.length} ${ev.falha.length === 1 ? 'competência' : 'competências'}.` : '');
   }
 
   // ------------------------------------------------------------ treino (8 exercícios, corrige logo)
@@ -228,7 +307,9 @@
     function seguinte() {
       if (i < itens.length - 1) { i++; mostrar(); return; }
       const tr = P.treinos[tema] = P.treinos[tema] || { rondas: 0, certas: 0, total: 0 };
-      tr.rondas++; tr.certas += certas; tr.total += itens.length; gravar();
+      tr.rondas++; tr.certas += certas; tr.total += itens.length;
+      (P.treinoLog = P.treinoLog || []).push({ quando: new Date().toISOString().slice(0, 16), tema, certas, total: itens.length }); if (P.treinoLog.length > 300) P.treinoLog.shift();
+      gravar();
       const ganhas = moedas(certas >= 6 ? 3 : certas >= 4 ? 1 : 0);
       janela(certas >= 6 ? 'celebrar' : 'incentivar', `${certas} de ${itens.length} certas à primeira!`,
         (certas >= 7 ? 'Estás em grande forma neste tema!' : certas >= 5 ? 'Muito bem. Mais um treino e fica seguro!' : 'Este tema precisa de mais treino — e os exercícios mudam sempre.') + txtMoedas(ganhas),
@@ -339,8 +420,9 @@
             h('p', null, M.frase + (anterior != null ? (pct > anterior ? ` Subiste ${pct - anterior} pontos desde o teste anterior! 🚀` : pct === anterior ? ' Igual ao teste anterior.' : '') : '') + txtMoedas(ganhas)))),
         h('h2', null, 'Por tema'),
         h('div', { class: 'rv-temas-res' }, Object.entries(porTema).map(([t, [c, n]]) => {
-          const p = c / n, b = h('div', { class: 'rv-tr ' + (p >= 0.75 ? 'bom' : p >= 0.5 ? 'medio' : 'fraco') },
-            h('span', null, R.TEMAS[t].emoji + ' ' + R.TEMAS[t].nome), h('i', null, h('b', { style: `width:${100 * p}%` })), h('strong', null, `${c} / ${n}`));
+          const p = c / n, antT = P.testes.length > 1 && P.testes[P.testes.length - 2].porTema[t], d = antT ? p - antT[0] / antT[1] : null;
+          const b = h('div', { class: 'rv-tr ' + (p >= 0.75 ? 'bom' : p >= 0.5 ? 'medio' : 'fraco') },
+            h('span', null, R.TEMAS[t].emoji + ' ' + R.TEMAS[t].nome), h('i', null, h('b', { style: `width:${100 * p}%` })), h('strong', null, `${c} / ${n}`, h('small', { class: d > 0.05 ? 'rv-sobe' : d < -0.05 ? 'rv-desce' : '', title: 'em relação ao teste anterior' }, seta(d))));
           if (p < 1) b.append(h('button', { type: 'button', class: 'btn btn-texto', onclick: () => treino(t) }, 'Treinar'));
           return b;
         })),
@@ -353,6 +435,7 @@
         h('p', { class: 'rv-res-botoes' },
           h('button', { type: 'button', class: 'btn btn-texto btn-grande', onclick: menu }, 'Voltar ao ginásio'),
           reforcar(1).length ? h('button', { type: 'button', class: 'btn btn-azul btn-grande', onclick: () => treino('reforco') }, '💪 Treino de reforço') : fracos.length ? h('button', { type: 'button', class: 'btn btn-azul btn-grande', onclick: () => treino(fracos[0]) }, `Treinar ${R.TEMAS[fracos[0]].nome.toLowerCase()}`) : null,
+          P.testes.length > 1 ? h('button', { type: 'button', class: 'btn btn-texto btn-grande', onclick: percurso }, '📈 Comparar com os testes anteriores') : null,
           h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onclick: abrirTeste }, 'Fazer outro teste')));
       corpo.append(res);
       corpo.scrollTop = 0;
@@ -401,7 +484,9 @@
       dizer: (e, t) => masc.dizer(e, t),
       fim(pontos, objetivo, texto) {
         const rec = P.jogos[chave] = P.jogos[chave] || { melhor: 0, vezes: 0 };
-        rec.vezes++; const novo = pontos > rec.melhor; if (novo) rec.melhor = pontos; gravar();
+        rec.vezes++; const novo = pontos > rec.melhor; if (novo) rec.melhor = pontos;
+        (P.jogoLog = P.jogoLog || []).push({ quando: new Date().toISOString().slice(0, 16), jogo: chave, pontos }); if (P.jogoLog.length > 300) P.jogoLog.shift();
+        gravar();
         const ganhas = moedas(pontos >= objetivo ? 3 : 0);
         janela(pontos >= objetivo ? 'celebrar' : 'incentivar', `${pontos}${j.unidade ? ' ' + j.unidade : ' pontos'}` + (novo ? ' · novo recorde!' : ''),
           (texto || (pontos >= objetivo ? 'Fantástico!' : `Para ganhar moedas precisas de ${objetivo}. Tenta outra vez!`)) + txtMoedas(ganhas),
@@ -950,9 +1035,10 @@
     };
     const q = new URLSearchParams(location.search);
     if (q.get('teste')) correrTeste();
+    else if (q.get('percurso')) percurso();
     else if (q.get('treino') && (R.TEMAS[q.get('treino')] || NOME_TREINO[q.get('treino')])) treino(q.get('treino'));
     else if (q.get('jogo') && JOGOS[q.get('jogo')]) q.get('modo') === 'escolher' && JOGOS[q.get('jogo')].variantes ? escolherVariante(q.get('jogo')) : jogar(q.get('jogo'), q.get('modo') || undefined);
     else menu();
   });
-  F.REV.ui = { menu, treino, correrTeste, jogar, JOGOS };
+  F.REV.ui = { menu, treino, correrTeste, jogar, percurso, JOGOS };
 })();

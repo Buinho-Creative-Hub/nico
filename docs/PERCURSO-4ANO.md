@@ -113,6 +113,13 @@ Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mi
   corrigidos ao entregar; contam para a nota e para a análise por competência. Código: `js/percurso/revisoes-jogos-teste.js`.
 - **Testes sempre diferentes entre si:** cada teste evita os tipos de exercício dos 4 testes anteriores (`tipos` guardado em
   cada teste) e só os repete quando um tema os esgotou; os números são sempre novos. O treino faz o mesmo com os últimos 40.
+- **📈 O meu percurso** (`?percurso=1`; botão no menu e no fim de cada teste a partir do 2.º): compara as avaliações entre si —
+  resumo (testes feitos, último, melhor, média, **tendência** = média dos últimos testes − média dos primeiros, treinos e jogos), a
+  nota em cada teste sobre as faixas da classificação, **cada tema teste a teste** (tabela com cores e evolução ▲▼), competências
+  que **melhoraram** (falhavam antes e acertaram as últimas 2 vezes), que **continuam a falhar** (erradas as 2 últimas ou < 50 %) e
+  que estão **seguras**, e a tabela de todos os testes com a diferença para o anterior e os treinos feitos entre um e outro.
+  Imprime-se. No resultado de cada teste, cada tema mostra ▲▼ em relação ao teste anterior. Treinos e jogos ficam registados com data
+  (`P.treinoLog`, `P.jogoLog`).
 - **Treino por temas:** 8 exercícios; 2 tentativas, pistas do Nico em 3 níveis, explicação; exercícios de conta com faixa roxa
   e o aviso «📝 Faz a conta no caderno».
 - **Jogos (16):** tabuada-relâmpago (60 s), ábaco mágico, cartões binários, pontaria na reta numérica, caça ao tesouro nas

@@ -106,6 +106,23 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     ok(await pg.locator('.rv-jogo-palco *').count() > 1, 'jogo abre (modo ou jogo): ' + j);
     await foto('rv-j-' + j);
   }
+  // análise do percurso: 4 testes simulados com evolução
+  await pg.evaluate(() => {
+    const K = Object.keys(localStorage).find(k => k.includes('revisoes3')) || 'nico.revisoes3.v1';
+    const T = (n, p) => ({ quando: '2026-11-0' + n + 'T10:00', certas: Math.round(25 * p / 100), total: 25, pct: p, mencao: Faisca.REV.mencao(p).nome, minutos: 30, porTema: { num: [Math.round(4 * p / 100), 4], ops: [2, 4], fra: [n > 2 ? 2 : 0, 2] } });
+    const d = JSON.parse(localStorage.getItem(K) || '{}');
+    d.testes = [T(1, 44), T(3, 60), T(5, 72), T(7, 84)];
+    d.comp = { 'Algoritmo da subtração': { c: 2, n: 4, ult: [0, 0, 1, 1] }, 'Frações equivalentes': { c: 0, n: 3, ult: [0, 1, 0, 0] }, 'Tabuadas': { c: 4, n: 4, ult: [1, 1, 1, 1] } };
+    d.treinoLog = [{ quando: '2026-11-02T10:00', tema: 'ops', certas: 6, total: 8 }, { quando: '2026-11-04T10:00', tema: 'fra', certas: 5, total: 8 }];
+    localStorage.setItem(K, JSON.stringify(d));
+  });
+  await pg.goto(url('revisoes.html', '?percurso=1')); await pg.waitForSelector('.rv-mapa-temas');
+  const pc = await pg.textContent('.rv-percurso');
+  ok(/Testes feitos\s*4/.test(pc) && /\+\d+ pontos/.test(pc) && /a melhorar/.test(pc), 'percurso: resumo com 4 testes e tendência a melhorar');
+  ok(/Algoritmo da subtração/.test(await pg.textContent('.rv-percurso .rv-an-col div:first-child')), 'percurso: «melhorou» mostra a subtração (falhava, acertou as últimas)');
+  ok(/Frações equivalentes/.test(await pg.textContent('.rv-percurso .rv-an-col div:nth-child(2)')), 'percurso: «continua a falhar» mostra as frações equivalentes');
+  ok(await pg.locator('.rv-mapa-temas tbody tr').count() === 9 && /▲/.test(await pg.textContent('.rv-mapa-temas')), 'percurso: tabela temas × testes com setas');
+  await foto('rv-09-percurso'); await pg.evaluate(() => document.querySelector('.rv-mapa-temas').scrollIntoView()); await foto('rv-10-percurso-temas');
   // todas as variantes de todos os jogos abrem sem erros
   const vars = await pg.evaluate(() => Object.entries(Faisca.REV.ui.JOGOS).flatMap(([id, j]) => (j.variantes || []).map(v => [id, v[0]])));
   let abriram = 0;
