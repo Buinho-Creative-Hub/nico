@@ -381,8 +381,9 @@
     function pintarNav() {
       nav.innerHTML = '';
       itens.forEach((_, k) => {
-        const b = h('button', { type: 'button', class: (resp[k] !== undefined ? 'resp' : '') + (k === i ? ' atual' : '') + (marcadas.has(k) ? ' marcada' : ''),
-          'aria-label': `Questão ${k + 1}` + (resp[k] !== undefined ? ', respondida' : '') + (marcadas.has(k) ? ', marcada' : '') }, String(k + 1));
+        const jogo = itens[k].tipo === 'jogo';
+        const b = h('button', { type: 'button', class: (resp[k] !== undefined ? 'resp' : '') + (k === i ? ' atual' : '') + (marcadas.has(k) ? ' marcada' : '') + (jogo ? ' rv-nav-jogo' : ''), title: jogo ? 'Jogo' : null,
+          'aria-label': `Questão ${k + 1}` + (jogo ? ', jogo' : '') + (resp[k] !== undefined ? ', respondida' : '') + (marcadas.has(k) ? ', marcada' : '') }, jogo ? '🎮' : String(k + 1));
         b.addEventListener('click', () => ir(k));
         nav.append(b);
       });
@@ -438,7 +439,7 @@
         h('h2', null, 'Correção'),
         h('ol', { class: 'rv-correcao' }, lista.map(({ it, ok, v }) => h('li', { class: ok ? 'certo' : 'errado' },
           h('b', null, ok ? '✓ ' : '✗ '), it.pergunta,
-          ok ? null : h('div', { class: 'pe-instr' }, (v === undefined ? 'Sem resposta. ' : (it.tipo === 'curta' ? `Respondeste: ${v}. ` : '')) + 'Resposta certa: ' + (it.tipo === 'jogo' ? JT.certa(it) : F.PC.itens.respostaCerta(it))),
+          ok ? null : h('div', { class: 'pe-instr' }, (v === undefined ? 'Sem resposta. ' : respondeste(it, v)) + 'Resposta certa: ' + (it.tipo === 'jogo' ? JT.certa(it) : F.PC.itens.respostaCerta(it))),
           ok || !it.explica ? null : h('div', { class: 'rv-explica' }, it.explica)))),
         h('p', { class: 'rv-res-botoes' },
           h('button', { type: 'button', class: 'btn btn-texto btn-grande', onclick: menu }, 'Voltar ao ginásio'),
@@ -452,6 +453,16 @@
     ir(0);
   }
 
+  // o que a criança respondeu, escrito, para a correção (para se ver o que ficou gravado)
+  function respondeste(it, v) {
+    const L = 'ABCDEFGH';
+    if (it.tipo === 'curta') return `Respondeste: ${v}. `;
+    if (it.tipo === 'ficha' && Array.isArray(v)) return `Respondeste: ${v.map(x => x.trim() || '—').join(' · ')} (${R.fichaCaixas(it, v)} de ${it.res.length} caixas certas). `;
+    if (it.tipo === 'escolha' && typeof v === 'number') return `Respondeste: ${L[v]}) ${it.opcoes[v]}. `;
+    if (it.tipo === 'varias' && Array.isArray(v)) return `Respondeste: ${v.map(i => L[i] + ') ' + it.opcoes[i]).join(' · ')}. `;
+    if (it.tipo === 'vf' && Array.isArray(v)) return `Respondeste: ${v.map(x => x === true ? 'V' : x === false ? 'F' : '—').join(' · ')}. `;
+    return '';
+  }
   // análise final: onde falhou neste teste, o que tem de reforçar (somando tudo o que já fez) e o que já está seguro
   const listaReforco = fr => h('ul', { class: 'rv-reforco' }, fr.map(f => h('li', null, h('span', null, f.nome), h('i', null, h('b', { style: `width:${f.p}%` })), h('small', null, f.c.ult.length === 1 ? 'errado da única vez que saiu' : `${f.p}% certas nas últimas ${f.c.ult.length}`))));
   function analise(lista) {

@@ -167,7 +167,10 @@
   };
   function montar(el, it, aoMudar) {
     el.innerHTML = '';
-    const caixa = h('div', { class: 'pc-enunciado rv-jogo-item' }, h('span', { class: 'rv-jogo-selo' }, '🎮 Jogo · ' + it.nomeJogo), h('p', { class: 'pe-pergunta' }, it.pergunta), it.imagem ? h('img', { src: it.imagem, alt: '', class: 'rv-jt-img' }) : null, it.instr ? h('p', { class: 'pe-instr' }, it.instr) : null);
+    const CAPA = { abaco: 'abaco', binario: 'binario', reta: 'reta', relogio: 'relogio', fracao: 'fracoes', feira: 'feira', coordenada: 'coordenadas', ordena: 'ordena', programa: 'programa', planificacao: 'planificacoes' };
+    const caixa = h('div', { class: 'pc-enunciado rv-jogo-item' },
+      h('div', { class: 'rv-jogo-faixa' }, h('img', { src: 'img/revisoes/jogo-' + CAPA[it.jogo] + '.webp', alt: '' }), h('div', null, h('b', null, '🎮 Hora do jogo!'), h('span', null, it.nomeJogo + ' — este conta para o teste.'))),
+      h('p', { class: 'pe-pergunta' }, it.pergunta), it.imagem ? h('img', { src: it.imagem, alt: '', class: 'rv-jt-img' }) : null, it.instr ? h('p', { class: 'pe-instr' }, it.instr) : null);
     const corpo = h('div', { class: 'rv-jogo-palco' }); caixa.append(corpo); el.append(caixa);
     let st = {}, ler = null;
     const desenhar = () => { corpo.innerHTML = ''; ler = M[it.jogo](corpo, it, st, () => aoMudar && aoMudar()); };

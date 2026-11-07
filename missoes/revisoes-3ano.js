@@ -382,7 +382,7 @@
   def('fra', 'somar-fracoes', r => {
     const d = pick(r, [4, 5, 6, 8, 10, 12]), a = ri(r, 1, d - 2), b = ri(r, 1, d - a), sub = r() < 0.4;
     const [x, y] = sub ? [a + b, b] : [a, b], v = sub ? a : a + b;
-    return { tipo: 'curta', pergunta: `Calcula: ${x}/${d} ${sub ? '−' : '+'} ${y}/${d}`, instr: 'Escreve a fração assim: 3/8', aceitar: [`${v}/${d}`, `${v} / ${d}`], largura: '120px',
+    return { tipo: 'curta', pergunta: `Calcula: ${x}/${d} ${sub ? '−' : '+'} ${y}/${d}`, instr: 'Escreve a fração assim: 3/8', aceitar: [`${v}/${d}`, `${v} / ${d}`], fracao: [v, d], largura: '120px',
       explica: `Com o mesmo denominador, ${sub ? 'subtraem' : 'somam'}-se só os numeradores: ${x} ${sub ? '−' : '+'} ${y} = ${v}. Fica ${v}/${d}.`, pistas: ['Os pedaços são todos do mesmo tamanho (o denominador é igual).', `Junta ou tira só os pedaços de cima.`, 'O denominador (em baixo) não muda.'] };
   });
   def('fra', 'fracao-quantidade', r => {
@@ -401,7 +401,7 @@
   });
   def('fra', 'chocolate', r => {
     const t = pick(r, [12, 10, 8, 6]), a = ri(r, 1, Math.floor(t / 2) - 1), b = ri(r, 1, t - a - 1);
-    return { tipo: 'curta', pergunta: `Uma tablete tem ${t} quadradinhos iguais. O Tomás come ${a} e a Maria come ${b}. Que fração da tablete sobra?`, instr: 'Escreve a fração assim: 3/8', aceitar: [`${t - a - b}/${t}`, `${t - a - b} / ${t}`], largura: '120px',
+    return { tipo: 'curta', pergunta: `Uma tablete tem ${t} quadradinhos iguais. O Tomás come ${a} e a Maria come ${b}. Que fração da tablete sobra?`, instr: 'Escreve a fração assim: 3/8', aceitar: [`${t - a - b}/${t}`, `${t - a - b} / ${t}`], fracao: [t - a - b, t], largura: '120px',
       explica: `Comem ${a + b}/${t}; sobra ${t}/${t} − ${a + b}/${t} = ${t - a - b}/${t}.` };
   });
 
@@ -729,7 +729,7 @@
   // ===== Frações
   def('fra', 'fracao-equivalente', r => {
     const d = pick(r, [2, 3, 4, 5]), n = ri(r, 1, d - 1), k = ri(r, 2, 4);
-    return { tipo: 'curta', pergunta: `Completa: ${n}/${d} = ?/${d * k}`, numero: n * k, largura: '80px', explica: `O denominador foi multiplicado por ${k}; o numerador também: ${n} × ${k} = ${n * k}. ${n}/${d} = ${n * k}/${d * k}.` };
+    return { tipo: 'curta', pergunta: `Completa: ${n}/${d} = ?/${d * k}`, numero: n * k, aceitar: [`${n * k}/${d * k}`, `${n * k} / ${d * k}`], largura: '100px', explica: `O denominador foi multiplicado por ${k}; o numerador também: ${n} × ${k} = ${n * k}. ${n}/${d} = ${n * k}/${d * k}.` };
   });
   def('fra', 'fracao-decimal', r => {
     const t = r() < 0.5, n = ri(r, 1, 9), c = ri(r, 11, 99);
@@ -1087,9 +1087,14 @@
     const out = [];
     Object.entries(PLANO).forEach(([t, n]) => {
       const usados = new Set();
+      // metade das perguntas de cada tema (arredondada para cima) são «fichas» à maneira do manual (js/percurso/revisoes-fichas.js)
+      const fichas = G[t].filter(g => g.k.startsWith('f-')).map(g => g.k), soltas = G[t].filter(g => !g.k.startsWith('f-')).map(g => g.k);
       for (let i = 0; i < n; i++) {
-        const ev = new Set([...usados, ...recentes]);
-        const it = gerar(t, r, G[t].some(g => !ev.has(g.k)) ? ev : usados);
+        const querFicha = fichas.length && (n === 1 ? r() < 0.6 : i < Math.ceil(n / 2));
+        let ev = new Set([...usados, ...recentes, ...(querFicha ? soltas : fichas)]);
+        if (!G[t].some(g => !ev.has(g.k))) ev = new Set([...usados, ...(querFicha ? soltas : fichas)]);
+        if (!G[t].some(g => !ev.has(g.k))) ev = usados;
+        const it = gerar(t, r, ev);
         usados.add(it.k); out.push(it);
       }
     });

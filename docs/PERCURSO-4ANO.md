@@ -107,6 +107,20 @@ Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mi
   do treino fica registada; contam as 12 mais recentes de cada competência. Mostra «neste teste falhaste em», «o que tens de
   reforçar» (< 70 % certas nas recentes; primeiro as que já falharam várias vezes, depois os erros únicos) e «já está seguro» (≥ 3 respostas e ≥ 85 %). O botão
   **💪 Reforço dos pontos fracos** gera um treino só com essas competências (também no menu). O histórico dos testes tem gráfico.
+- **Fichas à maneira do manual** (teste do Jaime, 7 Nov: «aqueles exercícios do PDF não vi nada lá semelhante»):
+  `js/percurso/revisoes-fichas.js` cria o tipo de item `ficha` (várias caixas na mesma pergunta; certo quando todas estão certas;
+  a correção mostra quantas caixas estavam certas) e 39 formatos tirados das páginas do manual: antecessor | número | sucessor,
+  quadros ±10/±100/±1000, +100/+1000, esquema dos 100 000, tabela das ordens e leitura por classes, escrever números, algarismo
+  destacado, decompor/compor, ábaco + decomposição, leituras por ordens, subtrair decompondo o subtrativo e ambos, adicionar
+  decompondo as parcelas, números redondos, multiplicar e dividir decompondo, algoritmo em coluna (um algarismo por caixa),
+  problemas com várias alíneas (coração, refeições, turmas, morangos, ossos), chocolate de 12 quadradinhos, frações, sequências em
+  caixas encadeadas, tabela de termos, quadrados e palitos, tabela dos sólidos, descrição de sólidos, área e perímetro, medidas,
+  caule-e-folhas (moda, máximo, mínimo, número de alunos), tabela de frequências, pequeno-almoço com tracinhos, tabela binária,
+  enigma das bolotas, mensagem secreta «3U 74MB3M…» e o quadro da Zupilândia. **Metade das perguntas de cada tema no teste são
+  fichas.** O motor comum ganhou `F.PC.itens.registarTipo` (sem efeito no Percurso).
+- **Correções do teste de 7 Nov:** «Completa 2/4 = ?/16» aceita «8» e «8/16»; números com a unidade escrita («30 min», «2,50 €»)
+  são aceites; nas somas de frações aceita-se a fração equivalente. A correção mostra sempre o que a criança respondeu (para se ver
+  o que ficou gravado: a pergunta das multiplicações que dão 18 não se conseguiu reproduzir — no browser é dada como certa).
 - **Jogos dentro do teste** (pedido do Carlos, 7 Nov): cada teste leva **3 jogos curtos** como perguntas (a meio, a 1/4, 1/2 e 3/4
   do teste), escolhidos entre 10 (ábaco, cartões binários, reta numérica, relógio, pintar frações, pagar na feira, coordenadas,
   ordenar números, programar o Nico, planificações do cubo) e **a rodar entre testes** (evitam os dos 4 testes anteriores). Só são

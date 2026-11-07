@@ -160,3 +160,39 @@
 .rv-cel-img { width: 80%; height: 80%; object-fit: contain; }
 .rv-jt-img { width: 72px; height: 72px; float: right; }
 @media print { .rv-cab-perc img { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+/* fichas à maneira do manual */
+.rv-ficha { font-size: 19px; line-height: 1.6; }
+.rv-fx-lin { margin: 8px 0; }
+.rv-fx-et { font-weight: 700; margin-right: 4px; }
+.rv-cx { font: 700 19px 'Asap', sans-serif; padding: 3px 6px; border: 2px solid #2b3a8f; border-radius: 6px; text-align: center; background: #fffdf5; margin: 0 2px; }
+.rv-cx.certo { border-color: #2f855a; background: #e8f7ee; } .rv-cx.errado { border-color: #c0392b; background: #fdecea; } .rv-cx.mostrado { color: #2f855a; }
+.rv-fx-tab td, .rv-fx-tab th { text-align: center; padding: 6px 12px; }
+.rv-fx-ordens th:nth-child(-n+3) { background: #e8ecff; } .rv-fx-ordens th:nth-child(n+4) { background: #fff3d6; }
+.rv-fx-num { font-size: 24px; font-weight: 700; }
+.rv-fx-dest { color: #c0392b; font-size: 1.15em; text-decoration: underline; }
+.rv-fx-quadros { display: flex; gap: 18px; flex-wrap: wrap; }
+.rv-fx-q { display: grid; grid-template-columns: auto auto auto; gap: 4px 6px; align-items: center; padding: 8px; border: 2px dashed #b07a45; border-radius: 10px; }
+.rv-fx-q small { grid-row: 1; color: #666; text-align: center; } .rv-fx-q small:first-child { grid-column: 1; } .rv-fx-q small:nth-child(2) { grid-column: 3; }
+.rv-fx-q b { font-size: 20px; padding: 0 6px; }
+.rv-fx-esq { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 8px 30px; max-width: 640px; }
+.rv-fx-centro { grid-column: 1 / -1; justify-self: center; border: 3px solid #2b3a8f; border-radius: 10px; padding: 6px 18px; font-size: 26px; font-weight: 700; text-align: center; }
+.rv-fx-centro small { display: block; font-size: 14px; font-weight: 400; }
+.rv-fx-ramo { padding: 4px 8px; border-left: 4px solid #2b3a8f; }
+.rv-fx-cadeia { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.rv-fx-elo { display: inline-block; min-width: 92px; text-align: center; padding: 6px 10px; border: 3px solid #2fa36b; border-radius: 22px; font-weight: 700; background: #f2fbf5; }
+.rv-fx-seta { color: #2fa36b; font-size: 15px; font-weight: 700; }
+.rv-alg { border-collapse: collapse; font: 700 28px 'Asap', monospace; margin: 6px 0; }
+.rv-alg td { width: 46px; height: 46px; text-align: center; border: 1px solid #c9d6e8; } .rv-alg-s { border: none !important; }
+.rv-alg-r td { border-top: 3px solid #222; } .rv-alg .rv-cx { width: 40px !important; font-size: 24px; padding: 2px; }
+.rv-fx-fig { margin: 6px 0; } .rv-fx-fig svg { max-width: 100%; height: auto; }
+.rv-fx-cf { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+.rv-cf { border-collapse: collapse; font: 22px 'Asap', monospace; } .rv-cf th { font: 15px 'Asap', sans-serif; padding: 2px 10px; } .rv-cf td { padding: 2px 10px; letter-spacing: 6px; }
+.rv-cf-c { border-right: 3px solid #222; font-weight: 700; letter-spacing: 0 !important; }
+.rv-fx-bin svg { display: block; }
+.rv-fx-mag td { width: 64px; height: 56px; text-align: center; font-size: 26px; font-weight: 700; background: #e8e6f7; }
+/* jogos no teste: bem visíveis */
+.rv-jogo-faixa { display: flex; gap: 14px; align-items: center; background: #2b3a8f; color: #fff; border-radius: 10px; padding: 8px 14px 8px 8px; margin-bottom: 8px; }
+.rv-jogo-faixa img { width: 120px; height: 72px; object-fit: cover; border-radius: 6px; }
+.rv-jogo-faixa b { display: block; font-size: 24px; color: var(--sol, #f2b632); }
+.pv-nav button.rv-nav-jogo { background: #2b3a8f; color: #fff; }
+.pv-nav button.rv-nav-jogo.resp { background: #2fa36b; }

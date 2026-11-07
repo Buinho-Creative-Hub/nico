@@ -400,12 +400,19 @@
       case 'vf': return Array.isArray(v) && it.afirmacoes.every(([, c], i) => v[i] === c);
       case 'ordenar': return Array.isArray(v) && v.length === it.itens.length && v.every((x, k) => x === k);
       case 'arrastar': { const c = it.linhas ? it.linhas.map(l => l[1]) : it.certas; return Array.isArray(v) && c.every((t, k) => v[k] === t); }
-      case 'curta':
-        if (it.numero != null) { const n = numero(v); return !isNaN(n) && Math.abs(n - it.numero) < 1e-9; }
+      case 'curta': {
+        if (it.numero != null) {
+          // aceita também o número com a unidade escrita a seguir («30 minutos», «2,50 €», «12 cm²»)
+          const n = numero(v), n2 = numero(String(v || '').replace(/\s*[^\d\s.,\u00a0\u202f]+[²³]?\s*$/u, ''));
+          if ((!isNaN(n) && Math.abs(n - it.numero) < 1e-9) || (!isNaN(n2) && Math.abs(n2 - it.numero) < 1e-9)) return true;
+        }
+        // frações: aceita qualquer fração equivalente quando o item o diz (it.fracao = [numerador, denominador])
+        if (it.fracao) { const m = String(v || '').match(/^\s*(\d+)\s*\/\s*(\d+)\s*$/); if (m && +m[2] && +m[1] * it.fracao[1] === +m[2] * it.fracao[0]) return true; }
         return (it.aceitar || []).some(a => norm(a) === norm(v));
+      }
       case 'extensa': return criteriosExtensa(it).every(([, f]) => f(v || ''));
       case 'palavras': return Array.isArray(v) && v.length === it.certas.length && it.certas.every(x => v.includes(x));
-      default: return false;
+      default: return EXTRA[it.tipo] ? EXTRA[it.tipo].corrigir(it, v) : false;
     }
   }
   // a resposta certa escrita (para mostrar depois da 2.ª tentativa e no relatório da prova)
@@ -418,7 +425,7 @@
       case 'arrastar': return (it.linhas ? it.linhas.map(l => l[0] + ' → ' + l[1]) : it.certas).join(' · ');
       case 'curta': return it.numero != null ? String(it.numero).replace('.', ',') + (it.depois ? ' ' + it.depois.trim() : '') : it.aceitar[0];
       case 'palavras': return it.certas.join(', ');
-      default: return '';
+      default: return EXTRA[it.tipo] ? EXTRA[it.tipo].certa(it) : '';
     }
   }
 
@@ -454,5 +461,8 @@
     };
   }
 
-  F.PC.itens = { montar, corrigir, respostaCerta, figura, tabela, h, baralhar, palavrasDe, criteriosExtensa };
+  // tipos acrescentados por outros módulos (ex.: as «fichas» do Ginásio dos Números, js/percurso/revisoes-fichas.js)
+  const EXTRA = {};
+  function registarTipo(nome, def) { TIPOS[nome] = def.render; EXTRA[nome] = def; }
+  F.PC.itens = { montar, corrigir, respostaCerta, figura, tabela, h, baralhar, palavrasDe, criteriosExtensa, registarTipo, numero, norm };
 })();
