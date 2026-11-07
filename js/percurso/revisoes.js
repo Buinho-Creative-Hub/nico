@@ -31,9 +31,10 @@
     c.n++; if (ok) c.c++; c.ult.push(ok ? 1 : 0); if (c.ult.length > 12) c.ult.shift();
   }
   const taxa = c => c.ult.reduce((a, b) => a + b, 0) / c.ult.length;
-  function reforcar(max) {   // competências mais fracas (pelo menos 2 respostas e menos de 70% de certas nas recentes)
-    return Object.entries(P.comp).filter(([, c]) => c.ult.length >= 2 && taxa(c) < 0.7)
-      .sort((a, b) => taxa(a[1]) - taxa(b[1]) || b[1].ult.length - a[1].ult.length).slice(0, max || 5).map(([nome, c]) => ({ nome, c, p: Math.round(100 * taxa(c)) }));
+  function reforcar(max) {   // as mais fracas primeiro: menos de 70% certas nas recentes (um erro único também conta, depois das repetidas)
+    return Object.entries(P.comp).filter(([, c]) => c.ult.length && taxa(c) < 0.7)
+      .sort((a, b) => (a[1].ult.length > 1 ? 0 : 1) - (b[1].ult.length > 1 ? 0 : 1) || taxa(a[1]) - taxa(b[1]) || b[1].ult.length - a[1].ult.length)
+      .slice(0, max || 5).map(([nome, c]) => ({ nome, c, p: Math.round(100 * taxa(c)) }));
   }
   function seguras() { return Object.entries(P.comp).filter(([, c]) => c.ult.length >= 3 && taxa(c) >= 0.85).map(([n]) => n); }
   function gravar() {
@@ -353,7 +354,7 @@
   }
 
   // análise final: onde falhou neste teste, o que tem de reforçar (somando tudo o que já fez) e o que já está seguro
-  const listaReforco = fr => h('ul', { class: 'rv-reforco' }, fr.map(f => h('li', null, h('span', null, f.nome), h('i', null, h('b', { style: `width:${f.p}%` })), h('small', null, `${f.p}% certas nas últimas ${f.c.ult.length}`))));
+  const listaReforco = fr => h('ul', { class: 'rv-reforco' }, fr.map(f => h('li', null, h('span', null, f.nome), h('i', null, h('b', { style: `width:${f.p}%` })), h('small', null, f.c.ult.length === 1 ? 'errado da única vez que saiu' : `${f.p}% certas nas últimas ${f.c.ult.length}`))));
   function analise(lista) {
     const erros = {};
     lista.filter(x => !x.ok).forEach(({ it }) => { const n = R.competencia(it.k); erros[n] = (erros[n] || 0) + 1; });
@@ -621,6 +622,197 @@
   function svgPl(cels) {
     const s = 22, mr = Math.max(...cels.map(c => c[0])), mc = Math.max(...cels.map(c => c[1]));
     return `<svg viewBox="0 0 ${(mc + 1) * s + 8} ${(mr + 1) * s + 8}" width="${(mc + 1) * s + 8}">${cels.map(([r, c]) => `<rect x="${4 + c * s}" y="${4 + r * s}" width="${s}" height="${s}" fill="#f6c25b" stroke="#7a4a00" stroke-width="2"/>`).join('')}</svg>`;
+  }
+
+  // ============================================================ 2.ª fornada de jogos (7 Nov 2026)
+  // 9. Memória das contas: pares conta ↔ resultado
+  JOGOS.memoria = { nome: 'Memória das contas', emoji: '🃏', tema: 'Cálculo mental', unidade: 'jogadas', desc: 'Vira as cartas e junta cada conta ao seu resultado. Menos jogadas = melhor!',
+    intro: 'Vira duas cartas de cada vez. Se a conta e o resultado combinarem, ficam viradas!', pistas: ['Lembra-te de onde estão os resultados que já viste.', 'Faz a conta na cabeça antes de virar a segunda carta.', 'Começa pelos cantos e vai memorizando.'],
+    iniciar(api) {
+      const pares = []; const usados = new Set();
+      while (pares.length < 6) { const a = ri(2, 10), b = ri(2, 10), t = pickR(['×', '+', '−']); const v = t === '×' ? a * b : t === '+' ? a * 10 + b : a * 10 - b; if (usados.has(v)) continue; usados.add(v); pares.push([t === '×' ? `${a} × ${b}` : t === '+' ? `${a * 10} + ${b}` : `${a * 10} − ${b}`, String(v)]); }
+      const cartas = U.misturar(Math.random, pares.flatMap(([c, v], k) => [{ t: c, k }, { t: v, k }]));
+      let abertas = [], jog = 0, feitos = 0, bloq = false;
+      const g = h('div', { class: 'rv-memoria' }); api.area.append(g);
+      cartas.forEach(c => { const b = h('button', { type: 'button', class: 'rv-mem', 'aria-label': 'Carta virada' }, '?'); c.b = b; b.onclick = () => virar(c); g.append(b); });
+      function virar(c) {
+        if (bloq || c.feita || abertas.includes(c)) return;
+        c.b.textContent = c.t; c.b.classList.add('aberta'); abertas.push(c); som('clique');
+        if (abertas.length < 2) return;
+        jog++; api.conta(`${jog} jogadas`);
+        const [x, y] = abertas;
+        if (x.k === y.k) { x.feita = y.feita = true; x.b.classList.add('ok'); y.b.classList.add('ok'); abertas = []; feitos++; som('apanhar'); if (feitos === 6) api.rel.depois(() => api.fim(Math.max(0, 20 - jog), 6, `Fizeste-o em ${jog} jogadas (pontos = 20 − jogadas).`), 600); }
+        else { bloq = true; api.rel.depois(() => { [x, y].forEach(z => { z.b.textContent = '?'; z.b.classList.remove('aberta'); }); abertas = []; bloq = false; }, 1100); }
+      }
+      api.conta('0 jogadas');
+    } };
+
+  // 10. A banca da feira: pagar a quantia certa com moedas e notas
+  const DIN = [[2000, '20 €', 'nota'], [1000, '10 €', 'nota'], [500, '5 €', 'nota'], [200, '2 €', 'moeda'], [100, '1 €', 'moeda'], [50, '50 c', 'moeda'], [20, '20 c', 'moeda'], [10, '10 c', 'moeda'], [5, '5 c', 'moeda']];
+  JOGOS.feira = { nome: 'A banca da feira', emoji: '🪙', tema: 'Dinheiro', unidade: 'em 6', desc: 'Paga exatamente o preço com notas e moedas — sem dar a mais!',
+    intro: 'Clica nas notas e moedas para pagar o preço certinho. Se te enganares, clica no que puseste para o tirar.', pistas: ['Começa pela nota ou moeda maior que cabe no preço.', 'Vê quanto falta e continua.', 'Os cêntimos pagam-se com as moedas pequenas.'],
+    iniciar(api) {
+      const PROD = ['um frasco de mel', 'um queijo', 'um pão alentejano', 'um saco de laranjas', 'azeitonas', 'um bolo'];
+      let ronda = 0, pontos = 0, preco, pago = [];
+      const enun = h('p', { class: 'rv-enun' }), mesa = h('div', { class: 'rv-mesa' }), caixa = h('div', { class: 'rv-carteira' }), tot = h('p', { class: 'rv-soma' }), ok = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Pagar'), fb = h('p', { class: 'rv-fb' });
+      api.area.append(enun, h('p', { class: 'rv-mini' }, 'Na mesa (clica para tirar):'), mesa, tot, h('p', { class: 'rv-mini' }, 'A tua carteira:'), caixa, ok, fb);
+      DIN.forEach(([v, t, tipo]) => caixa.append(h('button', { type: 'button', class: 'rv-din ' + tipo, onclick: () => { pago.push(v); desenhar(); som('clique'); } }, t)));
+      const eur = c => U.euros(c / 100);
+      function desenhar() { mesa.innerHTML = ''; pago.forEach((v, i) => { const d = DIN.find(x => x[0] === v); mesa.append(h('button', { type: 'button', class: 'rv-din ' + d[2], onclick: () => { pago.splice(i, 1); desenhar(); } }, d[1])); }); tot.textContent = 'Na mesa: ' + eur(pago.reduce((a, b) => a + b, 0)); }
+      function nova() { ronda++; preco = ri(1, 40) * 5 + ri(0, 1) * ri(1, 18) * 100; pago = []; enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — ${pickR(PROD)} custa `, h('b', null, eur(preco))); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      ok.onclick = () => {
+        const s = pago.reduce((a, b) => a + b, 0); if (!s) return; ok.disabled = true;
+        if (s === preco) { pontos++; fb.textContent = '✓ Conta certa! Obrigado!'; fb.className = 'rv-fb ok'; som('sucesso'); }
+        else { fb.textContent = s > preco ? `✗ Deste ${eur(s - preco)} a mais.` : `✗ Faltam ${eur(preco - s)}.`; fb.className = 'rv-fb mal'; }
+        api.conta(`${pontos} certas`); api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), s === preco ? 1100 : 2400);
+      };
+      api.conta('0 certas'); nova();
+    } };
+
+  // 11. Acerta o relógio
+  JOGOS.relogio = { nome: 'Acerta o relógio', emoji: '🕰️', tema: 'Medidas de tempo', unidade: 'em 6', desc: 'Põe os ponteiros na hora certa.',
+    intro: 'Usa os botões para mexer nas horas e nos minutos até o relógio marcar a hora pedida.', pistas: ['O ponteiro grande (azul) marca os minutos; o pequeno marca as horas.', 'Cada número do relógio são 5 minutos para o ponteiro grande.', '«e um quarto» = 15 minutos; «e meia» = 30.'],
+    iniciar(api) {
+      let ronda = 0, pontos = 0, alvo, hh, mm;
+      const enun = h('p', { class: 'rv-enun' }), fig = h('div'), bt = h('div', { class: 'rv-rel-bt' }), ok = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Verificar'), fb = h('p', { class: 'rv-fb' });
+      api.area.append(enun, fig, bt, ok, fb);
+      const mexer = (dh, dm) => { mm += dm; if (mm >= 60) { mm -= 60; hh++; } if (mm < 0) { mm += 60; hh--; } hh = ((hh - 1 + dh + 12) % 12) + 1; desenhar(); som('clique'); };
+      bt.append(h('span', null, 'Horas'), h('button', { type: 'button', class: 'btn btn-texto', onclick: () => mexer(-1, 0) }, '−'), h('button', { type: 'button', class: 'btn btn-texto', onclick: () => mexer(1, 0) }, '+'),
+        h('span', null, 'Minutos'), h('button', { type: 'button', class: 'btn btn-texto', onclick: () => mexer(0, -5) }, '− 5'), h('button', { type: 'button', class: 'btn btn-texto', onclick: () => mexer(0, 5) }, '+ 5'));
+      function desenhar() { fig.innerHTML = ''; fig.append(F.PC.itens.figura({ tipo: 'relogio', h: hh, m: mm })); }
+      const dizerHora = (h1, m1) => m1 === 0 ? (h1 === 1 ? '1 hora' : `${h1} horas`) : m1 === 15 ? `${h1} e um quarto` : m1 === 30 ? `${h1} e meia` : m1 === 45 ? `um quarto para as ${h1 % 12 + 1}` : `${h1}h${String(m1).padStart(2, '0')}`;
+      function nova() { ronda++; alvo = [ri(1, 12), pickR([0, 15, 30, 45, 5, 10, 20, 25, 35, 40, 50, 55])]; hh = ri(1, 12); mm = 5 * ri(0, 11); if (hh === alvo[0] && mm === alvo[1]) hh = hh % 12 + 1; enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — põe o relógio nas `, h('b', null, dizerHora(...alvo))); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      ok.onclick = () => {
+        ok.disabled = true; const c = hh === alvo[0] && mm === alvo[1];
+        if (c) { pontos++; fb.textContent = '✓ Hora certa!'; fb.className = 'rv-fb ok'; som('sucesso'); } else { fb.textContent = `✗ Marcaste ${hh}h${String(mm).padStart(2, '0')}; era ${alvo[0]}h${String(alvo[1]).padStart(2, '0')}.`; fb.className = 'rv-fb mal'; }
+        api.conta(`${pontos} certas`); api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), c ? 1000 : 2400);
+      };
+      api.conta('0 certas'); nova();
+    } };
+
+  // 12. Pinta a fração
+  JOGOS.fracoes = { nome: 'Pinta a fração', emoji: '🍕', tema: 'Frações', unidade: 'em 6', desc: 'Pinta as partes certas da figura para mostrar a fração pedida.',
+    intro: 'Clica nas partes para as pintar. O denominador diz em quantas partes está dividida; o numerador, quantas pintas.', pistas: ['Em baixo (denominador): o total de partes.', 'Em cima (numerador): quantas pintas.', 'Clica outra vez numa parte para a despintar.'],
+    iniciar(api) {
+      let ronda = 0, pontos = 0, n, d, pint;
+      const enun = h('p', { class: 'rv-enun' }), fig = h('div', { class: 'rv-frac' }), ok = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, 'Verificar'), fb = h('p', { class: 'rv-fb' });
+      api.area.append(enun, fig, ok, fb);
+      function desenhar() {
+        const c = 110, R = 100; let g = '';
+        for (let i = 0; i < d; i++) { const a0 = (i / d) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / d) * 2 * Math.PI - Math.PI / 2;
+          g += `<path data-i="${i}" d="M${c},${c} L${(c + R * Math.cos(a0)).toFixed(1)},${(c + R * Math.sin(a0)).toFixed(1)} A${R},${R} 0 0 1 ${(c + R * Math.cos(a1)).toFixed(1)},${(c + R * Math.sin(a1)).toFixed(1)} Z" fill="${pint.has(i) ? '#f29d32' : '#fff'}" stroke="#222" stroke-width="3" style="cursor:pointer"/>`; }
+        fig.innerHTML = `<svg viewBox="0 0 220 220" width="260">${g}</svg>`;
+        fig.querySelectorAll('path').forEach(p => p.addEventListener('click', () => { const i = +p.dataset.i; pint.has(i) ? pint.delete(i) : pint.add(i); desenhar(); som('clique'); }));
+      }
+      function nova() { ronda++; d = pickR([3, 4, 5, 6, 8, 10]); n = ri(1, d - 1); pint = new Set(); enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 6 — pinta `, h('b', null, `${n}/${d}`), ' da piza'); fb.textContent = ''; ok.disabled = false; desenhar(); }
+      ok.onclick = () => {
+        ok.disabled = true; const c = pint.size === n;
+        if (c) { pontos++; fb.textContent = `✓ ${n} partes em ${d}!`; fb.className = 'rv-fb ok'; som('sucesso'); } else { fb.textContent = `✗ Pintaste ${pint.size}/${d}; eram ${n}/${d}.`; fb.className = 'rv-fb mal'; }
+        api.conta(`${pontos} certas`); api.rel.depois(() => ronda < 6 ? nova() : api.fim(pontos, 5), c ? 1000 : 2200);
+      };
+      api.conta('0 certas'); nova();
+    } };
+
+  // 13. Corrida das sequências (60 s)
+  JOGOS.sequencias = { nome: 'Corrida das sequências', emoji: '🔁', tema: 'Sequências', unidade: 'certas', desc: '60 segundos: descobre o número seguinte de cada sequência.',
+    intro: 'Descobre a regra e escreve o número seguinte. Tens 60 segundos! Objetivo: 8 certas.',
+    iniciar(api) {
+      let certas = 0, v; const fim = Date.now() + 60000;
+      const barra = h('div', { class: 'rv-barra' }, h('b')), q = h('div', { class: 'rv-seq-q' }), inp = entrada('180px', ver), fb = h('p', { class: 'rv-fb' });
+      api.area.append(barra, q, inp, fb);
+      function nova() { const s = ri(1, 60), k = pickR([2, 3, 4, 5, 10, 25, 50, 100, -2, -5, -10]), m = Math.random() < 0.15; const t = [0, 1, 2, 3, 4].map(i => m ? s * Math.pow(2, i) : s * 10 + i * k + 100); v = t[4]; q.textContent = t.slice(0, 4).join(' · ') + ' · ?'; inp.value = ''; inp.focus(); }
+      function ver() { const n = num(inp.value); if (isNaN(n)) return; if (n === v) { certas++; fb.textContent = '✓'; fb.className = 'rv-fb ok'; som('apanhar'); } else { fb.textContent = `✗ era ${v}`; fb.className = 'rv-fb mal'; } api.conta(`${certas} certas`); nova(); }
+      api.rel.cada(() => { const r = Math.max(0, fim - Date.now()); barra.firstChild.style.width = (r / 600) + '%'; if (r <= 0) { api.rel.limpar(); inp.disabled = true; api.fim(certas, 8); } }, 100);
+      api.conta('0 certas'); nova();
+    } };
+
+  // 14. Ordena depressa
+  JOGOS.ordena = { nome: 'Ordena depressa', emoji: '📶', tema: 'Números até 999 999', unidade: 'segundos', desc: 'Clica nos números do menor para o maior, o mais depressa que conseguires.',
+    intro: 'Clica nos 6 números do MENOR para o MAIOR. São 5 rondas. Se te enganares, levas mais 3 segundos.', pistas: ['Compara primeiro quantos algarismos tem cada número.', 'Com o mesmo número de algarismos, compara da esquerda para a direita.', 'Procura sempre o mais pequeno que sobra.'],
+    iniciar(api) {
+      let ronda = 0, castigo = 0; const t0 = Date.now();
+      const enun = h('p', { class: 'rv-enun' }), g = h('div', { class: 'rv-ordena' }), fb = h('p', { class: 'rv-fb' }); api.area.append(enun, g, fb);
+      function nova() {
+        ronda++; g.innerHTML = ''; fb.textContent = '';
+        const base = pickR([1000, 10000, 100000]), ns = new Set(); while (ns.size < 6) ns.add(ri(base / 10 * 9, base * 9));
+        const ord = [...ns].sort((a, b) => a - b); let prox = 0;
+        enun.textContent = `Ronda ${ronda} de 5 — do menor para o maior`;
+        U.misturar(Math.random, ord).forEach(n => { const b = h('button', { type: 'button', class: 'rv-num' }, U.fmt(n)); b.onclick = () => {
+          if (b.disabled) return;
+          if (n === ord[prox]) { b.disabled = true; b.classList.add('ok'); b.textContent = (prox + 1) + '.º ' + U.fmt(n); prox++; som('clique'); if (prox === 6) { som('apanhar'); api.rel.depois(() => ronda < 5 ? nova() : acabar(), 500); } }
+          else { castigo += 3; b.classList.add('mal'); setTimeout(() => b.classList.remove('mal'), 400); fb.textContent = '+3 s: esse não é o mais pequeno que sobra.'; fb.className = 'rv-fb mal'; }
+        }; g.append(b); });
+      }
+      function acabar() { const s = Math.round((Date.now() - t0) / 1000) + castigo; P.jogos.ordena = P.jogos.ordena || { melhor: 999, vezes: 0 }; if (P.jogos.ordena.melhor === 0) P.jogos.ordena.melhor = 999;
+        const rec = P.jogos.ordena; rec.vezes++; const novo = s < rec.melhor; if (novo) rec.melhor = s; gravar();
+        const ganhas = moedas(s <= 60 ? 3 : 0);
+        janela(s <= 60 ? 'celebrar' : 'incentivar', `${s} segundos` + (novo ? ' · novo recorde!' : ''), (s <= 60 ? 'Rapidíssimo!' : 'Para ganhar moedas tens de fazer em 60 segundos ou menos.') + txtMoedas(ganhas),
+          [['Voltar ao ginásio', 'btn-texto', menu], ['Jogar outra vez', 'btn-azul', () => jogar('ordena')]]); }
+      api.rel.cada(() => api.conta(`${Math.round((Date.now() - t0) / 1000) + castigo} s`), 500);
+      nova();
+    } };
+
+  // 15. Pares que fazem 100 (ou 1000)
+  JOGOS.pares = { nome: 'Amigos do 100', emoji: '🤝', tema: 'Cálculo mental', unidade: 'pares', desc: 'Encontra os pares de números que somados dão 100 (e depois 1000).',
+    intro: 'Clica em dois números que juntos façam o número pedido. 6 pares em cada ronda!', pistas: ['Olha primeiro para as unidades: têm de somar 10 (ou 0).', 'Depois vê as dezenas.', 'Por exemplo, 37 + 63 = 100.'],
+    iniciar(api) {
+      let ronda = 0, pares = 0, erros = 0;
+      const enun = h('p', { class: 'rv-enun' }), g = h('div', { class: 'rv-ordena' }), fb = h('p', { class: 'rv-fb' }); api.area.append(enun, g, fb);
+      function nova() {
+        ronda++; g.innerHTML = ''; const alvo = ronda === 1 ? 100 : 1000, passo = alvo === 100 ? 1 : 10;
+        const ns = []; const usados = new Set(); while (ns.length < 12) { const a = ri(1, alvo / passo - 1) * passo; if (usados.has(a) || usados.has(alvo - a) || a * 2 === alvo) continue; usados.add(a); usados.add(alvo - a); ns.push(a, alvo - a); }
+        enun.innerHTML = ''; enun.append(`Ronda ${ronda} de 2 — pares que somam `, h('b', null, U.fmt(alvo)));
+        let sel = null, feitos = 0;
+        U.misturar(Math.random, ns).forEach(n => { const b = h('button', { type: 'button', class: 'rv-num' }, U.fmt(n)); b.onclick = () => {
+          if (b.disabled) return;
+          if (!sel) { sel = { n, b }; b.classList.add('sel'); return; }
+          if (sel.b === b) { b.classList.remove('sel'); sel = null; return; }
+          if (sel.n + n === alvo) { [sel.b, b].forEach(x => { x.disabled = true; x.classList.remove('sel'); x.classList.add('ok'); }); pares++; feitos++; som('apanhar'); fb.textContent = `✓ ${U.fmt(sel.n)} + ${U.fmt(n)} = ${U.fmt(alvo)}`; fb.className = 'rv-fb ok';
+            if (feitos === 6) api.rel.depois(() => ronda < 2 ? nova() : api.fim(Math.max(0, 12 - erros), 10, `12 pares com ${erros} ${erros === 1 ? 'erro' : 'erros'} (pontos = 12 − erros).`), 700); }
+          else { erros++; fb.textContent = `✗ ${U.fmt(sel.n)} + ${U.fmt(n)} = ${U.fmt(sel.n + n)}`; fb.className = 'rv-fb mal'; sel.b.classList.remove('sel'); }
+          api.conta(`${pares} pares`); sel = null;
+        }; g.append(b); });
+      }
+      api.conta('0 pares'); nova();
+    } };
+
+  // 16. Programa o Nico (pensamento computacional)
+  JOGOS.programa = { nome: 'Programa o Nico', emoji: '🐾', tema: 'Pensamento computacional', unidade: 'em 5', desc: 'Monta um programa com setas para levar o Nico até à moeda, sem bater nas pedras.',
+    intro: 'Junta setas ao programa e carrega em ▶ Correr. O Nico segue as setas pela ordem!', pistas: ['Conta quantas casas tem de andar em cada direção.', 'Contorna as pedras.', 'Usa «Apagar» para tirar a última seta.'],
+    iniciar(api) {
+      let ronda = 0, pontos = 0;
+      const corpo = h('div'); api.area.append(corpo);
+      function nova() {
+        ronda++; corpo.innerHTML = '';
+        const N = 6; let ini, fimP, pedras;
+        do { ini = [ri(0, 5), ri(0, 5)]; fimP = [ri(0, 5), ri(0, 5)]; pedras = new Set(); for (let k = 0; k < 4 + ronda; k++) pedras.add(ri(0, 5) + ',' + ri(0, 5)); pedras.delete(ini.join(',')); pedras.delete(fimP.join(',')); }
+        while (Math.abs(ini[0] - fimP[0]) + Math.abs(ini[1] - fimP[1]) < 4 || !alcanca(ini, fimP, pedras, N));
+        const prog = [];
+        const grade = h('div', { class: 'rv-prog-g' }), lista = h('div', { class: 'rv-prog-l', 'aria-live': 'polite' }), fb = h('p', { class: 'rv-fb' });
+        const desenhar = (pos, rasto) => { grade.innerHTML = ''; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { const k = r + ',' + c; grade.append(h('span', { class: 'rv-prog-c' + (rasto && rasto.has(k) ? ' rasto' : '') }, pos[0] === r && pos[1] === c ? '🐾' : fimP[0] === r && fimP[1] === c ? '🪙' : pedras.has(k) ? '🪨' : '')); } };
+        const pintarProg = () => { lista.textContent = prog.length ? 'Programa: ' + prog.join(' ') : 'Programa: (vazio)'; };
+        const SET = { '↑': [-1, 0], '↓': [1, 0], '←': [0, -1], '→': [0, 1] };
+        const bts = h('div', { class: 'rv-prog-bt' }, ...Object.keys(SET).map(s => h('button', { type: 'button', class: 'btn btn-texto', onclick: () => { if (prog.length < 16) { prog.push(s); pintarProg(); som('clique'); } } }, s)),
+          h('button', { type: 'button', class: 'btn btn-texto', onclick: () => { prog.pop(); pintarProg(); } }, '⌫ Apagar'));
+        const correr = h('button', { type: 'button', class: 'btn btn-azul btn-grande' }, '▶ Correr');
+        corpo.append(h('p', { class: 'rv-enun' }, `Nível ${ronda} de 5 — leva o Nico até à moeda 🪙`), grade, lista, bts, correr, fb);
+        desenhar(ini); pintarProg();
+        correr.onclick = async () => {
+          if (!prog.length) return; correr.disabled = true;
+          let p = ini.slice(); const rasto = new Set([p.join(',')]); let bateu = false;
+          for (const s of prog) { await api.rel.espera(350); const q = [p[0] + SET[s][0], p[1] + SET[s][1]]; if (q[0] < 0 || q[1] < 0 || q[0] >= N || q[1] >= N || pedras.has(q.join(','))) { bateu = true; break; } p = q; rasto.add(p.join(',')); desenhar(p, rasto); }
+          const chegou = !bateu && p[0] === fimP[0] && p[1] === fimP[1];
+          if (chegou) { pontos++; fb.textContent = '✓ Chegou à moeda!'; fb.className = 'rv-fb ok'; som('sucesso'); api.conta(`${pontos} níveis`); api.rel.depois(() => ronda < 5 ? nova() : api.fim(pontos, 4), 1000); }
+          else { fb.textContent = bateu ? '✗ Bateu numa pedra ou na borda! Corrige o programa.' : '✗ Não chegou à moeda. Corrige o programa.'; fb.className = 'rv-fb mal'; correr.disabled = false; api.rel.depois(() => desenhar(ini), 900);
+            if (!corpo.querySelector('.rv-desistir')) corpo.append(h('button', { type: 'button', class: 'btn btn-texto rv-desistir', onclick: () => ronda < 5 ? nova() : api.fim(pontos, 4) }, 'Passar este nível')); }
+        };
+      }
+      api.conta('0 níveis'); nova();
+    } };
+  function alcanca(a, b, pedras, N) {
+    const vis = new Set([a.join(',')]), fila = [a];
+    while (fila.length) { const [r, c] = fila.shift(); if (r === b[0] && c === b[1]) return true; for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const q = [r + dr, c + dc], k = q.join(','); if (q[0] >= 0 && q[1] >= 0 && q[0] < N && q[1] < N && !pedras.has(k) && !vis.has(k)) { vis.add(k); fila.push(q); } } }
+    return false;
   }
 
   // ------------------------------------------------------------ arranque

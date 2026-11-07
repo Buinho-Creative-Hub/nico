@@ -37,6 +37,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
       const a = T.map(t => t.pergunta).join('|'); if (assin.has(a)) mesmoTeste++; assin.add(a);
       for (const it of T) { n++; tipos.add(it.k); if (!C.corrigir(it, certo(it)) || C.corrigir(it, errado(it))) maus.push(it.k + ': ' + it.pergunta); if (!R.COMPETENCIAS[it.k]) maus.push('sem competência ' + it.k); }
     }
+    for (const g of Object.values(R.G).flat()) for (let s = 0; s < 60; s++) { const it = R.gerarTipo(g.k, R.util.semente(s + 11)); if (!it) { maus.push('sem item ' + g.k); break; } if (!C.corrigir(it, certo(it)) || C.corrigir(it, errado(it))) { maus.push(g.k + ': ' + it.pergunta); break; } if (/undefined|NaN/.test(JSON.stringify(it))) { maus.push('undefined/NaN em ' + g.k); break; } }
     const total = Object.values(R.G).flat().length;
     // planificações: 11 das 35 hexominós são planificações do cubo
     const formas = new Map(); const rr = R.util.semente(3);
@@ -51,7 +52,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   console.log('Ecrã');
   await pg.evaluate(() => localStorage.clear());
   await pg.reload(); await pg.waitForSelector('.rv-teste');
-  ok(await pg.locator('.rv-tema').count() >= 10 && await pg.locator('.rv-jogo').count() === 8, 'menu: temas, mistura e 8 jogos');
+  ok(await pg.locator('.rv-tema').count() >= 10 && await pg.locator('.rv-jogo').count() === 16, 'menu: temas, mistura e 16 jogos');
   await foto('rv-01-menu');
   // treino: 8 exercícios, responder mal duas vezes ao 1.º e bem aos outros
   await pg.locator('.rv-tema').first().click();
@@ -97,7 +98,7 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
   // teste a sério certo: usar o motor para responder tudo certo e confirmar Muito Bom
   await pg.goto(url('revisoes.html', '?teste=1')); await pg.waitForSelector('.pv-nav button');
   // jogos
-  for (const j of ['tabuada', 'abaco', 'binario', 'reta', 'coordenadas', 'secreta', 'enigma', 'planificacoes']) {
+  for (const j of ['tabuada', 'abaco', 'binario', 'reta', 'coordenadas', 'secreta', 'enigma', 'planificacoes', 'memoria', 'feira', 'relogio', 'fracoes', 'sequencias', 'ordena', 'pares', 'programa']) {
     await pg.goto(url('revisoes.html', '?jogo=' + j)); await pg.waitForTimeout(400);
     ok(await pg.locator('.rv-jogo-palco *').count() > 3, 'jogo abre: ' + j);
     await foto('rv-j-' + j);

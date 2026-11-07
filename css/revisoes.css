@@ -97,3 +97,27 @@
 
 @media (max-width: 700px) { .rv-tr { grid-template-columns: 1fr 60px; } .rv-tr i { grid-column: 1 / -1; } .rv-planif { grid-template-columns: repeat(2, 1fr); } .rv-grade { grid-template-columns: 22px repeat(8, 36px); } .rv-g-c { width: 36px; height: 36px; } }
 .revisoes .pc-rodape[hidden], .revisoes .pv-pe[hidden], .revisoes .btn[hidden] { display: none !important; }
+
+/* 2.ª fornada de jogos */
+.rv-mini { font-size: 15px; color: #555; margin: 8px 0 4px; }
+.rv-memoria { display: grid; grid-template-columns: repeat(4, 150px); gap: 10px; justify-content: center; }
+.rv-mem { height: 90px; border: 3px solid #2b3a8f; border-radius: 10px; background: #2b3a8f; color: #fff; font: 700 24px 'Asap', sans-serif; cursor: pointer; }
+.rv-mem.aberta { background: #fff; color: #111; } .rv-mem.ok { background: #effaf3; border-color: #2f855a; color: #2f855a; }
+.rv-mesa, .rv-carteira { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 56px; padding: 8px; border-radius: 10px; }
+.rv-mesa { background: #fff8e6; border: 2px dashed #b07a45; }
+.rv-din { font: 700 17px 'Asap', sans-serif; cursor: pointer; border: 2px solid #333; }
+.rv-din.nota { width: 92px; height: 50px; border-radius: 6px; background: #cfe8d4; }
+.rv-din.moeda { width: 56px; height: 56px; border-radius: 50%; background: #f3d27a; }
+.rv-rel-bt { display: flex; gap: 8px; justify-content: center; align-items: center; margin: 8px 0 14px; flex-wrap: wrap; font-weight: 700; }
+.rv-rel-bt span { margin-left: 12px; }
+.rv-seq-q { font: 700 44px 'Asap', sans-serif; margin: 18px 0; }
+.rv-ordena { display: grid; grid-template-columns: repeat(4, 160px); gap: 10px; justify-content: center; }
+.rv-num { height: 64px; border: 3px solid #9fb3cc; border-radius: 10px; background: #fff; font: 700 22px 'Asap', sans-serif; cursor: pointer; }
+.rv-num.sel { border-color: #2b3a8f; background: #eef1ff; } .rv-num.ok { border-color: #2f855a; background: #effaf3; color: #2f855a; } .rv-num.mal { border-color: #c0392b; background: #fde2df; }
+.rv-prog-g { display: grid; grid-template-columns: repeat(6, 54px); gap: 3px; justify-content: center; margin: 0 auto 10px; }
+.rv-prog-c { width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; background: #f1f6e9; border: 2px solid #b8cfa0; border-radius: 4px; font-size: 28px; }
+.rv-prog-c.rasto { background: #fff1c2; }
+.rv-prog-l { font: 700 20px 'Asap', sans-serif; min-height: 30px; }
+.rv-prog-bt { display: flex; gap: 8px; justify-content: center; margin: 8px 0 12px; }
+.rv-prog-bt .btn { font-size: 24px; min-width: 60px; }
+@media (max-width: 700px) { .rv-memoria { grid-template-columns: repeat(3, 1fr); } .rv-ordena { grid-template-columns: repeat(2, 1fr); } }

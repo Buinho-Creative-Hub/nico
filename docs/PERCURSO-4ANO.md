@@ -86,7 +86,9 @@ de Matemática em 2025), mas é currículo do 4.º ano e dá contexto aos textos
 
 ## 0.1 Capítulo especial · «O Ginásio dos Números do Nico» — revisões do 3.º ano (7 Nov 2026)
 
-Pedido do Carlos para o **Jaime**, que vai ter um teste de recapitulação da Matemática do 3.º ano: muitos exercícios e jogos
+Pedido do Carlos para o **Jaime** (2.ª fornada no mesmo dia: +41 tipos de exercício — divisão com resto, múltiplos, estimativas,
+prova, propriedades, decimais, numeração romana, reta numérica, polígonos, retas, círculo, figuras equivalentes, tempo, calendário,
+séculos, pictogramas, Venn, tabelas de dupla entrada, caminhos, condições e repetições — e +8 jogos). O Jaime vai ter um teste de recapitulação da Matemática do 3.º ano: muitos exercícios e jogos
 na onda das fichas do manual, as contas feitas **no caderno** (a criança escreve só o resultado e o Nico verifica), um
 **resultado final com classificação**, testes **sempre diferentes** e, no fim, **onde está a falhar e o que tem de reforçar**.
 
@@ -98,14 +100,16 @@ Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mi
   avisa) e entrega, como a prova-ensaio. Resultado: certas e %, **menção do 1.º ciclo** (Insuficiente < 50 · Suficiente 50–69 ·
   Bom 70–89 · Muito Bom ≥ 90), as 3 pedras do manual (cumpri parcialmente · cumpri · cumpri com distinção), comparação com o teste
   anterior, barras por tema com «Treinar», **análise** e a correção com a resposta certa e a explicação.
-- **Análise:** cada exercício pertence a uma **competência** (64, em `COMPETENCIAS`). Cada resposta do teste e da 1.ª tentativa
+- **Análise:** cada exercício pertence a uma **competência** (100, em `COMPETENCIAS`; 114 tipos de exercício). Cada resposta do teste e da 1.ª tentativa
   do treino fica registada; contam as 12 mais recentes de cada competência. Mostra «neste teste falhaste em», «o que tens de
-  reforçar» (≥ 2 respostas e < 70 % certas, as piores primeiro) e «já está seguro» (≥ 3 respostas e ≥ 85 %). O botão
+  reforçar» (< 70 % certas nas recentes; primeiro as que já falharam várias vezes, depois os erros únicos) e «já está seguro» (≥ 3 respostas e ≥ 85 %). O botão
   **💪 Reforço dos pontos fracos** gera um treino só com essas competências (também no menu). O histórico dos testes tem gráfico.
 - **Treino por temas:** 8 exercícios; 2 tentativas, pistas do Nico em 3 níveis, explicação; exercícios de conta com faixa roxa
   e o aviso «📝 Faz a conta no caderno».
-- **Jogos (8):** tabuada-relâmpago (60 s), ábaco mágico, cartões binários, pontaria na reta numérica, caça ao tesouro nas
-  coordenadas, mensagem secreta (contas escondem letras), enigma dos símbolos, caça às planificações do cubo.
+- **Jogos (16):** tabuada-relâmpago (60 s), ábaco mágico, cartões binários, pontaria na reta numérica, caça ao tesouro nas
+  coordenadas, mensagem secreta (contas escondem letras), enigma dos símbolos, caça às planificações do cubo; e (2.ª fornada)
+  memória das contas, a banca da feira (pagar a quantia certa), acerta o relógio, pinta a fração, corrida das sequências (60 s),
+  ordena depressa, amigos do 100/1000 e programa o Nico (setas numa grelha com pedras).
 - **Moedas de cobre:** vão para a mesma carteira do Percurso (`nico.percurso4.v1`), no máximo 30 por dia neste capítulo
   (treino ≥ 6/8: 3 · jogo com objetivo: 3 · teste: 2/5/8 conforme a menção). O progresso fica em `nico.revisoes3.v1`, por aluno.
 - **Geometria e figuras exatas em SVG** (ábaco, frações, quadrícula, ângulos, cartões binários, planificações, coordenadas); a
