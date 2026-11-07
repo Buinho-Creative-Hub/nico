@@ -124,6 +124,7 @@
   function cartaoEspecial() {
     let ult = null; try { const d = JSON.parse(localStorage.getItem(F.chaveMissao({ chave: 'nico.revisoes3.v1' }))) || {}; ult = (d.testes || []).slice(-1)[0]; } catch (e) { /* */ }
     const b = h('a', { class: 'pc-sessao especial', href: 'revisoes.html' },
+      h('img', { src: 'img/revisoes/capa-ginasio.webp', alt: '', class: 'ps-capa-especial', loading: 'lazy' }),
       h('span', { class: 'ps-num' }, '⭐ Capítulo especial · sempre aberto'), h('strong', null, 'O Ginásio dos Números do Nico'),
       h('span', { class: 'ps-tema' }, 'Revisões de toda a Matemática do 3.º ano: treinos por tema, jogos e testes sempre diferentes, com classificação e análise do que reforçar.'),
       h('span', { class: 'ps-estado' }, ult ? `Último teste: ${ult.pct}% · ${ult.mencao}` : 'Entrar no ginásio'));

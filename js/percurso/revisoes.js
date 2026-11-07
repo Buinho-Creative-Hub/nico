@@ -85,13 +85,19 @@
     setTimeout(() => bx.lastChild && bx.lastChild.focus(), 30);
   }
   const som = n => { if (F.Som) F.Som.tocar(n); };
+  // arte do Ambrósio (PR #85, 7 Nov 2026) — img/revisoes/; o que é medida/resposta continua em SVG/HTML exato
+  const ART = 'img/revisoes/';
+  const icone = (nome, cls) => h('img', { src: ART + nome + '.webp', alt: '', class: cls || 'rv-ico', 'aria-hidden': 'true', loading: 'lazy' });
+  const PECAS = { '🌰': ['bolota', 'bolota'], '🍄': ['cogumelo', 'cogumelo'], '⭐': ['estrela', 'estrela'], '🐌': ['caracol', 'caracol'], '🍓': ['morango', 'morango'], '🔩': ['parafuso', 'parafuso'] };
+  const comPecas = t => t.replace(/🌰|🍄|⭐|🐌|🍓|🔩/gu, e => `<img class="rv-peca" src="${ART}peca-${PECAS[e][0]}.webp" alt="${PECAS[e][1]}">`);
+  const GRELHA = { nico: '<img class="rv-cel-img" src="img/percurso/nico-tartaruga-n.webp" alt="Nico">', moeda: '<img class="rv-cel-img" src="img/percurso/moeda-cobre.webp" alt="moeda">', pedra: `<img class="rv-cel-img" src="${ART}peca-pedra.webp" alt="pedra">` };
 
   // ------------------------------------------------------------ menu
   const JOGOS = {};
   function menu() {
     vista('vMenu');
     document.title = 'Nico · Capítulo especial · Revisões de Matemática';
-    $('menuMasc').src = masc.img('boas_vindas');
+    if ($('menuMasc')) $('menuMasc').remove();
     pintarMoedas();
     // o teste
     const ult = P.testes[P.testes.length - 1], melhor = P.testes.reduce((m, t) => Math.max(m, t.pct), -1);
@@ -110,18 +116,18 @@
       const tr = P.treinos[id];
       const b = h('button', { type: 'button', class: 'pc-sessao rv-tema' + (fracos.includes(id) ? ' fraco' : '') , style: `--cor:${t.cor}` },
         h('span', { class: 'ps-num' }, fracos.includes(id) ? '⚠ Treinar: correu menos bem no último teste' : 'Treino'),
-        h('strong', null, t.emoji + ' ' + t.nome),
+        h('strong', null, icone('tema-' + id), t.nome),
         h('span', { class: 'ps-estado' }, tr ? `${tr.rondas} ${tr.rondas === 1 ? 'treino feito' : 'treinos feitos'} · ${Math.round(100 * tr.certas / Math.max(1, tr.total))}% certas` : 'Começar'));
       b.onclick = () => treino(id);
       L.append(b);
     });
-    const bMix = h('button', { type: 'button', class: 'pc-sessao rv-tema treino' }, h('span', { class: 'ps-num' }, 'Treino'), h('strong', null, '🎲 Mistura de tudo'),
+    const bMix = h('button', { type: 'button', class: 'pc-sessao rv-tema treino' }, h('span', { class: 'ps-num' }, 'Treino'), h('strong', null, icone('tema-mix'), 'Mistura de tudo'),
       h('span', { class: 'ps-estado' }, 'Um pouco de cada tema'));
     bMix.onclick = () => treino('mix');
     L.append(bMix);
     const fr = reforcar(4);
     if (fr.length) {
-      const bR = h('button', { type: 'button', class: 'pc-sessao rv-tema fraco rv-reforco-cartao' }, h('span', { class: 'ps-num' }, 'Treino personalizado'), h('strong', null, '💪 Reforço dos pontos fracos'),
+      const bR = h('button', { type: 'button', class: 'pc-sessao rv-tema fraco rv-reforco-cartao' }, h('span', { class: 'ps-num' }, 'Treino personalizado'), h('strong', null, icone('tema-reforco'), 'Reforço dos pontos fracos'),
         h('span', { class: 'ps-tema' }, fr.map(f => f.nome).join(' · ')), h('span', { class: 'ps-estado' }, 'Treinar o que está a falhar'));
       bR.onclick = () => treino('reforco');
       L.prepend(bR);
@@ -131,8 +137,8 @@
     Object.entries(JOGOS).forEach(([id, j]) => {
       const rec = P.jogos[id];
       const nv = j.variantes ? j.variantes.length : 0, jogados = nv ? j.variantes.filter(([v]) => P.jogos[id + ':' + v]).length : 0;
-      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo' }, h('span', { class: 'ps-num' }, j.tema),
-        h('strong', null, j.emoji + ' ' + j.nome), h('span', { class: 'ps-tema' }, j.desc),
+      const b = h('button', { type: 'button', class: 'pc-sessao rv-jogo com-capa' }, icone('jogo-' + id, 'rv-capa'), h('span', { class: 'ps-num' }, j.tema),
+        h('strong', null, j.nome), h('span', { class: 'ps-tema' }, j.desc),
         h('span', { class: 'ps-estado' }, nv ? (jogados ? `Já jogaste ${jogados} das ${nv} versões · cada vez é diferente` : 'Jogar · cada vez é diferente') : rec ? `Recorde: ${rec.melhor}${j.unidade ? ' ' + j.unidade : ''}` : 'Jogar'));
       b.onclick = () => jogar(id);
       J.append(b);
@@ -186,6 +192,7 @@
     caixa.append(h('div', { class: 'pv-topo' }, h('strong', null, '📈 O meu percurso no Ginásio dos Números'), h('span', { class: 'pv-esp' }),
       h('button', { type: 'button', class: 'btn btn-texto', onclick: () => window.print() }, '🖨 Imprimir'), h('button', { type: 'button', class: 'btn btn-escuro', onclick: menu }, '← Ginásio')), corpo);
     corpo.append(R2);
+    R2.append(h('div', { class: 'rv-cab-perc' }, h('img', { src: ART + 'cabecalho-percurso.webp', alt: '', 'aria-hidden': 'true' }), h('h1', null, 'O meu percurso'), h('p', null, 'Ginásio dos Números do Nico · revisões da Matemática do 3.º ano')));
     if (!T.length) { R2.append(h('p', { class: 'rv-vazio' }, 'Ainda não há testes. Faz o primeiro teste e volta aqui!')); return; }
     // 1. resumo
     const pcts = T.map(t => t.pct), media = Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length), melhor = Math.max(...pcts);
@@ -208,7 +215,7 @@
       h('thead', null, h('tr', null, h('th', null, 'Tema'), ...ult.map(t => h('th', null, `T${T.indexOf(t) + 1}`, h('br'), h('small', null, t.quando.slice(5, 10).split('-').reverse().join('/')))), h('th', null, 'Evolução'))),
       h('tbody', null, temas.map(k => {
         const vals = ult.map(t => cel(t, k)), conh = vals.filter(v => v != null), d = conh.length > 1 ? conh[conh.length - 1] - conh[0] : null;
-        return h('tr', null, h('td', null, R.TEMAS[k].emoji + ' ' + R.TEMAS[k].nome),
+        return h('tr', null, h('td', null, icone('tema-' + k), R.TEMAS[k].nome),
           ...vals.map(v => h('td', { class: 'rv-cel ' + (v == null ? '' : v >= 0.75 ? 'bom' : v >= 0.5 ? 'medio' : 'fraco') }, v == null ? '—' : Math.round(100 * v) + '%')),
           h('td', { class: 'rv-evo' }, d == null ? '—' : (d > 0 ? '+' : '') + Math.round(100 * d) + seta(d)));
       })))));
@@ -408,21 +415,22 @@
       const ganhas = moedas([0, 2, 5, 8][M.gemas]);
       corpo.innerHTML = '';
       caixa.querySelector('.pv-pe').hidden = true; nav.innerHTML = ''; relogio.textContent = `${min} min`; relogio.style.background = '#fff';
-      const gemas = h('div', { class: 'rv-gemas', 'aria-label': `${M.gemas} de 3 pedras` }, [0, 1, 2].map(g => h('span', { class: g < M.gemas ? 'on' : '' }, '◆')));
+      const gemas = h('div', { class: 'rv-gemas', role: 'img', 'aria-label': `${M.gemas} de 3 pedras` }, [0, 1, 2].map(g => icone(g < M.gemas ? 'pedra-on' : 'pedra-off', 'rv-pedra')));
+      const FMEN = { 'Insuficiente': 'mencao-insuficiente', 'Suficiente': 'mencao-suficiente', 'Bom': 'mencao-bom', 'Muito Bom': 'mencao-muito-bom' };
       const anterior = P.testes.length > 1 ? P.testes[P.testes.length - 2].pct : null;
       const fracos = Object.entries(porTema).filter(([, [c, n]]) => c / n < 0.6).map(([t]) => t);
       const res = h('div', { class: 'pv-res rv-res' },
         h('div', { class: 'rv-res-topo' },
-          h('img', { src: masc.img(M.estado), alt: '' }),
+          h('img', { src: ART + FMEN[M.nome] + '.webp', alt: '', class: 'rv-mencao-img' }),
           h('div', null,
-            h('p', { class: 'rv-res-n' }, `${certas} de ${total} certas · ${pct}%`),
+            h('p', { class: 'rv-res-n' }, `${certas} de ${total} certas · ${pct}%`, anterior != null && pct > anterior ? h('img', { src: ART + 'medalha-subiu.webp', alt: 'Subiste em relação ao teste anterior', class: 'rv-medalha', title: 'Subiste em relação ao teste anterior' }) : null),
             h('h1', { class: 'rv-mencao m' + M.gemas }, M.nome), gemas,
             h('p', null, M.frase + (anterior != null ? (pct > anterior ? ` Subiste ${pct - anterior} pontos desde o teste anterior! 🚀` : pct === anterior ? ' Igual ao teste anterior.' : '') : '') + txtMoedas(ganhas)))),
         h('h2', null, 'Por tema'),
         h('div', { class: 'rv-temas-res' }, Object.entries(porTema).map(([t, [c, n]]) => {
           const p = c / n, antT = P.testes.length > 1 && P.testes[P.testes.length - 2].porTema[t], d = antT ? p - antT[0] / antT[1] : null;
           const b = h('div', { class: 'rv-tr ' + (p >= 0.75 ? 'bom' : p >= 0.5 ? 'medio' : 'fraco') },
-            h('span', null, R.TEMAS[t].emoji + ' ' + R.TEMAS[t].nome), h('i', null, h('b', { style: `width:${100 * p}%` })), h('strong', null, `${c} / ${n}`, h('small', { class: d > 0.05 ? 'rv-sobe' : d < -0.05 ? 'rv-desce' : '', title: 'em relação ao teste anterior' }, seta(d))));
+            h('span', null, icone('tema-' + t), R.TEMAS[t].nome), h('i', null, h('b', { style: `width:${100 * p}%` })), h('strong', null, `${c} / ${n}`, h('small', { class: d > 0.05 ? 'rv-sobe' : d < -0.05 ? 'rv-desce' : '', title: 'em relação ao teste anterior' }, seta(d))));
           if (p < 1) b.append(h('button', { type: 'button', class: 'btn btn-texto', onclick: () => treino(t) }, 'Treinar'));
           return b;
         })),
@@ -704,11 +712,11 @@
         if (api.v === 'tabuadas') { b = ri(2, 10); v = ri(2, 10); a = t === '×' ? v : b * v; if (t === '×') v = a * b; }
         else if (api.v === 'grandes') { a = ri(2000, 9999); b = ri(500, t === '+' ? 9999 : a - 100); v = t === '+' ? a + b : a - b; }
         else if (t === '+') { a = ri(120, 899); b = ri(50, 899); v = a + b; } else if (t === '−') { a = ri(300, 999); b = ri(50, a - 20); v = a - b; } else if (t === '×') { a = ri(12, 99); b = ri(2, 9); v = a * b; } else { b = ri(2, 9); v = ri(11, 99); a = b * v; }
-        const caixa = h('div', { class: 'rv-sec-l' }), L = h('b', null, '?'), inp = entrada('92px', ver);
+        const caixa = h('div', { class: 'rv-sec-l' }), L = h('b', null, h('img', { src: ART + 'cadeado-fechado.webp', alt: 'letra escondida', class: 'rv-cadeado' })), inp = entrada('92px', ver);
         caixa.append(L, h('span', null, `${U.fmt(a)} ${t} ${U.fmt(b)}`), inp); sec.append(caixa);
         function ver() {
           const n = num(inp.value); if (isNaN(n) || caixa.classList.contains('ok')) return;
-          if (n === v) { caixa.classList.add('ok'); caixa.classList.remove('mal'); L.textContent = letra; inp.disabled = true; certas++; som('apanhar'); const prox = sec.querySelector('.rv-sec-l:not(.ok) input'); if (prox) prox.focus(); }
+          if (n === v) { caixa.classList.add('ok'); caixa.classList.remove('mal'); L.innerHTML = ''; L.append(letra, h('img', { src: ART + 'cadeado-aberto.webp', alt: 'aberto', class: 'rv-cadeado mini' })); inp.disabled = true; certas++; som('apanhar'); const prox = sec.querySelector('.rv-sec-l:not(.ok) input'); if (prox) prox.focus(); }
           else { caixa.classList.add('mal'); erros++; }
           if (certas === palavra.length) { fb.textContent = `🎉 A palavra secreta é ${palavra.join('')}!`; fb.className = 'rv-fb ok'; api.rel.depois(() => api.fim(palavra.length, erros <= 2 ? palavra.length : palavra.length + 1, `Descobriste «${palavra.join('')}» com ${erros} ${erros === 1 ? 'erro' : 'erros'}.${erros > 2 ? ' Para ganhar moedas, no máximo 2 erros.' : ''}`), 1200); }
         }
@@ -731,8 +739,8 @@
         const L = [`${s[0]} + ${s[0]} + ${s[0]} = ${3 * a}`, `${s[0]} + ${s[1]} = ${a + b}`, `${s[2]} × ${s[1]} = ${b * c}`];
         const vals = [a, b, c]; let falhas = 0;
         if (api.v === 'dificil') { const k = ri(2, 6); L.push(`${s[3]} : ${s[0]} = ${k}`); vals.push(a * k); }
-        corpo.append(h('p', { class: 'rv-enun' }, `Enigma ${ronda} de 4`), h('div', { class: 'rv-enigma' }, L.map(t => h('div', null, t))));
-        const linhas = s.slice(0, vals.length).map((x, k) => { const inp = entrada('100px', () => ver(k)); const d = h('div', { class: 'rv-en-r' }, h('span', null, `${x} =`), inp); corpo.append(d); return { inp, d }; });
+        corpo.append(h('p', { class: 'rv-enun' }, `Enigma ${ronda} de 4`), h('div', { class: 'rv-enigma' }, L.map(t => h('div', { html: comPecas(t) }))));
+        const linhas = s.slice(0, vals.length).map((x, k) => { const inp = entrada('100px', () => ver(k)); const d = h('div', { class: 'rv-en-r' }, h('span', { html: comPecas(x) + ' =' }), inp); corpo.append(d); return { inp, d }; });
         const fb = h('p', { class: 'rv-fb' }); corpo.append(fb);
         function ver(k) {
           const n = num(linhas[k].inp.value); if (isNaN(n)) return;
@@ -995,7 +1003,7 @@
         while (Math.abs(ini[0] - fimP[0]) + Math.abs(ini[1] - fimP[1]) < 4 || !alcanca(ini, fimP, pedras, N));
         const prog = [], limite = api.v === 'curto' ? distancia(ini, fimP, pedras, N) : 16;
         const grade = h('div', { class: 'rv-prog-g', style: `grid-template-columns: repeat(${N}, 54px)` }), lista = h('div', { class: 'rv-prog-l', 'aria-live': 'polite' }), fb = h('p', { class: 'rv-fb' });
-        const desenhar = (pos, rasto) => { grade.innerHTML = ''; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { const k = r + ',' + c; grade.append(h('span', { class: 'rv-prog-c' + (rasto && rasto.has(k) ? ' rasto' : '') }, pos[0] === r && pos[1] === c ? '🐾' : fimP[0] === r && fimP[1] === c ? '🪙' : pedras.has(k) ? '🪨' : '')); } };
+        const desenhar = (pos, rasto) => { grade.innerHTML = ''; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) { const k = r + ',' + c; grade.append(h('span', { class: 'rv-prog-c' + (rasto && rasto.has(k) ? ' rasto' : ''), html: pos[0] === r && pos[1] === c ? GRELHA.nico : fimP[0] === r && fimP[1] === c ? GRELHA.moeda : pedras.has(k) ? GRELHA.pedra : '' })); } };
         const pintarProg = () => { lista.textContent = (prog.length ? 'Programa: ' + prog.join(' ') : 'Programa: (vazio)') + (api.v === 'curto' ? `  ·  ${prog.length} de ${limite} setas` : ''); };
         const SET = { '↑': [-1, 0], '↓': [1, 0], '←': [0, -1], '→': [0, 1] };
         const bts = h('div', { class: 'rv-prog-bt' }, ...Object.keys(SET).map(s => h('button', { type: 'button', class: 'btn btn-texto', onclick: () => { if (prog.length < limite) { prog.push(s); pintarProg(); som('clique'); } } }, s)),

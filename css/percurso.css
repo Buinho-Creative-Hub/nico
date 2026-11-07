@@ -829,3 +829,12 @@ img.pc-moeda { width: 22px; height: 22px; vertical-align: -5px; }
 .jj-bt { min-width: 96px; min-height: 52px; font-size: 20px; touch-action: none; user-select: none; }
 .jj-info { text-align: center; color: #555; font-size: 15px; margin: 4px 0; }
 .pc-arc-autor { display: block; font-size: 13px; color: #8a5a2b; }
+
+/* cartão do capítulo especial «O Ginásio dos Números» (revisoes.html) */
+.pc-sessao.especial { grid-column: 1 / -1; background: linear-gradient(100deg, #2b3a8f, #4651b8); color: #fff; border-color: #2b3a8f; display: grid; grid-template-columns: minmax(220px, 40%) 1fr; column-gap: 20px; align-items: center; text-decoration: none; }
+.pc-sessao.especial > * { grid-column: 2; }
+.pc-sessao.especial .ps-capa-especial { grid-column: 1; grid-row: 1 / span 4; width: 100%; height: auto; border-radius: 10px; }
+.pc-sessao.especial .ps-num { color: var(--sol, #f2b632); }
+.pc-sessao.especial .ps-tema { color: #e3e6ff; }
+.pc-sessao.especial:hover { background: linear-gradient(100deg, #24317a, #3b45a3); }
+@media (max-width: 700px) { .pc-sessao.especial { grid-template-columns: 1fr; } .pc-sessao.especial > *, .pc-sessao.especial .ps-capa-especial { grid-column: 1; grid-row: auto; } }

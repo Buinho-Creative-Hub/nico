@@ -137,6 +137,10 @@ Atalhos: `?teste=1` (teste novo), `?treino=num|ops|pro|fra|seq|geo|med|dad|pc|mi
   (`P.jogos['<jogo>:<modo>']`); atalho `?jogo=<id>&modo=<modo>`. Variante nova: `variantes: [[id, nome, descrição]]` e `api.v`.
 - **Moedas de cobre:** vão para a mesma carteira do Percurso (`nico.percurso4.v1`), no máximo 30 por dia neste capítulo
   (treino ≥ 6/8: 3 · jogo com objetivo: 3 · teste: 2/5/8 conforme a menção). O progresso fica em `nico.revisoes3.v1`, por aluno.
+- **Arte do Ambrósio** (buinho-os PR #85, 7 Nov 2026) em `img/revisoes/` (48 WebP): cenário do ginásio no topo do menu, capa no
+  cartão do Percurso, cabeçalho da folha «O meu percurso», ícones dos temas, capas dos 16 jogos, peças do enigma (bolota, cogumelo,
+  estrela, caracol, morango, parafuso), pedra e tesouro da grelha, cadeados da mensagem secreta, mel da feira, ilustrações das 4
+  menções, as 3 pedras e a medalha quando a nota sobe. O que é medida/resposta continua em SVG/HTML exato.
 - **Geometria e figuras exatas em SVG** (ábaco, frações, quadrícula, ângulos, cartões binários, planificações, coordenadas); a
   planificação do cubo é verificada a sério (o cubo «rola» sobre a figura), e o teste confirma as 11 de 35 hexaminós.
 

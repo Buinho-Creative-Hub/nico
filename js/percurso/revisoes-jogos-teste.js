@@ -22,7 +22,7 @@
     reta: r => { const max = U.pick(r, [1000, 10000, 100000]), a = U.ri(r, 5, 95) * max / 100; return { tema: 'num', max, alvo: a, pergunta: `🎮 Clica na reta numérica onde fica o ${U.fmt(a)}.`, instr: 'Conta como certo se ficar muito perto (a menos de 5% da reta).' }; },
     relogio: r => { const hh = U.ri(r, 1, 12), mm = U.pick(r, [0, 15, 30, 45, 5, 20, 40, 50]); return { tema: 'med', hh, mm, pergunta: `🎮 Acerta o relógio para as ${hh}h${String(mm).padStart(2, '0')}.`, instr: 'Usa os botões das horas e dos minutos.' }; },
     fracao: r => { const d = U.pick(r, [3, 4, 5, 6, 8, 10]), num = U.ri(r, 1, d - 1); return { tema: 'fra', d, num, pergunta: `🎮 Pinta ${num}/${d} da piza.`, instr: 'Clica nas partes para as pintar (e outra vez para despintar).' }; },
-    feira: r => { const p = U.ri(r, 1, 40) * 5 + U.ri(r, 0, 1) * U.ri(r, 1, 18) * 100; return { tema: 'med', preco: p, pergunta: `🎮 Na feira, um frasco de mel custa ${U.euros(p / 100)}. Paga a quantia exata.`, instr: 'Clica nas notas e moedas; clica no que está na mesa para o tirar.' }; },
+    feira: r => { const p = U.ri(r, 1, 40) * 5 + U.ri(r, 0, 1) * U.ri(r, 1, 18) * 100; return { tema: 'med', preco: p, pergunta: `🎮 Na feira, um frasco de mel custa ${U.euros(p / 100)}. Paga a quantia exata.`, imagem: 'img/revisoes/feira-mel-frasco.webp', instr: 'Clica nas notas e moedas; clica no que está na mesa para o tirar.' }; },
     coordenada: r => { const c = U.ri(r, 0, 7), l = U.ri(r, 0, 7); return { tema: 'geo', c, l, pergunta: `🎮 Clica na casa (${'abcdefgh'[c]}, ${l + 1}) da grelha.`, instr: 'Primeiro a letra (coluna), depois o número (linha).' }; },
     ordena: r => { const s = new Set(); while (s.size < 5) s.add(U.ri(r, 10, 99) * 1000 + U.ri(r, 0, 999)); return { tema: 'num', nums: [...s], pergunta: '🎮 Clica nos números do menor para o maior.', instr: 'Se te enganares, carrega em «Recomeçar».' }; },
     programa: r => {
@@ -150,7 +150,7 @@
     programa(el, it, st, mudou) {
       st.p = st.p || [];
       const ped = new Set(it.pedras), grade = h('div', { class: 'rv-prog-g' }), lista = h('div', { class: 'rv-prog-l' });
-      for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) { const k = r + ',' + c; grade.append(h('span', { class: 'rv-prog-c' }, it.ini[0] === r && it.ini[1] === c ? '🐾' : it.fim[0] === r && it.fim[1] === c ? '🪙' : ped.has(k) ? '🪨' : '')); }
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) { const k = r + ',' + c; const im = (f, alt) => `<img class="rv-cel-img" src="${f}" alt="${alt}">`; grade.append(h('span', { class: 'rv-prog-c', html: it.ini[0] === r && it.ini[1] === c ? im('img/percurso/nico-tartaruga-n.webp', 'Nico') : it.fim[0] === r && it.fim[1] === c ? im('img/percurso/moeda-cobre.webp', 'moeda') : ped.has(k) ? im('img/revisoes/peca-pedra.webp', 'pedra') : '' })); }
       const pintar = () => { lista.textContent = st.p.length ? 'Programa: ' + st.p.join(' ') : 'Programa: (vazio)'; };
       el.append(grade, lista, h('div', { class: 'rv-prog-bt' }, ...Object.keys(SET).map(s => btn(s, () => { if (st.p.length < 20) { st.p.push(s); pintar(); mudou(); } })), btn('⌫ Apagar', () => { st.p.pop(); pintar(); mudou(); })));
       pintar();
@@ -167,7 +167,7 @@
   };
   function montar(el, it, aoMudar) {
     el.innerHTML = '';
-    const caixa = h('div', { class: 'pc-enunciado rv-jogo-item' }, h('span', { class: 'rv-jogo-selo' }, '🎮 Jogo · ' + it.nomeJogo), h('p', { class: 'pe-pergunta' }, it.pergunta), it.instr ? h('p', { class: 'pe-instr' }, it.instr) : null);
+    const caixa = h('div', { class: 'pc-enunciado rv-jogo-item' }, h('span', { class: 'rv-jogo-selo' }, '🎮 Jogo · ' + it.nomeJogo), h('p', { class: 'pe-pergunta' }, it.pergunta), it.imagem ? h('img', { src: it.imagem, alt: '', class: 'rv-jt-img' }) : null, it.instr ? h('p', { class: 'pe-instr' }, it.instr) : null);
     const corpo = h('div', { class: 'rv-jogo-palco' }); caixa.append(corpo); el.append(caixa);
     let st = {}, ler = null;
     const desenhar = () => { corpo.innerHTML = ''; ler = M[it.jogo](corpo, it, st, () => aoMudar && aoMudar()); };
