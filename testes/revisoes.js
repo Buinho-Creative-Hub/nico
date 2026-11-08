@@ -107,16 +107,12 @@ const ok = (c, msg) => { if (c) console.log('  ✓ ' + msg); else { falhas++; co
     ok(await pg.locator('.rv-jogo-palco *').count() > 1, 'jogo abre (modo ou jogo): ' + j);
     await foto('rv-j-' + j);
   }
-  // limite de 25 minutos: aviso aos 5 min e entrega automática
+  // sem limite de tempo (8 Nov): passados 60 minutos o teste continua aberto, sem avisos nem entrega automática
   await pg.goto(url('revisoes.html', '?teste=1')); await pg.waitForSelector('.pv-nav button');
-  await pg.locator('#prova .it-opcao').first().click().catch(() => {});
-  ok(/Faltam 2[45]:/.test(await pg.textContent('.pv-tempo')), 'teste começa com 25 minutos: ' + await pg.textContent('.pv-tempo'));
-  await pg.evaluate(() => { const real = Date.now.bind(Date), t = real(); Date.now = () => real() + 20.5 * 60000; });
-  await pg.waitForTimeout(800);
-  ok(/5 minutos/.test(await pg.textContent('#balao')), 'aviso quando faltam 5 minutos');
-  await pg.evaluate(() => { const real = Date.now.bind(Date); Date.now = () => real() + 26 * 60000; });
-  await pg.waitForSelector('.rv-tempo-acabou', { timeout: 3000 }).catch(() => {});
-  ok(await pg.locator('.rv-tempo-acabou').count() === 1 && await pg.locator('.rv-mencao').count() === 1, 'ao fim de 25 minutos o teste é entregue sozinho, com classificação');
+  ok(/⏱ 0:0/.test(await pg.textContent('.pv-tempo')), 'o relógio só conta o tempo: ' + await pg.textContent('.pv-tempo'));
+  await pg.evaluate(() => { const real = Date.now.bind(Date); Date.now = () => real() + 60 * 60000; });
+  await pg.waitForTimeout(1200);
+  ok(await pg.locator('.rv-mencao').count() === 0 && await pg.locator('.pv-nav button').count() > 0 && /⏱ 60:/.test(await pg.textContent('.pv-tempo')), 'ao fim de 60 minutos o teste continua aberto (sem entrega automática)');
   await foto('rv-11-tempo');
   // análise do percurso: 4 testes simulados com evolução
   await pg.evaluate(() => {
