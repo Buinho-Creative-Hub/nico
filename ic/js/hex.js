@@ -135,11 +135,11 @@
         case 'mk_oled_texto': this.usa.add('oled'); return [p + `oled_texto(${this.expr(b, 'T', '""')})`];
         case 'mk_oled_numero': this.usa.add('oled'); return [p + `oled_texto(numero_texto(${this.expr(b, 'N', '0')}))`];
         case 'mk_oled_barra': this.usa.add('oled'); return [p + `oled_barra(${this.expr(b, 'V', '0')})`];
-        case 'so_barra': this.usa.add('soled'); return [p + `_sviver(lambda: so_barra(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '"dB"')})))`];
-        case 'so_grande': this.usa.add('soled'); return [p + `_sviver(lambda: so_grande(${this.expr(b, 'V')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '""')})))`];
-        case 'so_grafico': this.usa.add('soled'); return [p + `_sviver(lambda: so_grafico(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, ${this.expr(b, 'LO', '45')}, ${this.expr(b, 'HI', '65')}, str(${this.expr(b, 'ROT', '"SOUND"')})))`];
+        case 'so_barra': this.usa.add('soled'); return [p + `_sparar(); so_barra(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '"dB"')}))`];
+        case 'so_grande': this.usa.add('soled'); return [p + `_sparar(); so_grande(${this.expr(b, 'V')}, str(${this.expr(b, 'ROT', '"SOUND"')}), str(${this.expr(b, 'UN', '""')}))`];
+        case 'so_grafico': this.usa.add('soled'); return [p + `_sparar(); so_grafico(${this.expr(b, 'V')}, ${this.expr(b, 'MIN', '30')}, ${this.expr(b, 'MAX', '90')}, ${this.expr(b, 'LO', '45')}, ${this.expr(b, 'HI', '65')}, str(${this.expr(b, 'ROT', '"SOUND"')}))`];
         case 'so_grafico_reset': this.usa.add('soled'); return [p + 'so_recomecar()'];
-        case 'so_atividade': this.usa.add('soled'); return [p + `_sviver(lambda: so_atividade(${this.expr(b, 'MOV', 'False')}, ${this.expr(b, 'S', '10')}, str(${this.expr(b, 'ROT', '"ACTIVITY"')})))`];
+        case 'so_atividade': this.usa.add('soled'); return [p + `_sparar(); so_atividade(${this.expr(b, 'MOV', 'False')}, ${this.expr(b, 'S', '10')}, str(${this.expr(b, 'ROT', '"ACTIVITY"')}))`];
         case 'so_texto': this.usa.add('soled'); return [p + `so_texto(${this.expr(b, 'T', '""')}, ${this.expr(b, 'L', '0')})`];
         case 'so_limpar': this.usa.add('soled'); return [p + 'so_limpar()'];
         case 'so_escrever': this.usa.add('soled'); return [p + `so_escrever(${this.expr(b, 'T', '""')}, ${this.expr(b, 'X', '0')}, ${this.expr(b, 'Y', '0')}, ${Number(b.getFieldValue('K')) || 1})`];
@@ -473,17 +473,32 @@
           'def _sr(v):',
           '    return int((v + 0.5) // 1)',
           '',
+          '# sem ecrã ligado (OSError 19), o programa não pára: avisa «OLED?» uma vez e continua sem o ecrã',
           'def _sbegin():',
           '    global _sok',
-          '    if _sok:',
+          '    if _sok is not False:',
           '        return',
-          '    for c in (0xAE, 0xD5, 0x80, 0xA8, 0x3F, 0xD3, 0x00, 0x40, 0x8D, 0x14, 0x20, 0x00, 0xA1, 0xC8, 0xDA, 0x12, 0x81, 0xCF, 0xD9, 0xF1, 0xDB, 0x40, 0xA4, 0xA6, 0x2E, 0xAF):',
-          '        i2c.write(_SA, bytes([0, c]))',
+          '    try:',
+          '        for c in (0xAE, 0xD5, 0x80, 0xA8, 0x3F, 0xD3, 0x00, 0x40, 0x8D, 0x14, 0x20, 0x00, 0xA1, 0xC8, 0xDA, 0x12, 0x81, 0xCF, 0xD9, 0xF1, 0xDB, 0x40, 0xA4, 0xA6, 0x2E, 0xAF):',
+          '            i2c.write(_SA, bytes([0, c]))',
+          '    except OSError:',
+          '        _sok = None',
+          "        display.scroll('OLED?')",
+          '        return',
           '    _sok = True',
           '    i2c.init(freq=400000)',
           '    _sflush(True)',
           '',
           'def _sflush(tudo):',
+          '    global _sok',
+          '    if not _sok:',
+          '        return',
+          '    try:',
+          '        _sflush2(tudo)',
+          '    except OSError:',
+          '        _sok = False',
+          '',
+          'def _sflush2(tudo):',
           '    for p in range(8):',
           '        s = p * 128',
           '        if not tudo and _fb[s:s + 128] == _sent[s:s + 128]:',

@@ -328,6 +328,12 @@ Para as missões Toy hacking, Citizen sensing, Matemática, Natureza e o alargam
   do ruído» troca. No .hex: `_sviver(lambda: …)` + refresco no ciclo principal. «movimentos por minuto»/«nível de
   atividade» contam o PIR em segundo plano (pino do bloco PIR do programa, ou P13). Textos compridos em `escrever` e
   `mostrar texto na linha` continuam na linha de baixo (quebra nas palavras).
+- **Ecrã fixo (12 Nov, pedido do Carlos — substitui o «vivo» de 18 Out):** `barra de intensidade`, `número grande`,
+  `gráfico a passar` e `medidor de atividade` desenham UMA vez com o valor desse momento, como a IC-Oled no MakeCode —
+  para registar valores fixos («no botão B → número grande da humidade» fica parado). Para atualizar, põe-se o bloco
+  num «para sempre». `VIVOS` vazio em motor.js; no .hex `_sparar(); so_…(…)`.
+- **OLED desligado não pára o programa (12 Nov):** sem ecrã no I2C (OSError 19) o .hex passa «OLED?» uma vez e
+  continua sem o ecrã (`_sok`: False = por tentar, None = em falta, True = ligado).
 - **Servo em mais pinos (18 Out):** `escrever servo pin` aceita P0–P16 (como no MakeCode; o IoT:bit tem fichas de servo
   noutros pinos). P3, P4, P6, P7, P9 e P10 são do ecrã de luzes → o .hex põe `display.off()`; P5 e P11 são os botões A/B.
 - **No ecrã:** controlos «Ruído do kit», «Luz do kit», «Passar à frente do PIR» (3 s de movimento), «Temperatura /

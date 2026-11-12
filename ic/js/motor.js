@@ -7,7 +7,9 @@
   const F = window.Faisca;
 
   class Parado extends Error {}
-  const VIVOS = new Set(['so_barra', 'so_grande', 'so_grafico', 'so_atividade']);
+  // 12 Nov 2026 (Carlos): os painéis desenham UMA vez, com o valor desse momento (como a IC-Oled no MakeCode);
+  // para atualizar põe-se o bloco num «para sempre». Antes (18 Out) ficavam «vivos» — ver docs/PLATAFORMA.md.
+  const VIVOS = new Set();
   const BATIDA_MS = 500;      // 120 bpm, como o MakeCode
   // No MakeCode o «mostrar ícone» espera 600 ms. Aqui é quase imediato, de propósito:
   // sem «pausa» os desenhos mudam tão depressa que não se vêem — é isso que o desafio 2 ensina.
